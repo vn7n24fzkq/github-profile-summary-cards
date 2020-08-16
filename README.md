@@ -1,1 +1,1 @@
-# github-profile-card
+# github-profile-summary-card
