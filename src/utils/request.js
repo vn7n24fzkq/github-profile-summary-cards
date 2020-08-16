@@ -1,6 +1,6 @@
 const axios = require("axios");
 
-function request(header,data) {
+function request(header, data) {
   return axios({
     url: "https://api.github.com/graphql",
     method: "post",

@@ -1,7 +1,8 @@
+require('dotenv').config();
 const request = require("../../utils/request");
 
 const fetcher = (token, variables) => {
-  //contain private repo need token permission 
+  //contain private repo need token permission
   return request(
     {
       Authorization: `bearer ${token}`,
@@ -36,12 +37,12 @@ const fetcher = (token, variables) => {
 };
 
 //repos per language
-async function getRepoLanguage(username,token) {
+async function getRepoLanguage(username) {
   let hasNextPage = true;
   let cursor = null;
-  let languageMap = new Map(); 
-  let nodes=[];
-
+  let languageMap = new Map();
+  let nodes = [];
+  let token = process.env.GITHUB_TOKEN;
 
   try {
     while (hasNextPage) {
@@ -58,27 +59,24 @@ async function getRepoLanguage(username,token) {
       nodes.push(...res.data.data.user.repositories.nodes);
     }
 
-    nodes.forEach(node=>{
-        node.languages.edges.forEach(edge=>{
-            let langName = edge.node.name;
-            console.log(languageMap.has(langName));
-            if(languageMap.has(langName)){
-                let lang = languageMap.get(langName);
-                lang.count+=1;
-                languageMap.set(langName, lang);
-            }else{
-                languageMap.set(langName, {count:1,color:edge.node.color});
-            }
-        });
+    nodes.forEach((node) => {
+      node.languages.edges.forEach((edge) => {
+        let langName = edge.node.name;
+        if (languageMap.has(langName)) {
+          let lang = languageMap.get(langName);
+          lang.count += 1;
+          languageMap.set(langName, lang);
+        } else {
+          languageMap.set(langName, { count: 1, color: edge.node.color });
+        }
+      });
     });
-
   } catch (e) {
-      console.log("error");
-      if(e.response){
-        console.log(e.response.data);
-      }else{
-        console.log(e);
-      }
+    if (e.response) {
+      console.log(e.response.data);
+    } else {
+      console.log(e);
+    }
   }
 
   return languageMap;
