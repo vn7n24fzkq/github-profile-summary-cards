@@ -1,7 +1,7 @@
 {
-  "name": "github-profile-card",
+  "name": "github-profile-summary-card",
   "version": "0.0.1",
-  "description": "Generate github profile card",
+  "description": "Generate github profile summary card",
   "main": "src/app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
