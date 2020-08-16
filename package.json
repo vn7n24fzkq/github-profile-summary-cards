@@ -12,6 +12,8 @@
   "author": "vn7 <vn7n24fzkq@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.19.2"
+    "axios": "^0.19.2",
+    "d3": "^5.16.0",
+    "dotenv": "^8.2.0"
   }
 }
