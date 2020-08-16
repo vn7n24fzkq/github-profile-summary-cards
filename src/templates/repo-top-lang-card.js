@@ -10,7 +10,7 @@ function createLanguageNode() {}
 const createRepoLanguageCard = async function (username) {
   let langMap = await getRepoLanguage(username);
   for (let [key, value] of langMap) {
-    console.log(key + " = " + value);
+    console.log(key + " = " + value.count);
   }
 
   // Draw a line
