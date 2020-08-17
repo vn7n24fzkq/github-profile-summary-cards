@@ -25,23 +25,21 @@ const createRepoLanguageCard = async function (username) {
   });
   data = data.slice(0, 5);
 
- 
   for (let key in Theme) {
-      let value = Theme[key];
-  let svgString = createCardByTheme(data,value);
-  //output to folder
-  writeSVG("repo-per-language",key, svgString);
+    let value = Theme[key];
+    let svgString = createCardByTheme(data, value);
+    //output to folder
+    writeSVG("repo-per-language", key, svgString);
   }
-
 };
 
-function createCardByTheme(languageData,theme){
+function createCardByTheme(languageData, theme) {
   let pie = d3.pie().value(function (d) {
     return d.value;
   });
   let pieData = pie(languageData);
 
-  let card = new Card("Repos per Language", 500, 250,theme);
+  let card = new Card("Repos per Language", 350, 200, theme);
 
   let radius = Math.min(card.width, card.height) / 2.5;
 
@@ -58,9 +56,9 @@ function createCardByTheme(languageData,theme){
     .append("g")
     .attr(
       "transform",
-      `translate(${card.height / 6},${card.height / 2 - radius})`
+      `translate(${card.height / 4},${card.height / 2 - radius})`
     );
-  let labelHeight = 18;
+  let labelHeight = 14;
   legend
     .selectAll(null)
     .data(pieData)
@@ -68,7 +66,7 @@ function createCardByTheme(languageData,theme){
     .append("rect")
     .attr(
       "y",
-      (d) => labelHeight * d.index * 1.8 + card.height / 2 - radius - 15
+      (d) => labelHeight * d.index * 1.8 + card.height / 2 - radius - 12
     ) //rect y-coordinate need fix, decrease 15 can fix it but I don't know why.
     .attr("width", labelHeight)
     .attr("height", labelHeight)
@@ -96,7 +94,7 @@ function createCardByTheme(languageData,theme){
     .append("g")
     .attr(
       "transform",
-      `translate( ${card.width - radius - 15}, ${card.height / 2 - 10} )`
+      `translate( ${card.width - radius - 20}, ${card.height / 2 - 10} )`
     )
     .selectAll(".arc")
     .data(pieData)
@@ -111,7 +109,7 @@ function createCardByTheme(languageData,theme){
     })
     .attr("stroke", "white")
     .style("stroke-width", "3px");
-    return card.toString();
+  return card.toString();
 }
 
 module.exports = createRepoLanguageCard;

@@ -3,7 +3,12 @@ const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
 
 class Card {
-  constructor(title = "Title", width = 1280, height = 1024, theme=Theme["default"]) {
+  constructor(
+    title = "Title",
+    width = 1280,
+    height = 1024,
+    theme = Theme["default"]
+  ) {
     this.title = title;
     this.width = width;
     this.height = height;
@@ -20,8 +25,8 @@ class Card {
       .attr("viewBox", `0 0 ${this.width} ${this.height}`);
     this.svg
       .append("rect")
-      .attr("x", 2)
-      .attr("y", 2)
+      .attr("x", 1.5)
+      .attr("y", 1.5)
       .attr("rx", 20)
       .attr("ry", 20)
       .attr("height", "98%")
@@ -38,7 +43,7 @@ class Card {
         .attr("x", 30)
         .attr("y", 40)
         .style("font-family", "sans-serif")
-        .style("font-size", `25px`)
+        .style("font-size", `20px`)
         .style("fill", `${theme.title_color}`)
         .text(this.title);
     }
