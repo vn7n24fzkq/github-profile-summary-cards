@@ -1,9 +1,10 @@
 const fs = require("fs");
-const writeSVG = function (filename, svgString) {
-  const folder = "./profile-summary-card-output/";
-  fs.mkdir(folder, { recursive: true }, (err) => {
+const rootPath = "./profile-summary-card-output/";
+const writeSVG = function (folder,filename, svgString) {
+  const targetFolder = `${rootPath}${folder}/`
+  fs.mkdir(targetFolder, { recursive: true }, (err) => {
     if (err) throw err;
-    fs.writeFileSync(`${folder}${filename}.svg`, svgString, function (
+    fs.writeFileSync(`${targetFolder}${filename}.svg`, svgString, function (
       err,
       result
     ) {
