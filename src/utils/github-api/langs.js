@@ -68,7 +68,10 @@ async function getRepoLanguage(username) {
           lang.count += 1;
           languageMap.set(langName, lang);
         } else {
-          languageMap.set(langName, { count: 1, color: edge.node.color });
+          languageMap.set(langName, {
+            count: 1,
+            color: edge.node.color == null ? "#586e75" : edge.node.color,
+          });
         }
       });
     });
