@@ -116,5 +116,9 @@ dist
 .pnp.*
 
 
+
+#custom output
+profile-summary-card-output/
+
 #ctag
 tags

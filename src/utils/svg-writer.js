@@ -1,6 +1,6 @@
 const fs = require("fs");
-module.exports.save = function (filename, svgString) {
-  const folder = "/tmp/github-svg/";
+const writeSVG = function (filename, svgString) {
+  const folder = "./profile-summary-card-output/";
   fs.mkdir(folder, { recursive: true }, (err) => {
     if (err) throw err;
   });
