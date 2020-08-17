@@ -25,12 +25,23 @@ const createRepoLanguageCard = async function (username) {
   });
   data = data.slice(0, 5);
 
+ 
+  for (let key in Theme) {
+      let value = Theme[key];
+  let svgString = createCardByTheme(data,value);
+  //output to folder
+  writeSVG("repo-per-language",key, svgString);
+  }
+
+};
+
+function createCardByTheme(languageData,theme){
   let pie = d3.pie().value(function (d) {
     return d.value;
   });
-  let pieData = pie(data);
+  let pieData = pie(languageData);
 
-  let card = new Card("Repos per Language", 400, 250);
+  let card = new Card("Repos per Language", 500, 250,theme);
 
   let radius = Math.min(card.width, card.height) / 2.5;
 
@@ -76,7 +87,7 @@ const createRepoLanguageCard = async function (username) {
     })
     .attr("x", labelHeight * 1.2)
     .attr("y", (d) => labelHeight * d.index * 1.8 + card.height / 2 - radius)
-    .style("fill", "#586e75")
+    .style("fill", theme.text_color)
     .style("font-family", "sans-serif")
     .style("font-size", `${labelHeight}px`);
 
@@ -100,9 +111,7 @@ const createRepoLanguageCard = async function (username) {
     })
     .attr("stroke", "white")
     .style("stroke-width", "3px");
-
-  //output to folder
-  writeSVG("test", card.toString());
-};
+    return card.toString();
+}
 
 module.exports = createRepoLanguageCard;

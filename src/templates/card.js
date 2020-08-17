@@ -3,7 +3,7 @@ const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
 
 class Card {
-  constructor(title = "Title", width = 1280, height = 1024) {
+  constructor(title = "Title", width = 1280, height = 1024, theme=Theme["default"]) {
     this.title = title;
     this.width = width;
     this.height = height;
@@ -20,15 +20,15 @@ class Card {
       .attr("viewBox", `0 0 ${this.width} ${this.height}`);
     this.svg
       .append("rect")
-      .attr("x", 0)
-      .attr("y", 0)
-      .attr("rx", 10)
-      .attr("ry", 10)
-      .attr("height", "100%")
-      .attr("width", "100%")
-      .attr("stroke", "#fdf6e3")
+      .attr("x", 2)
+      .attr("y", 2)
+      .attr("rx", 20)
+      .attr("ry", 20)
+      .attr("height", "98%")
+      .attr("width", "98%")
+      .attr("stroke", `${theme.stroke_color}`)
       .attr("stroke-width", "4")
-      .attr("fill", "#fdf6e3")
+      .attr("fill", `${theme.bg_color}`)
       .attr("stroke-opacity", 1);
 
     let isEmptyTitle = this.title == "";
@@ -39,7 +39,7 @@ class Card {
         .attr("y", 40)
         .style("font-family", "sans-serif")
         .style("font-size", `25px`)
-        .style("fill", "#586e75")
+        .style("fill", `${theme.title_color}`)
         .text(this.title);
     }
     this.svg = this.svg
