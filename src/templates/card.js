@@ -42,7 +42,7 @@ class Card {
         .append("text")
         .attr("x", 30)
         .attr("y", 40)
-        .style("font-family", "sans-serif")
+        .style("font-family", "'Lucida Sans Unicode', 'Lucida Grande', sans-serif")
         .style("font-size", `20px`)
         .style("fill", `${theme.title_color}`)
         .text(this.title);

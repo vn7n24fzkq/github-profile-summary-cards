@@ -86,7 +86,7 @@ function createCardByTheme(languageData, theme) {
     .attr("x", labelHeight * 1.2)
     .attr("y", (d) => labelHeight * d.index * 1.8 + card.height / 2 - radius)
     .style("fill", theme.text_color)
-    .style("font-family", "sans-serif")
+    .style("font-family", "'Lucida Sans Unicode', 'Lucida Grande', sans-serif")
     .style("font-size", `${labelHeight}px`);
 
   //draw pie chart
