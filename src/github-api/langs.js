@@ -1,8 +1,10 @@
 require("dotenv").config();
-const request = require("../../utils/request");
+const request = require("../utils/request");
+
+const privacy = process.env.CONTAIN_PRAIVTE == 1 ? "" : "privacy: PUBLIC";
+const githubToken = process.env.GITHUB_TOKEN;
 
 const fetcher = (token, variables) => {
-  let privacy = process.env.CONTAIN_PRAIVTE == 1 ? "" : "privacy: PUBLIC";
   //contain private repo need token permission
   return request(
     {
@@ -43,17 +45,16 @@ async function getRepoLanguage(username) {
   let cursor = null;
   let languageMap = new Map();
   let nodes = [];
-  let token = process.env.GITHUB_TOKEN;
 
   try {
     while (hasNextPage) {
-      let res = await fetcher(token, {
+      let res = await fetcher(githubToken, {
         login: username,
         endCursor: cursor,
       });
 
       if (res.data.errors) {
-        throw Error(res.data.errors[0].message || "Could not fetch user");
+        throw Error(res.data.errors[0].message || "Github api fail");
       }
       cursor = res.data.data.user.repositories.pageInfo.endCursor;
       hasNextPage = res.data.data.user.repositories.pageInfo.hasNextPage;
