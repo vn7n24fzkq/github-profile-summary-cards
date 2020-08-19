@@ -31,7 +31,7 @@ const fetcher = (token, variables) => {
         		repositoriesContributedTo(${privacy}) {
         			totalCount
         		}
-                repositories(first: 100, ownerAffiliations: OWNER, isFork: false) {
+                repositories(first: 100, ownerAffiliations: OWNER, isFork: false, privacy: PUBLIC) {
                   totalCount
                   nodes {
                     stargazers {
