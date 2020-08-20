@@ -14,13 +14,11 @@ const fetcher = (token, variables) => {
       query: `
         query userInfo($login: String!) {
         	user(login: $login) {
+                login
                 name
         		email
         		createdAt
         		twitterUsername
-        		repositories(${privacy}) {
-        			totalCount
-        		}
         
         		issues {
         			totalCount
@@ -28,11 +26,13 @@ const fetcher = (token, variables) => {
         		pullRequests {
         			totalCount
         		}
+                followers{
+                    totalCount
+                }
         		repositoriesContributedTo(${privacy}) {
         			totalCount
         		}
-                repositories(first: 100, ownerAffiliations: OWNER, isFork: false, privacy: PUBLIC) {
-                  totalCount
+                repositories(first: 100, ownerAffiliations: OWNER, isFork: false,${privacy}) {
                   nodes {
                     stargazers {
                       totalCount
@@ -60,7 +60,7 @@ async function getProfileDetails(username) {
     };
 
   try {
-      let res = (await fetcher(githubToken, {
+      let res = await fetcher(githubToken, {
         login: username,
       });
 
@@ -76,7 +76,7 @@ async function getProfileDetails(username) {
       result.issueCount = user.issues.totalCount;
       result.pullRequestCount = user.pullRequests.totalCount;
       result.repoContributedCount = user.repositoriesContributedTo.totalCount;
-      result.starCount = user.repositories.totalCount;
+      result.starCount = user.repositories.stargazers.toString;
 
   } catch (e) {
     if (e.response) {
@@ -86,7 +86,7 @@ async function getProfileDetails(username) {
     }
   }
 
-  return languageMap;
+  return result;
 }
 
 module.exports = getProfileDetails;

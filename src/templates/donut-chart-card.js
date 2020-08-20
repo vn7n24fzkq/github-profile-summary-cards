@@ -1,45 +1,16 @@
 const Theme = require("../const/theme");
-const getRepoLanguage = require("../utils/github-api/langs");
 const writeSVG = require("../utils/svg-writer");
 const Card = require("./card");
 const d3 = require("d3");
 
-function logMapElements(value, key, map) {}
 
-function createLanguageNode() {}
-
-const createRepoLanguageCard = async function (username) {
-  let langMap = await getRepoLanguage(username);
-  let data = [];
-
-  //make a pie data
-  for (let [key, value] of langMap) {
-    data.push({
-      name: key,
-      value: value.count,
-      color: value.color,
-    });
-  }
-  data.sort(function (a, b) {
-    return b.value - a.value;
-  });
-  data = data.slice(0, 5);
-
-  for (let key in Theme) {
-    let value = Theme[key];
-    let svgString = createCardByTheme(data, value);
-    //output to folder
-    writeSVG("repo-per-language", key, svgString);
-  }
-};
-
-function createCardByTheme(languageData, theme) {
+function createDonutChartCard(title, data, theme) {
   let pie = d3.pie().value(function (d) {
     return d.value;
   });
-  let pieData = pie(languageData);
+  let pieData = pie(data);
 
-  let card = new Card("Repos per Language", 350, 200, theme);
+  let card = new Card(title, 350, 200, theme);
 
   let radius = Math.min(card.width, card.height) / 2.5;
 
@@ -112,4 +83,4 @@ function createCardByTheme(languageData, theme) {
   return card.toString();
 }
 
-module.exports = createRepoLanguageCard;
+module.exports = createDonutChartCard;
