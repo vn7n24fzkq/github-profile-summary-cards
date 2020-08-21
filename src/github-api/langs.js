@@ -62,7 +62,8 @@ async function getRepoLanguage(username) {
     }
 
     nodes.forEach((node) => {
-      node.languages.edges.forEach((edge) => {
+      if(node.languages.edges.length>0){
+        let edge = node.languages.edges[0];
         let langName = edge.node.name;
         if (languageMap.has(langName)) {
           let lang = languageMap.get(langName);
@@ -74,7 +75,7 @@ async function getRepoLanguage(username) {
             color: edge.node.color == null ? "#586e75" : edge.node.color,
           });
         }
-      });
+      }
     });
   } catch (e) {
     if (e.response) {
