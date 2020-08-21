@@ -12,35 +12,28 @@ const fetcher = (token, variables) => {
     },
     {
       query: `
-        query userInfo($login: String!) {
-        	user(login: $login) {
-                login
-                name
-        		email
-        		createdAt
-        		twitterUsername
-        
-        		issues {
-        			totalCount
-        		}
-        		pullRequests {
-        			totalCount
-        		}
-                followers{
-                    totalCount
-                }
-        		repositoriesContributedTo(${privacy}) {
-        			totalCount
-        		}
-                repositories(first: 100, ownerAffiliations: OWNER, isFork: false,${privacy}) {
-                  nodes {
-                    stargazers {
-                      totalCount
-                    }
-                  }
-                }
-        	}
+      query userInfo($login: String!) {
+        user(login: $login) {
+            name
+            email
+            createdAt
+            twitterUsername
+            repositories(privacy:PUBLIC, isFork:false){
+                totalCount
+            }
+            contributionsCollection {
+                totalIssueContributions
+                totalCommitContributions
+                totalRepositoryContributions
+                totalPullRequestContributions
+                totalPullRequestReviewContributions
+                contributionCalendar {
+                    totalContributions
+            }
+          }
         }
+      }
+
       `,
       variables,
     }
@@ -53,10 +46,8 @@ async function getProfileDetails(username) {
         name:"",
         email:"",
         joinedAt:"",
-        issueCount:0,
-        pullRequestCount:0,
-        repoContributedCount:0,
-        starCount:0,
+        totalContributions:0,
+        totalPublicRepos:0,
     };
 
   try {
@@ -73,10 +64,8 @@ async function getProfileDetails(username) {
       result.name = user.name;
       result.email = user.email;
       result.joinedAt = user.createdAt;
-      result.issueCount = user.issues.totalCount;
-      result.pullRequestCount = user.pullRequests.totalCount;
-      result.repoContributedCount = user.repositoriesContributedTo.totalCount;
-      result.starCount = user.repositories.stargazers.toString;
+      result.totalContributions = user.contributionsCollection.contributionCalendar.totalContributions;
+      result.totalPublicRepos = user.repositories.totalCount;
 
   } catch (e) {
     if (e.response) {
