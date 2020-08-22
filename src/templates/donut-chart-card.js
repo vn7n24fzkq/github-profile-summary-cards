@@ -1,16 +1,12 @@
-const writeSVG = require("../utils/svg-writer");
 const Card = require("./card");
 const d3 = require("d3");
-
 
 function createDonutChartCard(title, data, theme) {
   let pie = d3.pie().value(function (d) {
     return d.value;
   });
   let pieData = pie(data);
-
   let card = new Card(title, 350, 200, theme);
-
   let radius = Math.min(card.width, card.height) / 2.5;
 
   let arc = d3
@@ -37,7 +33,7 @@ function createDonutChartCard(title, data, theme) {
     .attr(
       "y",
       (d) => labelHeight * d.index * 1.8 + card.height / 2 - radius - 12
-    ) //rect y-coordinate need fix, decrease 15 can fix it but I don't know why.
+    ) //rect y-coordinate need fix,so I decrease y, but I don't know why this need fix.
     .attr("width", labelHeight)
     .attr("height", labelHeight)
     .attr("fill", (pieData) => pieData.data.color)
