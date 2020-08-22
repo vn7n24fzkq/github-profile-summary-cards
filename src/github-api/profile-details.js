@@ -18,7 +18,7 @@ const fetcher = (token, variables) => {
             email
             createdAt
             twitterUsername
-            repositories(privacy:PUBLIC, isFork:false){
+            repositories(privacy:PUBLIC){
                 totalCount
             }
             contributionsCollection {
