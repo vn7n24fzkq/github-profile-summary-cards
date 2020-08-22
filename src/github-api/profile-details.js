@@ -5,8 +5,8 @@ const privacy = process.env.CONTAIN_PRAIVTE == 1 ? "" : "privacy: PUBLIC";
 const githubToken = process.env.GITHUB_TOKEN;
 
 const fetcher = (token, variables) => {
-    //contain private need token permission
-    //contributionsCollection default to a year ago
+  //contain private need token permission
+  //contributionsCollection default to a year ago
   return request(
     {
       Authorization: `bearer ${token}`,
@@ -29,9 +29,17 @@ const fetcher = (token, variables) => {
                 totalPullRequestContributions
                 totalPullRequestReviewContributions
                 contributionCalendar {
+                    weeks {
+                        contributionDays {
+                            contributionCount
+                            date
+                        }
+                    }
+                }
+                contributionCalendar {
                     totalContributions
+                }
             }
-          }
         }
       }
 
@@ -43,31 +51,40 @@ const fetcher = (token, variables) => {
 
 //repos per language
 async function getProfileDetails(username) {
-    let result = {
-        name:"",
-        email:"",
-        joinedAt:"",
-        totalContributions:0,
-        totalPublicRepos:0,
-    };
+  let result = {
+    name: "",
+    email: "",
+    joinedAt: "",
+    totalContributions: 0,
+    totalPublicRepos: 0,
+    contributions = []
+  };
 
   try {
-      let res = await fetcher(githubToken, {
-        login: username,
-      });
+    let res = await fetcher(githubToken, {
+      login: username,
+    });
 
-      if (res.data.errors) {
-        throw Error(res.data.errors[0].message || "Github api fail");
+    if (res.data.errors) {
+      throw Error(res.data.errors[0].message || "Github api fail");
+    }
+
+    let user = res.data.data.user;
+
+    result.name = user.name;
+    result.email = user.email;
+    result.joinedAt = user.createdAt;
+    result.totalContributions =
+      user.contributionsCollection.contributionCalendar.totalContributions;
+    result.totalPublicRepos = user.repositories.totalCount;
+
+    //contributions into array
+    let lastDate = "1900-01";
+    for (let week of user.contributionsCollection.contributionCalendar.weeks) {
+      for (let day of week.contributionDays) {
+        user.contributions.push(day);
       }
-
-      let user = res.data.data.user;
-
-      result.name = user.name;
-      result.email = user.email;
-      result.joinedAt = user.createdAt;
-      result.totalContributions = user.contributionsCollection.contributionCalendar.totalContributions;
-      result.totalPublicRepos = user.repositories.totalCount;
-
+    }
   } catch (e) {
     if (e.response) {
       console.log(e.response.data);
