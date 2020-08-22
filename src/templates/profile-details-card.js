@@ -1,6 +1,4 @@
-const theme = require("../const/theme");
 const getRepoLanguage = require("../github-api/profile-details");
-const writeSVG = require("../utils/svg-writer");
 const Card = require("./card");
 const d3 = require("d3");
 

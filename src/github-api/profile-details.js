@@ -5,7 +5,8 @@ const privacy = process.env.CONTAIN_PRAIVTE == 1 ? "" : "privacy: PUBLIC";
 const githubToken = process.env.GITHUB_TOKEN;
 
 const fetcher = (token, variables) => {
-  //contain private need token permission
+    //contain private need token permission
+    //contributionsCollection default to a year ago
   return request(
     {
       Authorization: `bearer ${token}`,

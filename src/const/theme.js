@@ -1,4 +1,4 @@
-const Theme = {
+const Themes = {
     default: {
         title_color:"#000000",
         text_color:"#000000",
@@ -15,4 +15,4 @@ const Theme = {
     },
 };
 
-module.exports = Theme;
+module.exports = Themes;

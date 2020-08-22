@@ -1,4 +1,3 @@
-const Theme = require("../const/theme");
 const writeSVG = require("../utils/svg-writer");
 const Card = require("./card");
 const d3 = require("d3");
