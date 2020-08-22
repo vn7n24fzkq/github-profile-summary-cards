@@ -57,7 +57,7 @@ async function getProfileDetails(username) {
     joinedAt: "",
     totalContributions: 0,
     totalPublicRepos: 0,
-    contributions = []
+    contributions: [],
   };
 
   try {
@@ -79,10 +79,9 @@ async function getProfileDetails(username) {
     result.totalPublicRepos = user.repositories.totalCount;
 
     //contributions into array
-    let lastDate = "1900-01";
     for (let week of user.contributionsCollection.contributionCalendar.weeks) {
       for (let day of week.contributionDays) {
-        user.contributions.push(day);
+        result.contributions.push(day);
       }
     }
   } catch (e) {
