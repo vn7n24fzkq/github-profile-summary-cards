@@ -18,14 +18,14 @@ function createDonutChartCard(title, data, theme) {
 
   //draw language node
 
-  const legend = svg
+  const panel = svg
     .append("g")
     .attr(
       "transform",
       `translate(${card.height / 4},${card.height / 2 - radius})`
     );
   let labelHeight = 14;
-  legend
+  panel
     .selectAll(null)
     .data(pieData)
     .enter()
@@ -40,8 +40,8 @@ function createDonutChartCard(title, data, theme) {
     .attr("stroke", "white")
     .style("stroke-width", "1px");
 
-  //set langu text
-  legend
+  //set language text
+  panel
     .selectAll(null)
     .data(pieData)
     .enter()
