@@ -12,6 +12,8 @@ class Card {
     this.title = title;
     this.width = width;
     this.height = height;
+    this.xPadding = 30;
+    this.yPadding = 40;
     // use fake dom let us can get html element
     const fakeDom = new JSDOM("<!DOCTYPE html><html><body></body></html>");
     this.body = d3.select(fakeDom.window.document).select("body");
@@ -40,8 +42,8 @@ class Card {
     if (!isEmptyTitle) {
       this.svg
         .append("text")
-        .attr("x", 30)
-        .attr("y", 40)
+        .attr("x", this.xPadding)
+        .attr("y", this.yPadding)
         .style("font-family", "'Lucida Sans Unicode', 'Lucida Grande', sans-serif")
         .style("font-size", `20px`)
         .style("fill", `${theme.title_color}`)
@@ -49,7 +51,7 @@ class Card {
     }
     this.svg = this.svg
       .append("g")
-      .attr("transform", `translate(0,${isEmptyTitle ? 0 : 30})`);
+      .attr("transform", `translate(0,${isEmptyTitle ? 0 : this.yPadding})`);
   }
 
   getSVG() {
