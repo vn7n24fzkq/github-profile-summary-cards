@@ -81,6 +81,7 @@ async function getProfileDetails(username) {
     //contributions into array
     for (let week of user.contributionsCollection.contributionCalendar.weeks) {
       for (let day of week.contributionDays) {
+          day.date = new Date(day.date);
         result.contributions.push(day);
       }
     }
