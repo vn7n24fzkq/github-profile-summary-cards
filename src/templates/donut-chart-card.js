@@ -9,7 +9,8 @@ function createDonutChartCard(title, data, theme) {
   let card = new Card(title, 350, 200, theme);
 
   let margin = 10;
-  let radius = (Math.min(card.width, card.height) - 2 * margin - card.yPadding)/2;
+  let radius =
+    (Math.min(card.width, card.height) - 2 * margin - card.yPadding) / 2;
 
   let arc = d3
     .arc()
@@ -21,10 +22,7 @@ function createDonutChartCard(title, data, theme) {
 
   const panel = svg
     .append("g")
-    .attr(
-      "transform",
-      `translate(${card.xPadding+margin},${0})`
-    );
+    .attr("transform", `translate(${card.xPadding + margin},${0})`);
   let labelHeight = 14;
   panel
     .selectAll(null)
@@ -61,7 +59,9 @@ function createDonutChartCard(title, data, theme) {
     .append("g")
     .attr(
       "transform",
-      `translate( ${card.width - radius - margin - card.xPadding}, ${(card.height - card.yPadding) / 2} )`
+      `translate( ${card.width - radius - margin - card.xPadding}, ${
+        (card.height - card.yPadding) / 2
+      } )`
     )
     .selectAll(".arc")
     .data(pieData)
