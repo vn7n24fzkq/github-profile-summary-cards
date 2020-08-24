@@ -34,7 +34,7 @@ class Card {
       .attr("height", "98%")
       .attr("width", "98%")
       .attr("stroke", `${theme.stroke_color}`)
-      .attr("stroke-width", "4")
+      .attr("stroke-width", "2")
       .attr("fill", `${theme.bg_color}`)
       .attr("stroke-opacity", 1);
 
@@ -44,7 +44,10 @@ class Card {
         .append("text")
         .attr("x", this.xPadding)
         .attr("y", this.yPadding)
-        .style("font-family", "'Lucida Sans Unicode', 'Lucida Grande', sans-serif")
+        .style(
+          "font-family",
+          "'Lucida Sans Unicode', 'Lucida Grande', sans-serif"
+        )
         .style("font-size", `20px`)
         .style("fill", `${theme.title_color}`)
         .text(this.title);

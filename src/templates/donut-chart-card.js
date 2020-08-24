@@ -6,8 +6,10 @@ function createDonutChartCard(title, data, theme) {
     return d.value;
   });
   let pieData = pie(data);
-  let card = new Card(title, 350, 200, theme);
-  let radius = Math.min(card.width, card.height) / 2.5;
+  let card = new Card(title, 320, 200, theme);
+
+  let margin = 10;
+  let radius = (Math.min(card.width, card.height) - 2 * margin - card.yPadding)/2;
 
   let arc = d3
     .arc()
@@ -15,14 +17,13 @@ function createDonutChartCard(title, data, theme) {
     .innerRadius(radius / 2);
 
   let svg = card.getSVG();
-
   //draw language node
 
   const panel = svg
     .append("g")
     .attr(
       "transform",
-      `translate(${card.height / 4},${card.height / 2 - radius})`
+      `translate(${card.xPadding+margin},${0})`
     );
   let labelHeight = 14;
   panel
@@ -60,7 +61,7 @@ function createDonutChartCard(title, data, theme) {
     .append("g")
     .attr(
       "transform",
-      `translate( ${card.width - radius - 20}, ${card.height / 2 - 10} )`
+      `translate( ${card.width - radius - margin - card.xPadding}, ${(card.height - card.yPadding) / 2} )`
     )
     .selectAll(".arc")
     .data(pieData)
@@ -74,7 +75,7 @@ function createDonutChartCard(title, data, theme) {
       return pieData.data.color;
     })
     .attr("stroke", "white")
-    .style("stroke-width", "3px");
+    .style("stroke-width", "2px");
   return card.toString();
 }
 
