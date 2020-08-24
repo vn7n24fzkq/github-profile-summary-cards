@@ -22,7 +22,7 @@ function createDetailCard(title, userDetails, contributionsData, theme) {
     })
     .attr("width", labelHeight)
     .attr("height", labelHeight)
-    .attr("fill", theme.text_color)
+    .attr("fill", theme.icon_color)
     .html((d) => d.icon);
 
   //draw text
@@ -93,6 +93,7 @@ function createDetailCard(title, userDetails, contributionsData, theme) {
 
   let chartPanel = svg
     .append("g")
+    .attr("color",theme.line_chart_color)
     .attr(
       "transform",
       `translate(${card.width - chartWidth - card.xPadding},0)`
@@ -103,10 +104,12 @@ function createDetailCard(title, userDetails, contributionsData, theme) {
     .append("path")
     .data([lineChartData])
     .attr("transform", `translate(${-chartRightMargin},0)`)
-    .attr("fill", theme.icon_color)
-    .attr("stroke", "none")
+    .attr("stroke", theme.line_chart_color)
+    .attr("fill", theme.line_chart_color)
+    .attr("opacity",0.5)
     .attr("d", valueline);
 
+    
   //Add the X Axis
   var xAxis_woy = d3
     .axisBottom(x)
@@ -115,14 +118,27 @@ function createDetailCard(title, userDetails, contributionsData, theme) {
 
   chartPanel
     .append("g")
+    .attr("color",theme.text_color)
     .attr("transform", `translate(${-chartRightMargin},${chartHeight})`)
     .call(xAxis_woy);
 
   //Add the Y Axis
   chartPanel
     .append("g")
+    .attr("color",theme.text_color)
     .attr("transform", `translate(${chartWidth - chartRightMargin},0)`)
     .call(d3.axisRight(y));
+
+  //hard code this coordinate becuz I'm too lazy
+  chartPanel
+    .append("g")
+    .append("text")
+    .text("contributions in the last year")
+    .attr("y", -15)
+    .attr("x", 230)
+    .style("fill", theme.text_color)
+    .style("font-family", "'Lucida Sans Unicode', 'Lucida Grande', sans-serif")
+    .style("font-size", `10px`);
 
   return card.toString();
 }
