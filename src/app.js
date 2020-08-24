@@ -32,14 +32,35 @@ const createProfileDetailsCard = async function (username) {
         2
       )} public repos`,
     },
-    { index: 2, icon: Icons.EMAIL, name: "Email", value: userDetails["email"] },
     {
-      index: 3,
+      index: 2,
       icon: Icons.CLOCK,
       name: "JoinedAt",
       value: `Joined GitHub ${moment(userDetails["joinedAt"]).fromNow()}`,
     },
   ];
+  if (userDetails["email"] != "") {
+    details.push({
+      index: 3,
+      icon: Icons.EMAIL,
+      name: "Email",
+      value: userDetails["email"],
+    });
+  }else if (userDetails["company"] != "") {
+    details.push({
+      index: 3,
+      icon: Icons.COMPANY,
+      name: "Company",
+      value: userDetails["company"],
+    });
+  }else if(userDetails["location"] != "") {
+    details.push({
+      index: 3,
+      icon: Icons.LOCATION,
+      name: "Location",
+      value: userDetails["location"],
+    });
+  }
 
   let contributionsData = userDetails.contributions;
 

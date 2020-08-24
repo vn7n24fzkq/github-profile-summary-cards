@@ -19,6 +19,9 @@ const fetcher = (token, variables) => {
             email
             createdAt
             twitterUsername
+            company
+            location
+            websiteUrl
             repositories(privacy:PUBLIC){
                 totalCount
             }
@@ -77,6 +80,9 @@ async function getProfileDetails(username) {
     result.totalContributions =
       user.contributionsCollection.contributionCalendar.totalContributions;
     result.totalPublicRepos = user.repositories.totalCount;
+    result.websiteUrl = user.websiteUrl;
+    result.company = user.company;
+    result.location = user.location;
 
     //contributions into array
     for (let week of user.contributionsCollection.contributionCalendar.weeks) {
