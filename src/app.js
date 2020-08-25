@@ -1,5 +1,7 @@
 #!/ur/bin/env node
 
+const core = require("@actions/core");
+const github = require("@actions/github");
 const Themes = require("./const/theme");
 const Icons = require("./const/icon");
 const getRepoLanguage = require("./github-api/langs");
@@ -46,14 +48,14 @@ const createProfileDetailsCard = async function (username) {
       name: "Email",
       value: userDetails["email"],
     });
-  }else if (userDetails["company"] != "") {
+  } else if (userDetails["company"] != "") {
     details.push({
       index: 3,
       icon: Icons.COMPANY,
       name: "Company",
       value: userDetails["company"],
     });
-  }else if(userDetails["location"] != "") {
+  } else if (userDetails["location"] != "") {
     details.push({
       index: 3,
       icon: Icons.LOCATION,
@@ -106,11 +108,16 @@ const createRepoPerLanguageCard = async function (username) {
   }
 };
 
+// main
 var username = process.argv[2];
 
 if (process.argv.length == 2) {
   throw Error(res.data.errors[0].message || "Github api fail");
 }
 
-createProfileDetailsCard(username);
-createRepoPerLanguageCard(username);
+try {
+  createProfileDetailsCard(username);
+  createRepoPerLanguageCard(username);
+} catch (error) {
+  core.setFailed(error.message);
+}

@@ -1,0 +1,16 @@
+name: GitHub-Profile-Summary-Cards
+description: Generate new profile summary cards and commit to default branch
+author: vn7n24fzkq
+
+inputs:
+  USERNAME:
+    description: 'GitHub username'
+    default: ${{ github.repository_owner }}
+
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
+
+branding:
+  icon: 'activity'
+  color: 'orange'
