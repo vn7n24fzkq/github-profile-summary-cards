@@ -1,7 +1,7 @@
 #!/ur/bin/env node
 
 const core = require("@actions/core");
-const github = require("@actions/github");
+const { spawn } = require("child_process");
 const Themes = require("./const/theme");
 const Icons = require("./const/icon");
 const getRepoLanguage = require("./github-api/langs");
@@ -41,6 +41,8 @@ const createProfileDetailsCard = async function (username) {
       value: `Joined GitHub ${moment(userDetails["joinedAt"]).fromNow()}`,
     },
   ];
+
+  // hard code here, cuz I'm lazy
   if (userDetails["email"] != "") {
     details.push({
       index: 3,
@@ -108,16 +110,52 @@ const createRepoPerLanguageCard = async function (username) {
   }
 };
 
-// main
-var username = process.argv[2];
+const execCmd = (cmd, args = []) =>
+  new Promise((resolve, reject) => {
+    const app = spawn(cmd, args, { stdio: "pipe" });
+    app.on("close", (code) => {
+      if (code !== 0 && !stdout.includes("nothing to commit")) {
+        err = new Error(`Invalid status code: ${code}`);
+        err.code = code;
+        return reject(err);
+      }
+      return resolve(code);
+    });
+    app.on("error", reject);
+  });
 
+const commitFile = async () => {
+  await execCmd("git", [
+    "config",
+    "--global",
+    "user.email",
+    "profile-card-bot@example.com",
+  ]);
+  await execCmd("git", ["config", "--global", "user.name", "profile-card-bot"]);
+  await execCmd("git", ["add", "profile-summary-card-output/"]);
+  await execCmd("git", ["commit", "-m", "Generate profile summary cards"]);
+  await execCmd("git", ["push"]);
+};
+
+// main
+let username = process.argv[2];
+
+let isInGithubAction = false;
 if (process.argv.length == 2) {
-  throw Error(res.data.errors[0].message || "Github api fail");
+  try {
+    username = core.getInput("USERNAME");
+    isInGithubAction = true;
+  } catch (error) {
+    throw Error(error.message);
+  }
 }
 
 try {
   createProfileDetailsCard(username);
   createRepoPerLanguageCard(username);
+  if (isInGithubAction) {
+    commitFile();
+  }
 } catch (error) {
   core.setFailed(error.message);
 }
