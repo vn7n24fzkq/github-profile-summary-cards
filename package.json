@@ -1,7 +1,7 @@
 {
-  "name": "github-profile-summary-card",
+  "name": "github-profile-summary-cards",
   "version": "0.0.1",
-  "description": "Generate github profile summary card",
+  "description": "Generate github profile summary cards",
   "main": "src/app.js",
   "scripts": {
     "run": "node src/app.js",
