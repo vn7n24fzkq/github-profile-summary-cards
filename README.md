@@ -27,5 +27,5 @@ jobs:
       - uses: vn7n24fzkq/github-profile-summary-cards@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CONTAIN_PRAIVTE: 1
+          CONTAIN_PRAIVTE: 0
 ```
