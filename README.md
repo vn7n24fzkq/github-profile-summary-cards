@@ -10,7 +10,7 @@ Github profile summary cards.
 ## Example usage
 
 ```ymal
-name: CI
+name: Profile summary cards
 
 on:
   schedule:
@@ -20,7 +20,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: test
+    name: generate
 
     steps:
       - uses: actions/checkout@v2
