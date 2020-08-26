@@ -6,7 +6,7 @@ const Themes = require("./const/theme");
 const Icons = require("./const/icon");
 const getRepoLanguage = require("./github-api/langs");
 const getProfileDetails = require("./github-api/profile-details");
-const writeSVG = require("./utils/svg-writer");
+const {writeSVG,outputPath} = require("./utils/svg-writer");
 const createDonutChartCard = require("./templates/donut-chart-card");
 const createDetailCard = require("./templates/profile-details-card");
 const NumAbbr = require("number-abbreviate");
@@ -110,12 +110,17 @@ const createRepoPerLanguageCard = async function (username) {
   }
 };
 
+
 const execCmd = (cmd, args = []) =>
   new Promise((resolve, reject) => {
     const app = spawn(cmd, args, { stdio: "pipe" });
+    let stdout = "";
+    app.stdout.on("data", (data) => {
+      stdout = data;
+    });
     app.on("close", (code) => {
       if (code !== 0 && !stdout.includes("nothing to commit")) {
-        err = new Error(`Invalid status code: ${code}`);
+        err = new Error(`${cmd} ${args} \n ${stdout} \n Invalid status code: ${code}`);
         err.code = code;
         return reject(err);
       }
@@ -129,33 +134,47 @@ const commitFile = async () => {
     "config",
     "--global",
     "user.email",
-    "profile-card-bot@example.com",
+    "profile-summary-cards-bot@example.com",
   ]);
-  await execCmd("git", ["config", "--global", "user.name", "profile-card-bot"]);
-  await execCmd("git", ["add", "profile-summary-card-output/"]);
+  await execCmd("git", [
+    "config",
+    "--global",
+    "user.name",
+    "profile-summary-cards-bot",
+  ]);
+  await execCmd("git", ["add", outputPath]);
   await execCmd("git", ["commit", "-m", "Generate profile summary cards"]);
   await execCmd("git", ["push"]);
 };
 
+
+
 // main
-let username = process.argv[2];
+const main = async () => {
+  let username = process.argv[2];
+  let isInGithubAction = false;
 
-let isInGithubAction = false;
-if (process.argv.length == 2) {
+  if (process.argv.length == 2) {
+    try {
+      username = core.getInput("USERNAME");
+      isInGithubAction = true;
+    } catch (error) {
+      throw Error(error.message);
+    }
+  }
   try {
-    username = core.getInput("USERNAME");
-    isInGithubAction = true;
+    //remove old output
+    if (isInGithubAction) {
+      await execCmd("sudo", ["rm", "-rf", outputPath]);
+    }
+    await createProfileDetailsCard(username);
+    await createRepoPerLanguageCard(username);
+    if (isInGithubAction) {
+      await commitFile();
+    }
   } catch (error) {
-    throw Error(error.message);
+    core.setFailed(error.message);
   }
-}
+};
 
-try {
-  createProfileDetailsCard(username);
-  createRepoPerLanguageCard(username);
-  if (isInGithubAction) {
-    commitFile();
-  }
-} catch (error) {
-  core.setFailed(error.message);
-}
+main();

@@ -1,7 +1,7 @@
 const fs = require("fs");
-const rootPath = "./profile-summary-card-output/";
+const outputPath = "./profile-summary-card-output/";
 const writeSVG = function (folder,filename, svgString) {
-  const targetFolder = `${rootPath}${folder}/`
+  const targetFolder = `${outputPath}${folder}/`
   fs.mkdir(targetFolder, { recursive: true }, (err) => {
     if (err) throw err;
     fs.writeFileSync(`${targetFolder}${filename}.svg`, svgString, function (
@@ -13,4 +13,6 @@ const writeSVG = function (folder,filename, svgString) {
   });
 };
 
-module.exports = writeSVG;
+module.exports = {
+    writeSVG,
+    outputPath};
