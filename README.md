@@ -6,6 +6,9 @@ This action generate your github profile summary cards and push to your repo.
 
 Github profile summary cards.
 
+![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/profile-details.svg)
+![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/repo-per-language.svg)
+
 
 ## Example usage
 
