@@ -140,7 +140,7 @@ const commitFile = async () => {
     "config",
     "--global",
     "user.name",
-    "profile-summary-cards-bot",
+    "profile-summary-cards[bot]",
   ]);
   await execCmd("git", ["add", outputPath]);
   await execCmd("git", ["commit", "-m", "Generate profile summary cards"]);
