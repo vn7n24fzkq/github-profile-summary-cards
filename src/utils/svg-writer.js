@@ -8,7 +8,7 @@ const writeSVG = function (folder,filename, svgString) {
       err,
       result
     ) {
-      if (err) console.log("error", err);
+      if (err) throw (err);
     });
   });
 };
