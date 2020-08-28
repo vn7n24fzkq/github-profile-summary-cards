@@ -1,4 +1,3 @@
-const getRepoLanguage = require("../github-api/profile-details");
 const Card = require("./card");
 const d3 = require("d3");
 const moment = require("moment");
