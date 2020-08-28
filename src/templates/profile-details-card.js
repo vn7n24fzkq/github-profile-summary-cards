@@ -37,7 +37,6 @@ function createDetailCard(title, userDetails, contributionsData, theme) {
     .attr("x", labelHeight * 1.5)
     .attr("y", (d) => labelHeight * d.index * 2 + labelHeight)
     .style("fill", theme.text_color)
-    .style("font-family", "'Lucida Sans Unicode', 'Lucida Grande', sans-serif")
     .style("font-size", `${labelHeight}px`);
 
   //process chart data
@@ -136,7 +135,6 @@ function createDetailCard(title, userDetails, contributionsData, theme) {
     .attr("y", -15)
     .attr("x", 230)
     .style("fill", theme.text_color)
-    .style("font-family", "'Lucida Sans Unicode', 'Lucida Grande', sans-serif")
     .style("font-size", `10px`);
 
   return card.toString();

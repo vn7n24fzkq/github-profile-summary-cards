@@ -25,6 +25,11 @@ class Card {
       .attr("width", width)
       .attr("height", height)
       .attr("viewBox", `0 0 ${this.width} ${this.height}`);
+    this.svg.append("style").html(
+      `* {
+          font-family: Ubuntu, 'Lucida Grande', Arial, Helvetica, sans-serif
+        }`
+    );
     this.svg
       .append("rect")
       .attr("x", 1.5)
@@ -44,10 +49,6 @@ class Card {
         .append("text")
         .attr("x", this.xPadding)
         .attr("y", this.yPadding)
-        .style(
-          "font-family",
-          "'Lucida Sans Unicode', 'Lucida Grande', sans-serif"
-        )
         .style("font-size", `22px`)
         .style("fill", `${theme.title_color}`)
         .text(this.title);
