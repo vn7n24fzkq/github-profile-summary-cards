@@ -1,0 +1,108 @@
+const getProfileDetails = require("../../src/github-api/profile-details");
+const axios = require("axios");
+const MockAdapter = require("axios-mock-adapter");
+const mock = new MockAdapter(axios);
+
+const data = {
+  data: {
+    user: {
+      name: "vn7",
+      email: "vn7n24fzkq@gmail.com",
+      createdAt: "2016-07-01T10:46:25Z",
+      twitterUsername: null,
+      company: "vn7",
+      location: "Taiwan",
+      websiteUrl: null,
+      repositories: {
+        totalCount: 30,
+      },
+      contributionsCollection: {
+        totalIssueContributions: 10,
+        totalCommitContributions: 20,
+        totalRepositoryContributions: 30,
+        totalPullRequestContributions: 40,
+        totalPullRequestReviewContributions: 50,
+        contributionCalendar: {
+          totalContributions: 1030,
+          weeks: [
+            {
+              contributionDays: [
+                {
+                  date: "2019-09-06T00:00:00.000+00:00",
+                  contributionCount: 20,
+                },
+                {
+                  date: "2019-09-07T00:00:00.000+00:00",
+                  contributionCount: 10,
+                },
+              ],
+            },
+            {
+              contributionDays: [
+                {
+                  date: "2020-01-12T00:00:00.000+00:00",
+                  contributionCount: 5,
+                },
+              ],
+            },
+          ],
+        },
+      },
+    },
+  },
+};
+
+const error = {
+  errors: [
+    {
+      type: "NOT_FOUND",
+      path: ["user"],
+      locations: [],
+      message: "Github api failed",
+    },
+  ],
+};
+
+afterEach(() => {
+  mock.reset();
+});
+
+describe("github api for profile details", () => {
+  it("should get correct profile data", async () => {
+    mock.onPost("https://api.github.com/graphql").reply(200, data);
+    let profileDetails = await getProfileDetails("vn7n24fzkq");
+    expect(profileDetails).toStrictEqual({
+      name: "vn7",
+      email: "vn7n24fzkq@gmail.com",
+      joinedAt: "2016-07-01T10:46:25Z",
+      company: "vn7",
+      location: "Taiwan",
+      websiteUrl: null,
+      twitterUsername: null,
+      totalContributions: 1030,
+      totalPublicRepos: 30,
+      contributions: [
+        {
+          date: new Date("2019-09-06T00:00:00.000+00:00"),
+          contributionCount: 20,
+        },
+        {
+          date: new Date("2019-09-07T00:00:00.000+00:00"),
+          contributionCount: 10,
+        },
+        {
+          date: new Date("2020-01-12T00:00:00.000+00:00"),
+          contributionCount: 5,
+        },
+      ],
+    });
+  });
+
+  it("should throw error when api failed", async () => {
+    mock.onPost("https://api.github.com/graphql").reply(200, error);
+    await expect(getProfileDetails("vn7n24fzkq")).rejects.toThrow(
+      "Github api failed"
+    );
+  });
+});
+

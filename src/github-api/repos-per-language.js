@@ -46,44 +46,36 @@ async function getRepoLanguage(username) {
   let languageMap = new Map();
   let nodes = [];
 
-  try {
-    while (hasNextPage) {
-      let res = await fetcher(githubToken, {
-        login: username,
-        endCursor: cursor,
-      });
-
-      if (res.data.errors) {
-        throw Error(res.data.errors[0].message || "Github api fail");
-      }
-      cursor = res.data.data.user.repositories.pageInfo.endCursor;
-      hasNextPage = res.data.data.user.repositories.pageInfo.hasNextPage;
-      nodes.push(...res.data.data.user.repositories.nodes);
-    }
-
-    nodes.forEach((node) => {
-      if (node.languages.edges.length > 0) {
-        let edge = node.languages.edges[0];
-        let langName = edge.node.name;
-        if (languageMap.has(langName)) {
-          let lang = languageMap.get(langName);
-          lang.count += 1;
-          languageMap.set(langName, lang);
-        } else {
-          languageMap.set(langName, {
-            count: 1,
-            color: edge.node.color == null ? "#586e75" : edge.node.color,
-          });
-        }
-      }
+  while (hasNextPage) {
+    let res = await fetcher(githubToken, {
+      login: username,
+      endCursor: cursor,
     });
-  } catch (e) {
-    if (e.response) {
-      console.log(e.response.data);
-    } else {
-      console.log(e);
+
+    if (res.data.errors) {
+      throw Error(res.data.errors[0].message || "Github api fail");
     }
+    cursor = res.data.data.user.repositories.pageInfo.endCursor;
+    hasNextPage = res.data.data.user.repositories.pageInfo.hasNextPage;
+    nodes.push(...res.data.data.user.repositories.nodes);
   }
+
+  nodes.forEach((node) => {
+    if (node.languages.edges.length > 0) {
+      let edge = node.languages.edges[0];
+      let langName = edge.node.name;
+      if (languageMap.has(langName)) {
+        let lang = languageMap.get(langName);
+        lang.count += 1;
+        languageMap.set(langName, lang);
+      } else {
+        languageMap.set(langName, {
+          count: 1,
+          color: edge.node.color == null ? "#586e75" : edge.node.color,
+        });
+      }
+    }
+  });
 
   return languageMap;
 }

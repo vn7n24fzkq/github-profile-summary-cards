@@ -25,6 +25,7 @@
     "number-abbreviate": "^2.0.0"
   },
   "devDependencies": {
+    "axios-mock-adapter": "^1.18.2",
     "jest": "^26.4.2",
     "pre-commit": "^1.2.2"
   },
