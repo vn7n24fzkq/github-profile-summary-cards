@@ -1,7 +1,6 @@
 require("dotenv").config();
 const request = require("../utils/request");
 
-const privacy = process.env.CONTAIN_PRAIVTE == 1 ? "" : "privacy: PUBLIC";
 const githubToken = process.env.GITHUB_TOKEN;
 
 const fetcher = (token, variables) => {

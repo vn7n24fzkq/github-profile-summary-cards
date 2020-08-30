@@ -1,7 +1,6 @@
 require("dotenv").config();
 const request = require("../utils/request");
 
-const privacy = process.env.CONTAIN_PRAIVTE == 1 ? "" : "privacy: PUBLIC";
 const githubToken = process.env.GITHUB_TOKEN;
 
 const fetcher = (token, variables) => {
@@ -14,7 +13,7 @@ const fetcher = (token, variables) => {
       query: `
       query userInfo($login: String!,$endCursor: String) {
         user(login: $login) {
-          repositories(${privacy},isFork: false, first: 100, after: $endCursor,ownerAffiliations: OWNER) {
+          repositories(isFork: false, first: 100, after: $endCursor,ownerAffiliations: OWNER) {
             nodes {
               languages(first: 10, orderBy: {field: SIZE, direction: DESC}) {
                 edges {

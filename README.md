@@ -9,7 +9,6 @@ Github profile summary cards.
 ![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/profile-details.svg)
 ![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/repo-per-language.svg)
 
-
 ## Example usage
 
 ```ymal
@@ -30,5 +29,4 @@ jobs:
       - uses: vn7n24fzkq/github-profile-summary-cards@release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CONTAIN_PRAIVTE: 0
 ```
