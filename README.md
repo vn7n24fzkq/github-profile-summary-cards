@@ -12,7 +12,8 @@ Github profile summary cards.
 ## Example usage
 
 ```ymal
-name: Profile summary cards
+name: GitHub-Profile-Summary-Cards
+description: Generate profile summary cards and commit to default branch
 
 on:
   schedule:
