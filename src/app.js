@@ -6,7 +6,7 @@ const Themes = require("./const/theme");
 const Icons = require("./const/icon");
 const getRepoLanguage = require("./github-api/repos-per-language");
 const getProfileDetails = require("./github-api/profile-details");
-const {writeSVG,outputPath} = require("./utils/svg-writer");
+const { writeSVG, outputPath } = require("./utils/svg-writer");
 const createDonutChartCard = require("./templates/donut-chart-card");
 const createDetailCard = require("./templates/profile-details-card");
 const NumAbbr = require("number-abbreviate");
@@ -110,7 +110,6 @@ const createRepoPerLanguageCard = async function (username) {
   }
 };
 
-
 const execCmd = (cmd, args = []) =>
   new Promise((resolve, reject) => {
     const app = spawn(cmd, args, { stdio: "pipe" });
@@ -120,7 +119,9 @@ const execCmd = (cmd, args = []) =>
     });
     app.on("close", (code) => {
       if (code !== 0 && !stdout.includes("nothing to commit")) {
-        err = new Error(`${cmd} ${args} \n ${stdout} \n Invalid status code: ${code}`);
+        err = new Error(
+          `${cmd} ${args} \n ${stdout} \n Invalid status code: ${code}`
+        );
         err.code = code;
         return reject(err);
       }
@@ -147,8 +148,6 @@ const commitFile = async () => {
   await execCmd("git", ["push"]);
 };
 
-
-
 // main
 const main = async () => {
   let username = process.argv[2];
@@ -167,12 +166,23 @@ const main = async () => {
     if (isInGithubAction) {
       await execCmd("sudo", ["rm", "-rf", outputPath]);
     }
-    await createProfileDetailsCard(username);
-    await createRepoPerLanguageCard(username);
+    try {
+      core.info(`Createing ProfileDetailsCard...`);
+      await createProfileDetailsCard(username);
+    } catch (error) {
+      core.error(`Error when creating ProfileDetailsCard\n${error}`);
+    }
+    try {
+      core.info(`Createing RepoPerLanguageCard...`);
+      await createRepoPerLanguageCard(username);
+    } catch (error) {
+      core.error(`Error when creating RepoPerLanguageCard\n${error}`);
+    }
     if (isInGithubAction) {
       await commitFile();
     }
   } catch (error) {
+    core.error(error);
     core.setFailed(error.message);
   }
 };
