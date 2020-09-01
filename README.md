@@ -37,9 +37,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: vn7n24fzkq/github-profile-summary-cards@release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           USERNAME: ${{ github.repository_owner }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 :star: Contributions of any kind welcome! :star:

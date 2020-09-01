@@ -166,8 +166,6 @@ const main = async () => {
   if (process.argv.length == 2) {
     try {
       username = core.getInput("USERNAME");
-      //set github token to ene variables, let other module can use that
-      process.env['GITHUB_TOKEN'] = core.getInput("GITHUB_TOKEN");
       isInGithubAction = true;
     } catch (error) {
       throw Error(error.message);

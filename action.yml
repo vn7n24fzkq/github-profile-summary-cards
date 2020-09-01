@@ -4,11 +4,10 @@ author: vn7n24fzkq
 
 inputs:
   USERNAME:
+    required: true
     description: 'GitHub username'
     default: ${{ github.repository_owner }}
-  GITHUB_TOKEN:
-    description: 'GitHub token'
-    default: ${{ secrets.GITHUB_TOKEN }}
+
 runs:
   using: 'node12'
   main: 'dist/index.js'
