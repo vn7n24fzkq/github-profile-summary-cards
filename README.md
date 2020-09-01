@@ -1,8 +1,8 @@
 # Github Profile Summary Cards
 
-This action generate your github profile summary cards and push to your repo.
+This repo is inspired by [profile-summary-for-github](https://github.com/tipsy/profile-summary-for-github)
 
-```Note: Those cards might not be upadated in time, because github raw file has cache time.```
+This action generate your github profile summary cards and push to your repo.
 
 ## Example 
 
@@ -14,6 +14,10 @@ This action generate your github profile summary cards and push to your repo.
 ### `GITHUB_TOKEN`
 Default token doesn't has permission for private content, so if you want to calculate private content you will need to use your own secrets.
 [Creating and storing encrypted secrets](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets)
+
+After the action finished. You can see the output is push to a folder which named profile-summary-card-output.
+
+```Note: Those cards might not be upadated in time, because github raw file has cache time.```
 
 ```ymal
 name: GitHub-Profile-Summary-Cards
