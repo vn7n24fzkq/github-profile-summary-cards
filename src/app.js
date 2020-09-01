@@ -160,6 +160,7 @@ const commitFile = async () => {
 
 // main
 const main = async () => {
+  core.info(`Start...`)
   let username = process.argv[2];
   let isInGithubAction = false;
 
@@ -196,6 +197,7 @@ const main = async () => {
       } catch (error) {
         core.error(`Error when creating preview markdown \n${error}`);
       }
+      core.info(`Commit file...`)
       await commitFile();
     }
   } catch (error) {
