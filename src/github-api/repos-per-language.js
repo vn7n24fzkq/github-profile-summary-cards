@@ -52,7 +52,7 @@ async function getRepoLanguage(username) {
     });
 
     if (res.data.errors) {
-      throw Error(res.data.errors[0].message || "Github api fail");
+      throw Error(res.data.errors[0].message || "GetRepoLanguage fail");
     }
     cursor = res.data.data.user.repositories.pageInfo.endCursor;
     hasNextPage = res.data.data.user.repositories.pageInfo.hasNextPage;

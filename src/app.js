@@ -6,6 +6,7 @@ const Themes = require("./const/theme");
 const Icons = require("./const/icon");
 const getRepoLanguage = require("./github-api/repos-per-language");
 const getProfileDetails = require("./github-api/profile-details");
+const getContributionByYear = require("./github-api/contributions-by-year");
 const {
   writeSVG,
   outputPath,
@@ -18,6 +19,11 @@ const moment = require("moment");
 
 const createProfileDetailsCard = async function (username) {
   let userDetails = await getProfileDetails(username);
+  let totalContributions = 0;
+  for (let year of userDetails.contributionYears) {
+    totalContributions += (await getContributionByYear(username, year))
+      .totalContributions;
+  }
   let numAbbr = new NumAbbr();
   let details = [
     {
@@ -25,9 +31,9 @@ const createProfileDetailsCard = async function (username) {
       icon: Icons.GITHUB,
       name: "Contributions",
       value: `${numAbbr.abbreviate(
-        userDetails["totalContributions"],
+        totalContributions,
         2
-      )} contributions in last year`,
+      )} contributions on github`,
     },
     {
       index: 1,

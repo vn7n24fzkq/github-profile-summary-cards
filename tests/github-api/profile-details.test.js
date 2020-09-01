@@ -22,8 +22,8 @@ const data = {
         totalRepositoryContributions: 30,
         totalPullRequestContributions: 40,
         totalPullRequestReviewContributions: 50,
+        contributionYears: [2019,2020],
         contributionCalendar: {
-          totalContributions: 1030,
           weeks: [
             {
               contributionDays: [
@@ -79,7 +79,7 @@ describe("github api for profile details", () => {
       location: "Taiwan",
       websiteUrl: null,
       twitterUsername: null,
-      totalContributions: 1030,
+      contributionYears: [2019,2020],
       totalPublicRepos: 30,
       contributions: [
         {

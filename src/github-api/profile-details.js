@@ -25,13 +25,7 @@ const fetcher = (token, variables) => {
                 totalCount
             }
             contributionsCollection {
-                totalIssueContributions
-                totalCommitContributions
-                totalRepositoryContributions
-                totalPullRequestContributions
-                totalPullRequestReviewContributions
                 contributionCalendar {
-                    totalContributions
                     weeks {
                         contributionDays {
                             contributionCount
@@ -39,6 +33,7 @@ const fetcher = (token, variables) => {
                         }
                     }
                 }
+                contributionYears
             }
         }
       }
@@ -58,9 +53,9 @@ async function getProfileDetails(username) {
     websiteUrl: null,
     twitterUsername: null,
     location: null,
-    totalContributions: 0,
     totalPublicRepos: 0,
     contributions: [],
+    contributionYears: [],
   };
 
   let res = await fetcher(githubToken, {
@@ -68,7 +63,7 @@ async function getProfileDetails(username) {
   });
 
   if (res.data.errors) {
-    throw Error(res.data.errors[0].message || "Github api failed");
+    throw Error(res.data.errors[0].message || "GetProfileDetails failed");
   }
 
   let user = res.data.data.user;
@@ -76,13 +71,12 @@ async function getProfileDetails(username) {
   result.name = user.name;
   result.email = user.email;
   result.joinedAt = user.createdAt;
-  result.totalContributions =
-    user.contributionsCollection.contributionCalendar.totalContributions;
   result.totalPublicRepos = user.repositories.totalCount;
   result.websiteUrl = user.websiteUrl;
   result.company = user.company;
   result.location = user.location;
   result.twitterUsername = user.twitterUsername;
+  result.contributionYears = user.contributionsCollection.contributionYears;
 
   //contributions into array
   for (let week of user.contributionsCollection.contributionCalendar.weeks) {
