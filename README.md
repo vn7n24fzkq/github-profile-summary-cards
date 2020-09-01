@@ -6,16 +6,14 @@ This action generate your github profile summary cards and push to your repo.
 
 ## Example 
 
-Github profile summary cards.
-
 ![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/profile-details.svg)
 ![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/repo-per-language.svg)
+
+## Usage
 
 ### `GITHUB_TOKEN`
 Default token doesn't has permission for private content, so if you want to calculate private content you will need to use your own secrets.
 [Creating and storing encrypted secrets](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets)
-
-## Usage
 
 ```ymal
 name: GitHub-Profile-Summary-Cards
