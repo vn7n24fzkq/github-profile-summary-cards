@@ -1,5 +1,5 @@
 name: GitHub-Profile-Summary-Cards
-description: Generate new profile summary cards and commit to default branch
+description: Generate profile summary cards and commit to default branch
 author: vn7n24fzkq
 
 inputs:
