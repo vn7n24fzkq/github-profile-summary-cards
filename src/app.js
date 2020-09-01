@@ -6,7 +6,11 @@ const Themes = require("./const/theme");
 const Icons = require("./const/icon");
 const getRepoLanguage = require("./github-api/repos-per-language");
 const getProfileDetails = require("./github-api/profile-details");
-const { writeSVG, outputPath } = require("./utils/svg-writer");
+const {
+  writeSVG,
+  outputPath,
+  generatePreviewMarkdown,
+} = require("./utils/file-writer");
 const createDonutChartCard = require("./templates/donut-chart-card");
 const createDetailCard = require("./templates/profile-details-card");
 const NumAbbr = require("number-abbreviate");
@@ -170,18 +174,28 @@ const main = async () => {
       core.info(`Createing ProfileDetailsCard...`);
       await createProfileDetailsCard(username);
     } catch (error) {
-      core.error(`Error when creating ProfileDetailsCard\n${error}`);
+      console.log(error);
+      core.error(`Error when creating ProfileDetailsCard \n${error}`);
     }
     try {
       core.info(`Createing RepoPerLanguageCard...`);
       await createRepoPerLanguageCard(username);
     } catch (error) {
-      core.error(`Error when creating RepoPerLanguageCard\n${error}`);
+      console.log(error);
+      core.error(`Error when creating RepoPerLanguageCard \n${error}`);
     }
     if (isInGithubAction) {
+      try {
+        core.info(`Createing preview markdown...`);
+        await generatePreviewMarkdown();
+      } catch (error) {
+        console.log(error);
+        core.error(`Error when creating preview markdown \n${error}`);
+      }
       await commitFile();
     }
   } catch (error) {
+    console.log(error);
     core.error(error);
     core.setFailed(error.message);
   }
