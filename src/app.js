@@ -174,20 +174,19 @@ const main = async () => {
   try {
     //remove old output
     if (isInGithubAction) {
+      core.info(`Remove old cards...`)
       await execCmd("sudo", ["rm", "-rf", outputPath]);
     }
     try {
-      core.info(`Createing ProfileDetailsCard...`);
+      core.info(`Createing ProfileDetailsCard...`)
       await createProfileDetailsCard(username);
     } catch (error) {
-      console.log(error);
       core.error(`Error when creating ProfileDetailsCard \n${error}`);
     }
     try {
       core.info(`Createing RepoPerLanguageCard...`);
       await createRepoPerLanguageCard(username);
     } catch (error) {
-      console.log(error);
       core.error(`Error when creating RepoPerLanguageCard \n${error}`);
     }
     if (isInGithubAction) {
@@ -195,13 +194,11 @@ const main = async () => {
         core.info(`Createing preview markdown...`);
         await generatePreviewMarkdown();
       } catch (error) {
-        console.log(error);
         core.error(`Error when creating preview markdown \n${error}`);
       }
       await commitFile();
     }
   } catch (error) {
-    console.log(error);
     core.error(error);
     core.setFailed(error.message);
   }
