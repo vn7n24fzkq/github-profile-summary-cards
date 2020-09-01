@@ -2,7 +2,9 @@ const fs = require("fs");
 const outputPath = "./profile-summary-card-output/";
 const Themes = require("../const/theme");
 const GITHUB_REPOSITORY = process.env.GITHUB_REPOSITORY;
-const GITHUB_REF = process.env.GITHUB_REF;
+
+// If neither a branch or tag is available for the event type, the variable will not exist. https://docs.github.com/en/actions/configuring-and-managing-workflows/using-environment-variables
+const GITHUB_BRANCH = process.env.GITHUB_REF == undefined ? "master":process.env.GITHUB_REF.split("/").pop();
 
 const writeSVG = function (folder, filename, svgString) {
   const targetFolder = `${outputPath}${folder}/`;
@@ -19,7 +21,6 @@ function getAllFileInFolder(folder) {
   let files = [];
   fs.readdirSync(folder).forEach((file) => {
     files.push(file);
-    console.log(file);
   });
   return files;
 }
@@ -44,11 +45,10 @@ Here are all cards with themes.
     for (let file of getAllFileInFolder(targetFolder + themeName)) {
       readmeContent += `
 \`\`\`
-profile-summary-card-output/solarized/repo-per-language.svg
-![](https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/profile-summary-card-output/${themeName}/${file})
+![](https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${GITHUB_BRANCH}/profile-summary-card-output/${themeName}/${file})
 
 \`\`\`
-![](https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/profile-summary-card-output/${themeName}/${file})
+![](https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${GITHUB_BRANCH}/profile-summary-card-output/${themeName}/${file})
 
 `;
     }
