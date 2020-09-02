@@ -46,7 +46,6 @@ Here are all cards with themes.
       readmeContent += `
 \`\`\`
 ![](https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${GITHUB_BRANCH}/profile-summary-card-output/${themeName}/${file})
-
 \`\`\`
 ![](https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${GITHUB_BRANCH}/profile-summary-card-output/${themeName}/${file})
 

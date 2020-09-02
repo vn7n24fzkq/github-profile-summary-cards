@@ -6,7 +6,7 @@ function createDonutChartCard(title, data, theme) {
     return d.value;
   });
   let pieData = pie(data);
-  let card = new Card(title, 350, 200, theme);
+  let card = new Card(title, 340, 200, theme);
 
   let margin = 10;
   let radius =
