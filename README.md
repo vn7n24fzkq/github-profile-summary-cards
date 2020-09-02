@@ -22,7 +22,6 @@ After the action finished. You can see the output is push to a folder which name
 
 ```ymal
 name: GitHub-Profile-Summary-Cards
-description: Generate profile summary cards and commit to default branch
 
 on:
   schedule: # execute every 3 hours
