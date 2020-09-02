@@ -10,7 +10,7 @@ You can also trigger action by yourself after add this action.
 ![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/repos-per-language.svg)
 ![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/most-commit-language.svg)
 
-[More example](https://github.com/vn7n24fzkq/vn7n24fzkq/tree/master/profile-summary-card-output)
+[More example with themes](https://github.com/vn7n24fzkq/vn7n24fzkq/tree/master/profile-summary-card-output)
 
 ## Local Run
 - I build this on  `node 12`, lower version should get some problems.
