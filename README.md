@@ -5,9 +5,11 @@ This repo is inspired by [profile-summary-for-github](https://github.com/tipsy/p
 This action generate your github profile summary cards and push to your repo.
 
 ## Example
-
 ![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/profile-details.svg)
-![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/repo-per-language.svg)
+![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/repos-per-language.svg)
+![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/most-commit-language.svg)
+
+[More example](https://github.com/vn7n24fzkq/vn7n24fzkq/tree/master/profile-summary-card-output)
 
 ## Usage
 
