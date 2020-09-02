@@ -81,8 +81,9 @@ const createProfileDetailsCard = async function (username) {
 
   for (let themeName in Themes) {
     let theme = Themes[themeName];
+    let title = (userDetails.name==null)?`${username}`:`${username} (${userDetails.name})`;
     let svgString = createDetailCard(
-      `${username} (${userDetails.name})`,
+      `${title}`,
       details,
       contributionsData,
       theme
