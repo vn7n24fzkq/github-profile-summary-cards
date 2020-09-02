@@ -3,6 +3,7 @@
 This repo is inspired by [profile-summary-for-github](https://github.com/tipsy/profile-summary-for-github)
 
 This action generate your github profile summary cards and push to your repo.
+You can also trigger action by yourself after add this action.
 
 ## Example
 ![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/profile-details.svg)
@@ -11,6 +12,15 @@ This action generate your github profile summary cards and push to your repo.
 
 [More example](https://github.com/vn7n24fzkq/vn7n24fzkq/tree/master/profile-summary-card-output)
 
+## Local Run
+I build this on  `node 12`, lower version should get some problems.
+Add GITHUB_TOKEN to `.evn` file. ex:`GITHUB_TOKEN=abcda69ddf66ae95538c5b1666591b59b4abc73a`
+```
+npm install
+```
+```
+npm run run [username]
+```
 ## Usage
 
 ### `GITHUB_TOKEN`
