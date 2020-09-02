@@ -66,7 +66,6 @@ async function getRepoLanguage(username) {
       if (languageMap.has(langName)) {
         let lang = languageMap.get(langName);
         lang.count += 1;
-        languageMap.set(langName, lang);
       } else {
         languageMap.set(langName, {
           count: 1,

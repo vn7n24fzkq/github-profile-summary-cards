@@ -30,8 +30,8 @@ afterEach(() => {
   mock.reset();
 });
 
-describe("github api for profile details", () => {
-  it("should get correct profile data", async () => {
+describe("contributions count on github", () => {
+  it("should get correct contributions", async () => {
     mock.onPost("https://api.github.com/graphql").reply(200, data);
     let totalContributions = await getContributionByYear("vn7n24fzkq", 2020);
     expect(totalContributions).toStrictEqual({
