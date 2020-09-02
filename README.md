@@ -36,8 +36,8 @@ After the action finished. You can see the output is push to a folder which name
 name: GitHub-Profile-Summary-Cards
 
 on:
-  schedule: # execute every 3 hours
-    - cron: '* */3 * * *'
+  schedule: # execute every 24 hours
+    - cron: '* */24 * * *'
   workflow_dispatch:
 
 jobs:
