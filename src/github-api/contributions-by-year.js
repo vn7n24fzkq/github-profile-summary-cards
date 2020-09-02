@@ -19,7 +19,6 @@ const fetcher = (token, variables, year) => {
             }
         }
       }
-
       `,
       variables,
     }

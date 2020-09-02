@@ -6,7 +6,7 @@ function createDonutChartCard(title, data, theme) {
     return d.value;
   });
   let pieData = pie(data);
-  let card = new Card(title, 350, 200, theme);
+  let card = new Card(title, 340, 200, theme);
 
   let margin = 10;
   let radius =
@@ -36,7 +36,7 @@ function createDonutChartCard(title, data, theme) {
     .attr("width", labelHeight)
     .attr("height", labelHeight)
     .attr("fill", (pieData) => pieData.data.color)
-    .attr("stroke", "white")
+    .attr("stroke", `${theme.bg_color}`)
     .style("stroke-width", "1px");
 
   //set language text
@@ -73,7 +73,7 @@ function createDonutChartCard(title, data, theme) {
     .style("fill", function (pieData) {
       return pieData.data.color;
     })
-    .attr("stroke", "white")
+    .attr("stroke", `${theme.bg_color}`)
     .style("stroke-width", "2px");
   return card.toString();
 }

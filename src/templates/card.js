@@ -39,7 +39,7 @@ class Card {
       .attr("height", "98%")
       .attr("width", "98%")
       .attr("stroke", `${theme.stroke_color}`)
-      .attr("stroke-width", "2")
+      .attr("stroke-width", "1.2")
       .attr("fill", `${theme.bg_color}`)
       .attr("stroke-opacity", 1);
 

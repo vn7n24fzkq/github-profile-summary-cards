@@ -104,7 +104,7 @@ function createDetailCard(title, userDetails, contributionsData, theme) {
     .attr("transform", `translate(${-chartRightMargin},0)`)
     .attr("stroke", theme.line_chart_color)
     .attr("fill", theme.line_chart_color)
-    .attr("opacity", 0.5)
+    .attr("opacity", 1)
     .attr("d", valueline);
 
   //Add the X Axis

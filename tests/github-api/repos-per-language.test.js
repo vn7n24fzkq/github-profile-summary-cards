@@ -21,7 +21,7 @@ const firstData = {
                 {
                   size: 2600,
                   node: {
-                    color: "#e34c26",
+                    color: "#f18e33",
                     name: "Kotlin",
                   },
                 },
@@ -34,7 +34,7 @@ const firstData = {
                 {
                   size: 10485,
                   node: {
-                    color: "#b07219",
+                    color: "#dea584",
                     name: "Rust",
                   },
                 },
@@ -68,7 +68,7 @@ const lastData = {
                 {
                   size: 2600,
                   node: {
-                    color: "#e34c26",
+                    color: "#b07219",
                     name: "Java",
                   },
                 },
@@ -81,7 +81,7 @@ const lastData = {
                 {
                   size: 10485,
                   node: {
-                    color: "#b07219",
+                    color: "#f18e33",
                     name: "Kotlin",
                   },
                 },
@@ -113,7 +113,7 @@ afterEach(() => {
   mock.reset();
 });
 
-describe("github api for repos per language", () => {
+describe("repos per language on github", () => {
   it("should get correct data", async () => {
     mock
       .onPost("https://api.github.com/graphql")
@@ -125,8 +125,8 @@ describe("github api for repos per language", () => {
     expect(repoData).toEqual(
       new Map([
         ["Java", { color: "#b07219", count: 2 }],
-        ["Rust", { color: "#b07219", count: 1 }],
-        ["Kotlin", { color: "#b07219", count: 1 }],
+        ["Rust", { color: "#dea584", count: 1 }],
+        ["Kotlin", { color: "#f18e33", count: 1 }],
       ])
     );
   });

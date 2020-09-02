@@ -7,6 +7,7 @@ const Icons = require("./const/icon");
 const getRepoLanguage = require("./github-api/repos-per-language");
 const getProfileDetails = require("./github-api/profile-details");
 const getContributionByYear = require("./github-api/contributions-by-year");
+const getCommitLanguage = require("./github-api/commits-per-lauguage");
 const {
   writeSVG,
   outputPath,
@@ -80,8 +81,9 @@ const createProfileDetailsCard = async function (username) {
 
   for (let themeName in Themes) {
     let theme = Themes[themeName];
+    let title = (userDetails.name==null)?`${username}`:`${username} (${userDetails.name})`;
     let svgString = createDetailCard(
-      `${username} (${userDetails.name})`,
+      `${title}`,
       details,
       contributionsData,
       theme
@@ -91,7 +93,7 @@ const createProfileDetailsCard = async function (username) {
   }
 };
 
-const createRepoPerLanguageCard = async function (username) {
+const createReposPerLanguageCard = async function (username) {
   let langMap = await getRepoLanguage(username);
   let langData = [];
 
@@ -106,17 +108,51 @@ const createRepoPerLanguageCard = async function (username) {
   langData.sort(function (a, b) {
     return b.value - a.value;
   });
-  langData = langData.slice(0, 5);
+  langData = langData.slice(0, 5);//get top 5
 
   for (let themeName in Themes) {
     let theme = Themes[themeName];
     let svgString = createDonutChartCard(
-      "Repos per Language (top 5)",
+      "Most Used Language",
       langData,
       theme
     );
     //output to folder
-    writeSVG(themeName, "repo-per-language", svgString);
+    writeSVG(themeName, "most-used-language", svgString);
+  }
+};
+
+const createCommitsPerLanguageCard = async function (username) {
+  let userDetails = await getProfileDetails(username);
+  let langMap = new Map();
+  for (let year of userDetails.contributionYears) {
+    let map = await getCommitLanguage(username, year);
+    langMap = new Map([...langMap].concat([...map]));
+  }
+  let langData = [];
+
+  //make a pie data
+  for (let [key, value] of langMap) {
+    langData.push({
+      name: key,
+      value: value.count,
+      color: value.color,
+    });
+  }
+  langData.sort(function (a, b) {
+    return b.value - a.value;
+  });
+  langData = langData.slice(0, 5);//get top 5
+
+  for (let themeName in Themes) {
+    let theme = Themes[themeName];
+    let svgString = createDonutChartCard(
+      "Most Commit Language",
+      langData,
+      theme
+    );
+    //output to folder
+    writeSVG(themeName, "most-commit-language", svgString);
   }
 };
 
@@ -160,7 +196,7 @@ const commitFile = async () => {
 
 // main
 const main = async () => {
-  core.info(`Start...`)
+  core.info(`Start...`);
   let username = process.argv[2];
   let isInGithubAction = false;
 
@@ -175,20 +211,26 @@ const main = async () => {
   try {
     //remove old output
     if (isInGithubAction) {
-      core.info(`Remove old cards...`)
+      core.info(`Remove old cards...`);
       await execCmd("sudo", ["rm", "-rf", outputPath]);
     }
     try {
-      core.info(`Createing ProfileDetailsCard...`)
+      core.info(`Createing ProfileDetailsCard...`);
       await createProfileDetailsCard(username);
     } catch (error) {
       core.error(`Error when creating ProfileDetailsCard \n${error}`);
     }
     try {
-      core.info(`Createing RepoPerLanguageCard...`);
-      await createRepoPerLanguageCard(username);
+      core.info(`Createing ReposPerLanguageCard...`);
+      await createReposPerLanguageCard(username);
     } catch (error) {
-      core.error(`Error when creating RepoPerLanguageCard \n${error}`);
+      core.error(`Error when creating ReposPerLanguageCard \n${error}`);
+    }
+    try {
+      core.info(`Createing CommitsPerLanguageCard...`);
+      await createCommitsPerLanguageCard(username);
+    } catch (error) {
+      core.error(`Error when creating CommitsPerLanguageCard \n${error}`);
     }
     if (isInGithubAction) {
       try {
@@ -197,7 +239,7 @@ const main = async () => {
       } catch (error) {
         core.error(`Error when creating preview markdown \n${error}`);
       }
-      core.info(`Commit file...`)
+      core.info(`Commit file...`);
       await commitFile();
     }
   } catch (error) {
