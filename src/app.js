@@ -81,7 +81,10 @@ const createProfileDetailsCard = async function (username) {
 
   for (let themeName in Themes) {
     let theme = Themes[themeName];
-    let title = (userDetails.name==null)?`${username}`:`${username} (${userDetails.name})`;
+    let title =
+      userDetails.name == null
+        ? `${username}`
+        : `${username} (${userDetails.name})`;
     let svgString = createDetailCard(
       `${title}`,
       details,
@@ -108,17 +111,13 @@ const createReposPerLanguageCard = async function (username) {
   langData.sort(function (a, b) {
     return b.value - a.value;
   });
-  langData = langData.slice(0, 5);//get top 5
+  langData = langData.slice(0, 5); //get top 5
 
   for (let themeName in Themes) {
     let theme = Themes[themeName];
-    let svgString = createDonutChartCard(
-      "Most Used Language",
-      langData,
-      theme
-    );
+    let svgString = createDonutChartCard("Repos per Language (top 5)", langData, theme);
     //output to folder
-    writeSVG(themeName, "most-used-language", svgString);
+    writeSVG(themeName, "repos-per-language", svgString);
   }
 };
 
@@ -127,7 +126,17 @@ const createCommitsPerLanguageCard = async function (username) {
   let langMap = new Map();
   for (let year of userDetails.contributionYears) {
     let map = await getCommitLanguage(username, year);
-    langMap = new Map([...langMap].concat([...map]));
+    for (let [key, value] of map) {
+      if (langMap.has(key)) {
+        let lang = langMap.get(key);
+        lang.count += value.count;
+      } else {
+        langMap.set(key, {
+          count: value.count,
+          color: value.color == null ? "#586e75" : value.color,
+        });
+      }
+    }
   }
   let langData = [];
 
@@ -142,7 +151,7 @@ const createCommitsPerLanguageCard = async function (username) {
   langData.sort(function (a, b) {
     return b.value - a.value;
   });
-  langData = langData.slice(0, 5);//get top 5
+  langData = langData.slice(0, 5); //get top 5
 
   for (let themeName in Themes) {
     let theme = Themes[themeName];
