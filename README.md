@@ -12,16 +12,6 @@ You can also trigger action by yourself after add this action.
 ![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/most-commit-language.svg)
 
 [More example with themes](https://github.com/vn7n24fzkq/vn7n24fzkq/tree/master/profile-summary-card-output)
-
-## Local Run
-- I build this on  `node 12`, lower version should get some problems.
-- Add GITHUB_TOKEN to `.evn` file. ex:`GITHUB_TOKEN=abcda69ddf66ae95538c5b1666591b59b4abc73a`
-```
-npm install
-```
-```
-npm run run [username]
-```
 ## Usage
 
 ### `GITHUB_TOKEN`
@@ -55,4 +45,14 @@ jobs:
           USERNAME: ${{ github.repository_owner }}
 ```
 
+## Local Run
+- I build this on  `node 12`, lower version should get some problems.
+- Add GITHUB_TOKEN to `.evn` file. ex:`GITHUB_TOKEN=abcda69ddf66ae95538c5b1666591b59b4abc73a`
+```
+npm install
+```
+```
+npm run run [username]
+```
 :star: This repo just for fun, feel free to contribution! :star:
+
