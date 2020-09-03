@@ -54,4 +54,4 @@ jobs:
           USERNAME: ${{ github.repository_owner }}
 ```
 
-:star: Contributions of any kind welcome! :star:
+:star: This repo just for fun, feel free to contribution! :star:
