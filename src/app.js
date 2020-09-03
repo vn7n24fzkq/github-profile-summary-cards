@@ -91,8 +91,8 @@ const createProfileDetailsCard = async function (username) {
       contributionsData,
       theme
     );
-    //output to folder
-    writeSVG(themeName, "profile-details", svgString);
+    //output to folder, use 0- prefix for sort in preview
+    writeSVG(themeName, "0-profile-details", svgString);
   }
 };
 
@@ -115,9 +115,13 @@ const createReposPerLanguageCard = async function (username) {
 
   for (let themeName in Themes) {
     let theme = Themes[themeName];
-    let svgString = createDonutChartCard("Repos per Language (top 5)", langData, theme);
-    //output to folder
-    writeSVG(themeName, "repos-per-language", svgString);
+    let svgString = createDonutChartCard(
+      "Repos per Language (top 5)",
+      langData,
+      theme
+    );
+    //output to folder, use 1- prefix for sort in preview
+    writeSVG(themeName, "1-repos-per-language", svgString);
   }
 };
 
@@ -160,8 +164,8 @@ const createCommitsPerLanguageCard = async function (username) {
       langData,
       theme
     );
-    //output to folder
-    writeSVG(themeName, "most-commit-language", svgString);
+    //output to folder, use 2- prefix for sort in preview
+    writeSVG(themeName, "2-most-commit-language", svgString);
   }
 };
 
@@ -241,13 +245,13 @@ const main = async () => {
     } catch (error) {
       core.error(`Error when creating CommitsPerLanguageCard \n${error}`);
     }
+    try {
+      core.info(`Createing preview markdown...`);
+      await generatePreviewMarkdown(isInGithubAction);
+    } catch (error) {
+      core.error(`Error when creating preview markdown \n${error}`);
+    }
     if (isInGithubAction) {
-      try {
-        core.info(`Createing preview markdown...`);
-        await generatePreviewMarkdown();
-      } catch (error) {
-        core.error(`Error when creating preview markdown \n${error}`);
-      }
       core.info(`Commit file...`);
       await commitFile();
     }
