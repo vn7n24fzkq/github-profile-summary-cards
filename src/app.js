@@ -54,21 +54,21 @@ const createProfileDetailsCard = async function (username) {
   ];
 
   // hard code here, cuz I'm lazy
-  if (userDetails["email"] != "") {
+  if (userDetails["email"]) {
     details.push({
       index: 3,
       icon: Icons.EMAIL,
       name: "Email",
       value: userDetails["email"],
     });
-  } else if (userDetails["company"] != "") {
+  } else if (userDetails["company"]) {
     details.push({
       index: 3,
       icon: Icons.COMPANY,
       name: "Company",
       value: userDetails["company"],
     });
-  } else if (userDetails["location"] != "") {
+  } else if (userDetails["location"]) {
     details.push({
       index: 3,
       icon: Icons.LOCATION,
