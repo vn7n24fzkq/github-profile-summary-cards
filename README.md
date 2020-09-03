@@ -15,10 +15,19 @@ You can also trigger action by yourself after add this action.
 
 [More example with themes](https://github.com/vn7n24fzkq/github-profile-summary-cards-example/tree/master/profile-summary-card-output)
 
+---
+
+## Use template 
+[github-profile-summary-cards-example](https://github.com/vn7n24fzkq/github-profile-summary-cards-example)
+
+In this template, action has setup, you just need click `use this template button` and wait workflow finish.Then you can use evrything in `profile-summary-card-output` folder.
+
+---
+
 ## Wiki
 [Add to my profile README](https://github.com/vn7n24fzkq/github-profile-summary-cards/wiki/Add-to-my-profile-README) (For those who don't familiar with github action)
 
-## Usage
+## Github action usage
 
 ### `GITHUB_TOKEN`
 If you get this error`Error: Resource not accessible by integration` then you should use [Personal access token](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets).
