@@ -8,10 +8,13 @@ This action generate your github profile summary cards and push to your repo.
 You can also trigger action by yourself after add this action.
 
 `After you add this to your workflow, your should trigger the workflow then you can use those cards immediately.`
+
+---
+
 ## Example
-![](https://raw.githubusercontent.com/vn7n24fzkq/github-profile-summary-cards-example/master/profile-summary-card-output/solarized/0-profile-details.svg)
-![](https://raw.githubusercontent.com/vn7n24fzkq/github-profile-summary-cards-example/master/profile-summary-card-output/solarized/1-repos-per-language.svg)
-![](https://raw.githubusercontent.com/vn7n24fzkq/github-profile-summary-cards-example/master/profile-summary-card-output/solarized/2-most-commit-language.svg)
+![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/0-profile-details.svg)
+![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/1-repos-per-language.svg)
+![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/2-most-commit-language.svg)
 
 [More example with themes](https://github.com/vn7n24fzkq/github-profile-summary-cards-example/tree/master/profile-summary-card-output)
 
@@ -26,6 +29,8 @@ In this template, action has setup, you just need click `use this template butto
 
 ## Wiki
 [Add to my profile README](https://github.com/vn7n24fzkq/github-profile-summary-cards/wiki/Add-to-my-profile-README) (For those who don't familiar with github action)
+
+---
 
 ## Github action usage
 
@@ -60,6 +65,8 @@ jobs:
         with:
           USERNAME: ${{ github.repository_owner }}
 ```
+
+---
 
 ## Local Run
 - I build this on  `node 12`, lower version should get some problems.
