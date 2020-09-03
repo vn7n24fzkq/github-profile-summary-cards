@@ -21,11 +21,12 @@ You can also trigger action by yourself after add this action.
 ## Usage
 
 ### `GITHUB_TOKEN`
+If you get this error`Error: Resource not accessible by integration` then you should use [Personal access token](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets).
 
-Default token doesn't has permission for private content, so if you want to calculate private content you will need to use your own secrets.
-[Creating and storing encrypted secrets](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets)
+Default token doesn't has permission for private content, so if you want to calculate private content you will need to use [Personal access token](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets).
 
-After the action finished. You can see the output is push to a folder which named profile-summary-card-output.
+
+After the action finished. You can see the output is push to a folder which named `profile-summary-card-output`.
 
 `Note: Those cards might not be upadated in time, because github raw file has cache time.`
 
