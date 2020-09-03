@@ -14,7 +14,7 @@ You can also trigger action by yourself after add this action.
 [More example with themes](https://github.com/vn7n24fzkq/vn7n24fzkq/tree/master/profile-summary-card-output)
 
 ## Wiki
-[Add to my profile README (For those don't familiar with github action)](https://github.com/vn7n24fzkq/github-profile-summary-cards/wiki/Add-to-my-profile-README)
+[Add to my profile README](https://github.com/vn7n24fzkq/github-profile-summary-cards/wiki/Add-to-my-profile-README) (For those who don't familiar with github action)
 
 ## Usage
 
