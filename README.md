@@ -12,6 +12,10 @@ You can also trigger action by yourself after add this action.
 ![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/2-most-commit-language.svg)
 
 [More example with themes](https://github.com/vn7n24fzkq/vn7n24fzkq/tree/master/profile-summary-card-output)
+
+## Wiki
+[Add to my profile README](https://github.com/vn7n24fzkq/github-profile-summary-cards/wiki/Add-to-my-profile-README)
+
 ## Usage
 
 ### `GITHUB_TOKEN`
