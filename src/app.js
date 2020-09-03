@@ -54,21 +54,21 @@ const createProfileDetailsCard = async function (username) {
   ];
 
   // hard code here, cuz I'm lazy
-  if (userDetails["email"] != "") {
+  if (userDetails["email"]) {
     details.push({
       index: 3,
       icon: Icons.EMAIL,
       name: "Email",
       value: userDetails["email"],
     });
-  } else if (userDetails["company"] != "") {
+  } else if (userDetails["company"]) {
     details.push({
       index: 3,
       icon: Icons.COMPANY,
       name: "Company",
       value: userDetails["company"],
     });
-  } else if (userDetails["location"] != "") {
+  } else if (userDetails["location"]) {
     details.push({
       index: 3,
       icon: Icons.LOCATION,
@@ -228,25 +228,25 @@ const main = async () => {
       await execCmd("sudo", ["rm", "-rf", outputPath]);
     }
     try {
-      core.info(`Createing ProfileDetailsCard...`);
+      core.info(`Creating ProfileDetailsCard...`);
       await createProfileDetailsCard(username);
     } catch (error) {
       core.error(`Error when creating ProfileDetailsCard \n${error}`);
     }
     try {
-      core.info(`Createing ReposPerLanguageCard...`);
+      core.info(`Creating ReposPerLanguageCard...`);
       await createReposPerLanguageCard(username);
     } catch (error) {
       core.error(`Error when creating ReposPerLanguageCard \n${error}`);
     }
     try {
-      core.info(`Createing CommitsPerLanguageCard...`);
+      core.info(`Creating CommitsPerLanguageCard...`);
       await createCommitsPerLanguageCard(username);
     } catch (error) {
       core.error(`Error when creating CommitsPerLanguageCard \n${error}`);
     }
     try {
-      core.info(`Createing preview markdown...`);
+      core.info(`Creating preview markdown...`);
       await generatePreviewMarkdown(isInGithubAction);
     } catch (error) {
       core.error(`Error when creating preview markdown \n${error}`);

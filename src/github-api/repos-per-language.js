@@ -69,7 +69,7 @@ async function getRepoLanguage(username) {
       } else {
         languageMap.set(langName, {
           count: 1,
-          color: edge.node.color == null ? "#586e75" : edge.node.color,
+          color: edge.node.color ? edge.node.color : "#586e75",
         });
       }
     }

@@ -64,7 +64,7 @@ async function getCommitLanguage(username, year) {
         } else {
           languageMap.set(langName, {
             count: totalCount,
-            color: langColor == null ? "#586e75" : langColor,
+            color: langColor ? langColor : "#586e75",
           });
         }
       }
