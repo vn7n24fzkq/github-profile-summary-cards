@@ -5,6 +5,7 @@ This repo is inspired by [profile-summary-for-github](https://github.com/tipsy/p
 This action generate your github profile summary cards and push to your repo.
 You can also trigger action by yourself after add this action.
 
+`After you add this to your workflow, your should trigger the workflow then you can use those cards immediately.`
 ## Example
 ![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/profile-details.svg)
 ![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/repos-per-language.svg)
