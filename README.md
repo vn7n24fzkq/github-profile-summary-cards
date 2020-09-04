@@ -8,24 +8,39 @@ This action generate your github profile summary cards and push to your repo.
 You can also trigger action by yourself after add this action.
 
 `After you add this to your workflow, your should trigger the workflow then you can use those cards immediately.`
+
+---
+
 ## Example
-![](https://raw.githubusercontent.com/vn7n24fzkq/github-profile-summary-cards-example/master/profile-summary-card-output/solarized/0-profile-details.svg)
-![](https://raw.githubusercontent.com/vn7n24fzkq/github-profile-summary-cards-example/master/profile-summary-card-output/solarized/1-repos-per-language.svg)
-![](https://raw.githubusercontent.com/vn7n24fzkq/github-profile-summary-cards-example/master/profile-summary-card-output/solarized/2-most-commit-language.svg)
+![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/0-profile-details.svg)
+![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/1-repos-per-language.svg)
+![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/2-most-commit-language.svg)
 
 [More example with themes](https://github.com/vn7n24fzkq/github-profile-summary-cards-example/tree/master/profile-summary-card-output)
+
+---
+
+## Use template 
+[github-profile-summary-cards-example](https://github.com/vn7n24fzkq/github-profile-summary-cards-example)
+
+Action already setup In this template, you just need click `use this template button` to create your repo and wait workflow finish.Then you can use everything in `profile-summary-card-output` folder.
+
+---
 
 ## Wiki
 [Add to my profile README](https://github.com/vn7n24fzkq/github-profile-summary-cards/wiki/Add-to-my-profile-README) (For those who don't familiar with github action)
 
-## Usage
+---
+
+## Github action usage
 
 ### `GITHUB_TOKEN`
+If you get this error`Error: Resource not accessible by integration` then you should use [Personal access token](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets).
 
-Default token doesn't has permission for private content, so if you want to calculate private content you will need to use your own secrets.
-[Creating and storing encrypted secrets](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets)
+Default token doesn't has permission for private content, so if you want to calculate private content you will need to use [Personal access token](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets).
 
-After the action finished. You can see the output is push to a folder which named profile-summary-card-output.
+
+After the action finished. You can see the output is push to a folder which named `profile-summary-card-output`.
 
 `Note: Those cards might not be upadated in time, because github raw file has cache time.`
 
@@ -50,6 +65,8 @@ jobs:
         with:
           USERNAME: ${{ github.repository_owner }}
 ```
+
+---
 
 ## Local Run
 - I build this on  `node 12`, lower version should get some problems.
