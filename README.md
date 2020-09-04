@@ -1,6 +1,7 @@
 # Github Profile Summary Cards
 ![Unit Tests](https://github.com/vn7n24fzkq/github-profile-summary-cards/workflows/Unit%20Tests/badge.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/vn7n24fzkq/github-profile-summary-cards/blob/master/LICENSE)
+![release](https://img.shields.io/github/v/release/vn7n24fzkq/github-profile-summary-cards.svg)
 
 This repo is inspired by [profile-summary-for-github](https://github.com/tipsy/profile-summary-for-github)
 
