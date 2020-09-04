@@ -49,7 +49,7 @@ Here are all cards with themes.
     for (let file of getAllFileInFolder(targetFolder + themeName)) {
       readmeContent += `
 \`\`\`
-![](${urlPrefix}/${themeName}/${file})
+[![](${urlPrefix}/${themeName}/${file})](https://github.com/vn7n24fzkq/github-profile-summary-cards)
 \`\`\`
 ![](${urlPrefix}/${themeName}/${file})
 
