@@ -23,7 +23,7 @@ You can also trigger action by yourself after add this action.
 ## Use template 
 [github-profile-summary-cards-example](https://github.com/vn7n24fzkq/github-profile-summary-cards-example)
 
-In this template, action has setup, you just need click `use this template button` and wait workflow finish.Then you can use everything in `profile-summary-card-output` folder.
+Action already setup In this template, you just need click `use this template button` to create your repo and wait workflow finish.Then you can use everything in `profile-summary-card-output` folder.
 
 ---
 
