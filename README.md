@@ -69,7 +69,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: vn7n24fzkq/github-profile-summary-cards@release
-        env:
+        env: # default use ${{ secrets.GITHUB_TOKEN }}, you can change to your personal access token
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           USERNAME: ${{ github.repository_owner }}
