@@ -253,7 +253,19 @@ const main = async () => {
     }
     if (isInGithubAction) {
       core.info(`Commit file...`);
-      await commitFile();
+      let retry = 0;
+      let maxRetry = 3;
+      while (retry < maxRetry) {
+        retry += 1;
+        try {
+          await commitFile();
+        } catch (error) {
+          if (retry == maxRetry) {
+            throw error;
+          }
+          core.warn(`Commit failed. Retry...`);
+        }
+      }
     }
   } catch (error) {
     core.error(error);
