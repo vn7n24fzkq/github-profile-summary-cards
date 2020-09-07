@@ -77,6 +77,7 @@ function createDetailCard(title, userDetails, contributionsData, theme) {
 
   let y = d3.scaleLinear().range([chartHeight, 0]);
   y.domain([0, yMax]);
+  y.nice();
 
   let valueline = d3
     .area()
@@ -124,7 +125,7 @@ function createDetailCard(title, userDetails, contributionsData, theme) {
     .append("g")
     .attr("color", theme.text_color)
     .attr("transform", `translate(${chartWidth - chartRightMargin},0)`)
-    .call(d3.axisRight(y));
+    .call(d3.axisRight(y).ticks(8));
 
   //hard code this coordinate becuz I'm too lazy
   chartPanel
