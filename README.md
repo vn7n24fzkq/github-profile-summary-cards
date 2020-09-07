@@ -45,7 +45,9 @@ Then you can use everything in `profile-summary-card-output` folder.
 
 ### `GITHUB_TOKEN`
 
-If you get this error`Error: Resource not accessible by integration` then you should use [Personal access token](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets).
+| :warning: | If you get this error`Error: Resource not accessible by integration` then you need to use [Personal access token](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets) as GITHUB_TOKEN . |
+| :-------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+
 
 Default token doesn't has permission for private content, so if you want to calculate private content you will need to use [Personal access token](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets).
 
@@ -53,12 +55,12 @@ After the action finished. You can see the output is push to a folder which name
 
 `Note: Those cards might not be upadated in time, because github raw file has cache time.`
 
-```ymal
+```yml
 name: GitHub-Profile-Summary-Cards
 
 on:
   schedule: # execute every 24 hours
-    - cron: '* */24 * * *'
+    - cron: "* */24 * * *"
   workflow_dispatch:
 
 jobs:
