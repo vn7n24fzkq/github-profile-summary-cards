@@ -155,12 +155,12 @@ const createCommitsPerLanguageCard = async function (username) {
   langData.sort(function (a, b) {
     return b.value - a.value;
   });
-  langData = langData.slice(0, 5); //get top 5
+  //langData = langData.slice(0, 5); //get top 5
 
   for (let themeName in Themes) {
     let theme = Themes[themeName];
     let svgString = createDonutChartCard(
-      "Most Commit Language",
+      "Commits per Language",
       langData,
       theme
     );
