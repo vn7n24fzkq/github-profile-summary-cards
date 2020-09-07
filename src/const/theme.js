@@ -3,7 +3,7 @@ const Themes = {
         title_color:"#24292e",
         text_color:"#24292e",
         bg_color:"#fafbfc",
-        stroke_color:"#24292e",
+        stroke_color:"#fafbfc",
         icon_color:"#24292e",
         line_chart_color:"#24292e",
     },
