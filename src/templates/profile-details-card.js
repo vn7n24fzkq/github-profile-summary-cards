@@ -60,7 +60,7 @@ function createDetailCard(title, userDetails, contributionsData, theme) {
   //prepare chart data
   let chartRightMargin = 30;
   let chartWidth = card.width - 2 * card.xPadding - chartRightMargin - 230;
-  let chartHeight = card.height - 2 * card.yPadding;
+  let chartHeight = card.height - 2 * card.yPadding - 10;
   var x = d3.scaleTime().range([0, chartWidth]);
   x.domain(
     d3.extent(lineChartData, function (d) {
@@ -94,7 +94,7 @@ function createDetailCard(title, userDetails, contributionsData, theme) {
     .attr("color", theme.line_chart_color)
     .attr(
       "transform",
-      `translate(${card.width - chartWidth - card.xPadding},0)`
+      `translate(${card.width - chartWidth - card.xPadding + 5},10)`
     );
 
   //draw chart line
@@ -131,7 +131,7 @@ function createDetailCard(title, userDetails, contributionsData, theme) {
     .append("g")
     .append("text")
     .text("contributions in the last year")
-    .attr("y", -15)
+    .attr("y", title.length > 30 ? 140 : -15) // if title too long, then put text to bottom
     .attr("x", 230)
     .style("fill", theme.text_color)
     .style("font-size", `10px`);
