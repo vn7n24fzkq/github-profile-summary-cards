@@ -13,6 +13,10 @@ You can also trigger action by yourself after add this action.
 
 `After you add this to your workflow, your should trigger the workflow then you can use those cards immediately.`
 
+| :warning: | If your workflow not generate all cards in output folder, then you need to use [Personal access token](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets) as GITHUB_TOKEN in workflow. |
+| :-------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+
+
 ---
 
 ## Example

@@ -11,6 +11,10 @@
 
 `剛新增這個 github action 的 repo, 要立即使用的話需要自己觸發一次`
 
+| :warning: | 如果你的 workflow 沒有正確生成所有卡片, 那你就需要用 [Personal access token](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets) 取代原本 workflow 裡的 GITHUB_TOKEN. |
+| :-------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+
+
 ---
 
 ## 範例
