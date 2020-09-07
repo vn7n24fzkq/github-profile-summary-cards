@@ -35,9 +35,7 @@ function createDonutChartCard(title, data, theme) {
     ) //rect y-coordinate need fix,so I decrease y, but I don't know why this need fix.
     .attr("width", labelHeight)
     .attr("height", labelHeight)
-    .attr("fill", (pieData) => pieData.data.color)
-    .attr("stroke", `${theme.bg_color}`)
-    .style("stroke-width", "1px");
+    .attr("fill", (pieData) => pieData.data.color);
 
   //set language text
   panel
