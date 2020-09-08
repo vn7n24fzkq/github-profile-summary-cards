@@ -11,6 +11,10 @@
 
 `剛新增這個 github action 的 repo, 要立即使用的話需要自己觸發一次`
 
+| :warning: | 如果你的 workflow 沒有正確生成所有卡片, 那你就需要用 [Personal access token](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets) 取代原本 workflow 裡的 GITHUB_TOKEN. |
+| :-------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+
+
 ---
 
 ## 範例
@@ -43,7 +47,9 @@ Action 已經在這份模板裡設定好了, 你只要按一下 `use this templa
 
 ### `GITHUB_TOKEN`
 
-如果 github action 遇到這個錯誤`Error: Resource not accessible by integration` 那你就需要用 [Personal access token](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets) 當 GITHUB_TOKEN.
+| :warning: | 如果 github action 遇到這個錯誤`Error: Resource not accessible by integration` 那你就需要用 [Personal access token](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets) 當 GITHUB_TOKEN. |
+| :-------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+
 
 預設的 token 沒有私有的權限, 如果你想計算私有數據的話就需要使用 [Personal access token](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets).
 

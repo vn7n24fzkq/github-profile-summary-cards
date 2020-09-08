@@ -13,6 +13,10 @@ You can also trigger action by yourself after add this action.
 
 `After you add this to your workflow, your should trigger the workflow then you can use those cards immediately.`
 
+| :warning: | If your workflow not generate all cards in output folder, then you need to use [Personal access token](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets) as GITHUB_TOKEN in workflow. |
+| :-------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+
+
 ---
 
 ## Example
@@ -20,6 +24,7 @@ You can also trigger action by yourself after add this action.
 ![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/0-profile-details.svg)
 ![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/1-repos-per-language.svg)
 ![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/2-most-commit-language.svg)
+![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/3-stats.svg)
 
 [More example with themes](https://github.com/vn7n24fzkq/github-profile-summary-cards-example/tree/master/profile-summary-card-output)
 
@@ -45,7 +50,9 @@ Then you can use everything in `profile-summary-card-output` folder.
 
 ### `GITHUB_TOKEN`
 
-If you get this error`Error: Resource not accessible by integration` then you should use [Personal access token](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets).
+| :warning: | If you get this error`Error: Resource not accessible by integration` then you need to use [Personal access token](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets) as GITHUB_TOKEN . |
+| :-------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+
 
 Default token doesn't has permission for private content, so if you want to calculate private content you will need to use [Personal access token](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets).
 
@@ -53,12 +60,12 @@ After the action finished. You can see the output is push to a folder which name
 
 `Note: Those cards might not be upadated in time, because github raw file has cache time.`
 
-```ymal
+```yml
 name: GitHub-Profile-Summary-Cards
 
 on:
   schedule: # execute every 24 hours
-    - cron: '* */24 * * *'
+    - cron: "* */24 * * *"
   workflow_dispatch:
 
 jobs:
