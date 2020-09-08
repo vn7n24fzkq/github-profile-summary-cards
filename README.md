@@ -89,7 +89,7 @@ jobs:
 ## Local Run
 
 - I build this on `node 12`, lower version should get some problems.
-- Add GITHUB_TOKEN to `.evn` file. ex:`GITHUB_TOKEN=abcda69ddf66ae95538c5b1666591b59b4abc73a`
+- Add GITHUB_TOKEN to `.env` file. ex:`GITHUB_TOKEN=abcda69ddf66ae95538c5b1666591b59b4abc73a`
 
 ```
 npm install
