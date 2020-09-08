@@ -15,6 +15,10 @@ const data = {
       websiteUrl: null,
       repositories: {
         totalCount: 30,
+        nodes: [
+          { stargazers: { totalCount: 110 } },
+          { stargazers: { totalCount: 20 } },
+        ],
       },
       contributionsCollection: {
         totalIssueContributions: 10,
@@ -22,7 +26,7 @@ const data = {
         totalRepositoryContributions: 30,
         totalPullRequestContributions: 40,
         totalPullRequestReviewContributions: 50,
-        contributionYears: [2019,2020],
+        contributionYears: [2019, 2020],
         contributionCalendar: {
           weeks: [
             {
@@ -79,8 +83,9 @@ describe("github api for profile details", () => {
       location: "Taiwan",
       websiteUrl: null,
       twitterUsername: null,
-      contributionYears: [2019,2020],
+      contributionYears: [2019, 2020],
       totalPublicRepos: 30,
+      totalStars: 130,
       contributions: [
         {
           date: new Date("2019-09-06T00:00:00.000+00:00"),
@@ -105,4 +110,3 @@ describe("github api for profile details", () => {
     );
   });
 });
-

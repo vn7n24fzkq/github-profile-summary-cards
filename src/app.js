@@ -2,6 +2,7 @@ const core = require("@actions/core");
 const createProfileDetailsCard = require("./cards/profile-details-card");
 const createReposPerLanguageCard = require("./cards/repos-per-language-card");
 const createCommitsPerLanguageCard = require("./cards/most-commit-lauguage-card");
+const createStatsCard = require("./cards/stats-card");
 const { spawn } = require("child_process");
 const { outputPath, generatePreviewMarkdown } = require("./utils/file-writer");
 
@@ -80,6 +81,12 @@ const main = async () => {
       await createCommitsPerLanguageCard(username);
     } catch (error) {
       core.error(`Error when creating CommitsPerLanguageCard \n${error}`);
+    }
+    try {
+      core.info(`Creating StatsCard...`);
+      await createStatsCard(username);
+    } catch (error) {
+      core.error(`Error when creating StatsCard \n${error}`);
     }
     try {
       core.info(`Creating preview markdown...`);
