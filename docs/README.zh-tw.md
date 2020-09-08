@@ -39,7 +39,7 @@ Action 已經在這份模板裡設定好了, 你只要按一下 `use this templa
 
 ## Wiki
 
-[Add to my profile README](https://github.com/vn7n24fzkq/github-profile-summary-cards/wiki/Add-to-my-profile-README) （給那些不熟悉 github aciont 的人)
+[Add to my profile README](https://github.com/vn7n24fzkq/github-profile-summary-cards/wiki/Add-to-my-profile-README) （給那些不熟悉 github action 的人)
 
 ---
 
