@@ -29,7 +29,5 @@ jobs:
     - run: npm test
       env:
         GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-      with:
-        USERNAME: ${{ github.repository_owner }}
 
     
