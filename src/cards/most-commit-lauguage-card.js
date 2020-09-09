@@ -35,7 +35,25 @@ const createCommitsPerLanguageCard = async function (username) {
   langData.sort(function (a, b) {
     return b.value - a.value;
   });
-  langData = langData.slice(0, 5); //get top 5
+  otherData = langData.slice(5); //get remaining
+  langData = langData.slice(0, 5); //get top languages
+
+/*
+  otherValue = otherData.reduce(function(acc, entry) {
+    return acc + entry.value;
+  }, 0);
+
+  if (otherValue > 0) {
+    langData.push({
+      name: 'Others',
+      value: otherValue,
+      color: '#586e75'
+    });
+  }
+
+  console.log(langData);
+  console.log(otherData);
+  */
 
   for (let themeName in Themes) {
     let theme = Themes[themeName];

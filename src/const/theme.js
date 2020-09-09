@@ -2,8 +2,8 @@ const Themes = {
     default: {
         title_color:"#24292e",
         text_color:"#24292e",
-        bg_color:"#fafbfc",
-        stroke_color:"#fafbfc",
+        bg_color:"#ffffff",
+        stroke_color:"#ffffff",
         icon_color:"#24292e",
         line_chart_color:"#24292e",
     },

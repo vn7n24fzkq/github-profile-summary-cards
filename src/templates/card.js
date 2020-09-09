@@ -41,6 +41,7 @@ class Card {
       .attr("stroke", `${theme.stroke_color}`)
       .attr("stroke-width", "1.2")
       .attr("fill", `${theme.bg_color}`)
+      .attr("fill-opacity", 0)
       .attr("stroke-opacity", 1);
 
     let isEmptyTitle = this.title == "";
