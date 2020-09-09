@@ -41,7 +41,7 @@ function createDetailCard(title, userDetails, contributionsData, theme) {
   //process chart data
   let lineChartData = [];
   for (let data of contributionsData) {
-    let formatDate = moment(data.date).format("MM-YYYY");
+    let formatDate = moment(data.date).format("YYYY-MM");
     data.date = new Date(formatDate);
     let lastIndex = lineChartData.length - 1;
     if (
@@ -111,7 +111,7 @@ function createDetailCard(title, userDetails, contributionsData, theme) {
   //Add the X Axis
   var xAxis_woy = d3
     .axisBottom(x)
-    .tickFormat(d3.timeFormat("%y/%m"))
+    .tickFormat(d3.timeFormat("%m/%y"))
     .tickValues(lineChartData.map((d) => d.date));
 
   chartPanel
