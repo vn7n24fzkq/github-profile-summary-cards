@@ -13,6 +13,11 @@ const fetcher = (token, variables, year) => {
       query userInfo($login: String!) {
         user(login: $login) {
             contributionsCollection(from: "${year}-01-01T00:00:00Z", to: "${year}-12-31T23:59:59Z") {
+                totalPullRequestReviewContributions
+                totalIssueContributions
+                totalCommitContributions
+                totalPullRequestContributions
+                totalRepositoryContributions
                 contributionCalendar {
                     totalContributions
                 }
@@ -28,6 +33,11 @@ const fetcher = (token, variables, year) => {
 async function getContributionByYear(username, year) {
   let result = {
     totalContributions: 0,
+    totalPullRequestReviewContributions: 0,
+    totalIssueContributions: 0,
+    totalCommitContributions: 0,
+    totalPullRequestContributions: 0,
+    totalRepositoryContributions: 0,
   };
 
   let res = await fetcher(
@@ -42,8 +52,15 @@ async function getContributionByYear(username, year) {
     throw Error(res.data.errors[0].message || "GetContributionByYear failed");
   }
 
+  let user = res.data.data.user;
+
+  result.totalRepositoryContributions = user.contributionsCollection.totalRepositoryContributions;
+  result.totalPullRequestContributions = user.contributionsCollection.totalPullRequestContributions;
+  result.totalPullRequestReviewContributions = user.contributionsCollection.totalPullRequestReviewContributions;
+  result.totalIssueContributions = user.contributionsCollection.totalIssueContributions;
+  result.totalCommitContributions = user.contributionsCollection.totalCommitContributions;
   result.totalContributions =
-    res.data.data.user.contributionsCollection.contributionCalendar.totalContributions;
+    user.contributionsCollection.contributionCalendar.totalContributions;
 
   return result;
 }

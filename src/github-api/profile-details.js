@@ -21,8 +21,13 @@ const fetcher = (token, variables) => {
             company
             location
             websiteUrl
-            repositories(privacy:PUBLIC){
-                totalCount
+            repositories(first: 100,privacy:PUBLIC, isFork: false, ownerAffiliations: OWNER, orderBy: {direction: DESC, field: STARGAZERS}) {
+              totalCount
+              nodes {
+                stargazers {
+                  totalCount
+                }
+              }
             }
             contributionsCollection {
                 contributionCalendar {
@@ -54,6 +59,7 @@ async function getProfileDetails(username) {
     twitterUsername: null,
     location: null,
     totalPublicRepos: 0,
+    totalStars: 0,
     contributions: [],
     contributionYears: [],
   };
@@ -72,6 +78,9 @@ async function getProfileDetails(username) {
   result.email = user.email;
   result.joinedAt = user.createdAt;
   result.totalPublicRepos = user.repositories.totalCount;
+  result.totalStars = user.repositories.nodes.reduce((stars, curr) => {
+    return stars + curr.stargazers.totalCount;
+  }, 0);
   result.websiteUrl = user.websiteUrl;
   result.company = user.company;
   result.location = user.location;
