@@ -17,9 +17,10 @@ You can also trigger action by yourself after add this action.
 | :-------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 
 
-[Personal token need those permission](https://github.com/vn7n24fzkq/github-profile-summary-cards/wiki/Personal-access-token-permissions)
+[Creating a personal access token
+](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token)
 
----
+[Personal token need those permission](https://github.com/vn7n24fzkq/github-profile-summary-cards/wiki/Personal-access-token-permissions)
 
 ## Example
 
@@ -53,12 +54,18 @@ Then you can use everything in `profile-summary-card-output` folder.
 ### `GITHUB_TOKEN`
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 | :warning: | If you get this error`Error: Resource not accessible by integration` then you need to use [Personal access token](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets) as GITHUB_TOKEN . |
 =======
 | :warning: | If you get this error`Error: Resource not accessible by integration` then you need to use [Personal access token](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets) instead of GITHUB_TOKEN . |
 
 > > > > > > > master
 > > > > > > > | :-------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+> > > > > > > =======
+> > > > > > > | :warning: | If you get this error`Error: Resource not accessible by integration` then you need to use [Personal access token](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets) instead of GITHUB_TOKEN . |
+> > > > > > > | :-------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+
+> > > > > > > master
 
 Default token doesn't has permission for private content, so if you want to calculate private content you will need to use [Personal access token](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets).
 
@@ -93,7 +100,7 @@ jobs:
 ## Local Run
 
 - I build this on `node 12`, lower version should get some problems.
-- Add GITHUB_TOKEN to `.evn` file. ex:`GITHUB_TOKEN=abcda69ddf66ae95538c5b1666591b59b4abc73a`
+- Add GITHUB_TOKEN to `.env` file. ex:`GITHUB_TOKEN=abcda69ddf66ae95538c5b1666591b59b4abc73a`
 
 ```
 npm install
