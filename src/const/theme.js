@@ -47,6 +47,22 @@ const Themes = {
         icon_color:"#e28905",
         line_chart_color:"#ae81ff",
     },
+    nord_bright: {
+        title_color:"#3b4252",
+        text_color:"#2e3440",
+        bg_color:"#eceff4",
+        stroke_color:"#e5e9f0",
+        icon_color:"#8fbcbb",
+        line_chart_color:"#88c0d0",
+    },
+    nord_dark: {
+        title_color:"#eceff4",
+        text_color:"#e5e9f0",
+        bg_color:"#2e3440",
+        stroke_color:"#eceff4",
+        icon_color:"#8fbcbb",
+        line_chart_color:"#88c0d0",
+    },
 };
 
 module.exports = Themes;
