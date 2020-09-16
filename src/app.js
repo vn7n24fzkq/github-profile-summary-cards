@@ -106,7 +106,7 @@ const main = async () => {
           if (retry == maxRetry) {
             throw error;
           }
-          core.warn(`Commit failed. Retry...`);
+          core.warning(`Commit failed. Retry...`);
         }
       }
     }
