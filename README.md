@@ -22,6 +22,8 @@ You can also trigger action by yourself after add this action.
 
 [Personal token need those permission](https://github.com/vn7n24fzkq/github-profile-summary-cards/wiki/Personal-access-token-permissions)
 
+---
+
 ## Example
 
 ![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/0-profile-details.svg)
@@ -53,19 +55,9 @@ Then you can use everything in `profile-summary-card-output` folder.
 
 ### `GITHUB_TOKEN`
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-| :warning: | If you get this error`Error: Resource not accessible by integration` then you need to use [Personal access token](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets) as GITHUB_TOKEN . |
-=======
 | :warning: | If you get this error`Error: Resource not accessible by integration` then you need to use [Personal access token](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets) instead of GITHUB_TOKEN . |
+| :-------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 
-> > > > > > > master
-> > > > > > > | :-------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-> > > > > > > =======
-> > > > > > > | :warning: | If you get this error`Error: Resource not accessible by integration` then you need to use [Personal access token](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets) instead of GITHUB_TOKEN . |
-> > > > > > > | :-------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-
-> > > > > > > master
 
 Default token doesn't has permission for private content, so if you want to calculate private content you will need to use [Personal access token](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets).
 
