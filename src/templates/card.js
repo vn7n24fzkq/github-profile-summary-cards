@@ -7,13 +7,15 @@ class Card {
     title = "Title",
     width = 1280,
     height = 1024,
-    theme = Theme["default"]
+    theme = Theme["default"],
+    xPadding = 30,
+    yPadding = 40
   ) {
     this.title = title;
     this.width = width;
     this.height = height;
-    this.xPadding = 30;
-    this.yPadding = 40;
+    this.xPadding = xPadding;
+    this.yPadding = yPadding;
     // use fake dom let us can get html element
     const fakeDom = new JSDOM("<!DOCTYPE html><html><body></body></html>");
     this.body = d3.select(fakeDom.window.document).select("body");
