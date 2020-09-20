@@ -1,12 +1,12 @@
 const Card = require("./card");
 const d3 = require("d3");
 
-function createProductiveCard(theme) {
-  let card = new Card("", 230, 200, theme, 13, 30);
+function createProductiveCard(chartData, theme) {
+  let card = new Card("", 230, 200, theme, 15, 30);
   let svg = card.getSVG();
-  let chartData = d3.range(24).map(function () {
-    return Math.round(25 * Math.random());
-  });
+  if (chartData.length != 24) {
+    throw Error("productive time array size should be 24");
+  }
 
   let chartWidth = 200;
   let chartHeight = 100;
@@ -32,7 +32,7 @@ function createProductiveCard(theme) {
     .style("font-size", `${majorTitleSize}px`)
     .style("font-weight", `bold`)
     .style("fill", `${theme.icon_color}`)
-    .text("Night-Time");
+    .text("Night-Time"); //TODO day time
   x.domain(
     chartData.map(function (d, index) {
       return index;

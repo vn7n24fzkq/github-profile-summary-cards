@@ -1,16 +1,30 @@
 const Themes = require("../const/theme");
-const Icons = require("../const/icon");
-const NumAbbr = require("number-abbreviate");
 const getProfileDetails = require("../github-api/profile-details");
-const getContributionByYear = require("../github-api/contributions-by-year");
-const statsCard = require("../templates/productive-time-card");
-const { writeSVG, outputPath } = require("../utils/file-writer");
+const getProductiveTime = require("../github-api/productive-time");
+const productiveTimeCard = require("../templates/productive-time-card");
+const { writeSVG } = require("../utils/file-writer");
 
 const createProductiveTimeCard = async function (username) {
+  let userEmail = (await getProfileDetails(username))["email"];
+  let since = new Date();
+  since.setFullYear( since.getFullYear() - 1 );
+  let productiveTime = await getProductiveTime(
+    username,
+    userEmail,
+    since.toISOString()
+  );
+  //process productiveTime
+  let chartData = new Array(24);
+  chartData.fill(0);
+  for (let time of productiveTime) {
+    let hour = new Date(time).getHours();
+    chartData[hour] += 1;
+  }
+
   for (let themeName in Themes) {
     let theme = Themes[themeName];
-    let svgString = statsCard(theme);
-    //output to folder, use 3- prefix for sort in preview
+    let svgString = productiveTimeCard(chartData, theme);
+    //output to folder, use 4- prefix for sort in preview
     writeSVG(themeName, "4-productive-time", svgString);
   }
 };
