@@ -19,7 +19,7 @@ You can also trigger action by yourself after add this action.
 [Creating a personal access token
 ](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token)
 
-[Personal token need those permission](https://github.com/vn7n24fzkq/github-profile-summary-cards/wiki/Personal-access-token-permissions)
+[Personal token permissions](https://github.com/vn7n24fzkq/github-profile-summary-cards/wiki/Personal-access-token-permissions)
 
 
 ---
