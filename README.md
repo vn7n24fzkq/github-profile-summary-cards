@@ -1,4 +1,4 @@
-# Github Profile Summary Cards
+# GitHub Profile Summary Cards
 
 ![Unit Tests](https://github.com/vn7n24fzkq/github-profile-summary-cards/workflows/Unit%20Tests/badge.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/vn7n24fzkq/github-profile-summary-cards/blob/master/LICENSE)
@@ -51,7 +51,7 @@ Then you can use everything in `profile-summary-card-output` folder.
 
 ---
 
-## Github action usage
+## GitHub Actions usage
 
 ### `GITHUB_TOKEN`
 
