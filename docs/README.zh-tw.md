@@ -1,4 +1,4 @@
-# Github Profile Summary Cards
+# GitHub Profile Summary Cards
 
 ![Unit Tests](https://github.com/vn7n24fzkq/github-profile-summary-cards/workflows/Unit%20Tests/badge.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/vn7n24fzkq/github-profile-summary-cards/blob/master/LICENSE)
@@ -43,7 +43,7 @@ Action 已經在這份模板裡設定好了, 你只要按一下 `use this templa
 
 ---
 
-## Github action usage
+## GitHub Actions usage
 
 ### `GITHUB_TOKEN`
 
