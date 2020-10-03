@@ -14,7 +14,7 @@
   "author": "vn7 <vn7n24fzkq@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^1.2.4",
+    "@actions/core": "^1.2.6",
     "@actions/github": "^4.0.0",
     "axios": "^0.19.2",
     "childprocess": "^2.0.2",
