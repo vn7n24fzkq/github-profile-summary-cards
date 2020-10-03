@@ -63,6 +63,14 @@ const Themes = {
         icon_color:"#8fbcbb",
         line_chart_color:"#88c0d0",
     },
+    github: {
+        title_color:"#0366d6",
+        text_color:"#586069",
+        bg_color:"#ffffff",
+        stroke_color:"#e4e2e2",
+        icon_color:"#586069",
+        line_chart_color:"#40c463",
+    },
 };
 
 module.exports = Themes;
