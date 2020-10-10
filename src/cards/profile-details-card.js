@@ -23,7 +23,7 @@ const createProfileDetailsCard = async function (username) {
       value: `${numAbbr.abbreviate(
         totalContributions,
         2
-      )} contributions on github`,
+      )} Contributions on GitHub`,
     },
     {
       index: 1,
@@ -32,7 +32,7 @@ const createProfileDetailsCard = async function (username) {
       value: `${numAbbr.abbreviate(
         userDetails["totalPublicRepos"],
         2
-      )} public repos`,
+      )} Public Repos`,
     },
     {
       index: 2,
