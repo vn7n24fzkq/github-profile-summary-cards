@@ -50,7 +50,7 @@ const createStatsCard = async function (username) {
     {
       index: 4,
       icon: Icons.REPOS,
-      name: "Contribution to:",
+      name: "Contributed to:",
       value: `${numAbbr.abbreviate(totalRepositoryContributions, 1)}`,
     },
   ];

@@ -24,7 +24,7 @@ const createReposPerLanguageCard = async function (username) {
   for (let themeName in Themes) {
     let theme = Themes[themeName];
     let svgString = createDonutChartCard(
-      "Repos per Language (top 5)",
+      "Top Languages by Repo",
       langData,
       theme
     );
