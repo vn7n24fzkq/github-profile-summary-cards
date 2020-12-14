@@ -2,37 +2,16 @@ const Card = require("./card");
 const d3 = require("d3");
 
 function createProductiveCard(chartData, theme) {
-  let card = new Card("", 230, 200, theme, 15, 30);
+  let card = new Card("Commits per day hour (UTC)", 340, 200, theme);
   let svg = card.getSVG();
   if (chartData.length != 24) {
     throw Error("productive time array size should be 24");
   }
 
-  let chartWidth = 200;
+  let chartWidth = 280;
   let chartHeight = 100;
   var x = d3.scaleBand().range([0, chartWidth]).padding(0.1);
 
-  let majorTitleSize = 22;
-  let minorTitleSize = 14;
-  let titlePanel = svg
-    .append("g")
-    .attr("transform", `translate(${card.xPadding},${card.yPadding})`);
-  titlePanel
-    .append("text")
-    .attr("x", 0)
-    .attr("y", 0)
-    .style("font-size", `${minorTitleSize}px`)
-    .style("fill", `${theme.title_color}`)
-    .text("I'm most productive during");
-
-  titlePanel
-    .append("text")
-    .attr("x", 0)
-    .attr("y", `${minorTitleSize * 2}`)
-    .style("font-size", `${majorTitleSize}px`)
-    .style("font-weight", `bold`)
-    .style("fill", `${theme.icon_color}`)
-    .text("Night-Time"); //TODO day time
   x.domain(
     chartData.map(function (d, index) {
       return index;
@@ -53,7 +32,7 @@ function createProductiveCard(chartData, theme) {
   let chartPanel = svg
     .append("g")
     .attr("color", theme.line_chart_color)
-    .attr("transform", `translate(${card.xPadding},${card.yPadding + 40})`);
+    .attr("transform", `translate(${card.xPadding},${card.yPadding/2})`);
 
   var xAxis_woy = d3.axisBottom(x).tickValues([0, 6, 12, 18, 23]);
 
@@ -61,7 +40,7 @@ function createProductiveCard(chartData, theme) {
   let g = chartPanel
     .append("g")
     .attr("color", theme.text_color)
-    .attr("transform", `translate(0,${card.height - chartHeight})`);
+    .attr("transform", `translate(0,${chartHeight})`);
   g.call(xAxis_woy);
   //custom x axis
   g.select(".domain").attr("d", `M0.5,0.5H${chartWidth}.5`);
