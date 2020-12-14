@@ -60,7 +60,7 @@ const main = async () => {
     }
   }
   try {
-    //remove old output
+    // remove old output
     if (isInGithubAction) {
       core.info(`Remove old cards...`);
       await execCmd("sudo", ["rm", "-rf", outputPath]);

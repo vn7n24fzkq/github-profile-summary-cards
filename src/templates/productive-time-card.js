@@ -42,7 +42,7 @@ function createProductiveCard(chartData, theme) {
     .attr("color", theme.text_color)
     .attr("transform", `translate(0,${chartHeight})`);
   g.call(xAxis_woy);
-  //custom x axis
+  //custom x axis, here is svg magic
   g.select(".domain").attr("d", `M0.5,0.5H${chartWidth}.5`);
 
   chartPanel
