@@ -112,7 +112,7 @@ function createDetailCard(title, userDetails, contributionsData, theme) {
   var xAxis_woy = d3
     .axisBottom(x)
     .tickFormat(d3.timeFormat("%y/%m"))
-    .tickValues(lineChartData.map((d) => d.date));
+    .tickValues(lineChartData.map((data,index) => {if(index%2==0) return data.date; else return null;}));
 
   chartPanel
     .append("g")

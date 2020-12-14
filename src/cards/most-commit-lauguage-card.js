@@ -40,7 +40,7 @@ const createCommitsPerLanguageCard = async function (username) {
   for (let themeName in Themes) {
     let theme = Themes[themeName];
     let svgString = createDonutChartCard(
-      "Most Commit Language",
+      "Top Languages by Commit",
       langData,
       theme
     );

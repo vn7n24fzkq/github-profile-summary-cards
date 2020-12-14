@@ -62,7 +62,7 @@ const error = {
       type: "NOT_FOUND",
       path: ["user"],
       locations: [],
-      message: "Github api failed",
+      message: "GitHub api failed",
     },
   ],
 };
@@ -106,7 +106,7 @@ describe("github api for profile details", () => {
   it("should throw error when api failed", async () => {
     mock.onPost("https://api.github.com/graphql").reply(200, error);
     await expect(getProfileDetails("vn7n24fzkq")).rejects.toThrow(
-      "Github api failed"
+      "GitHub api failed"
     );
   });
 });
