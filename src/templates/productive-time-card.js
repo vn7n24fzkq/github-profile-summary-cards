@@ -7,6 +7,7 @@ function createProductiveCard(chartData, theme) {
   if (chartData.length != 24) {
     throw Error("productive time array size should be 24");
   }
+  let dataAvg = chartData.reduce((a, b) => a + b) / chartData.length;
 
   let chartWidth = 280;
   let chartHeight = 100;
@@ -32,7 +33,7 @@ function createProductiveCard(chartData, theme) {
   let chartPanel = svg
     .append("g")
     .attr("color", theme.line_chart_color)
-    .attr("transform", `translate(${card.xPadding},${card.yPadding/2})`);
+    .attr("transform", `translate(${card.xPadding},${card.yPadding / 2})`);
 
   var xAxis_woy = d3.axisBottom(x).tickValues([0, 6, 12, 18, 23]);
 
@@ -42,8 +43,15 @@ function createProductiveCard(chartData, theme) {
     .attr("color", theme.text_color)
     .attr("transform", `translate(0,${chartHeight})`);
   g.call(xAxis_woy);
+
   //custom x axis, here is svg magic
   g.select(".domain").attr("d", `M0.5,0.5H${chartWidth}.5`);
+
+  chartPanel
+    .append("g")
+    .attr("color", theme.text_color)
+    .attr("transform", `translate(0,0)`)
+    .call(d3.axisLeft(y).ticks(5));
 
   chartPanel
     .selectAll(".bar")
@@ -51,6 +59,7 @@ function createProductiveCard(chartData, theme) {
     .enter()
     .append("rect")
     .attr("class", "bar")
+    .style("hover","green" )
     .attr("fill", theme.line_chart_color)
     .attr("x", function (d, index) {
       return x(index);
@@ -62,6 +71,14 @@ function createProductiveCard(chartData, theme) {
     .attr("height", function (d) {
       return chartHeight - y(Number(d));
     });
+
+  // let avgG = chartPanel
+  //   .append("g")
+  //   .attr("class", "domain")
+  //   .attr("stroke", theme.text_color)
+  //   .attr("transform", `translate(0,${100-(chartHeight - y(dataAvg))/chartHeight*100})`);
+  //
+  // avgG.append("path").attr("d", `M0.5,0.5H${chartWidth}.5`);
 
   return card.toString();
 }
