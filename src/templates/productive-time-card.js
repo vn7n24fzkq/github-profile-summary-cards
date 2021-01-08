@@ -7,7 +7,6 @@ function createProductiveCard(chartData, theme) {
   if (chartData.length != 24) {
     throw Error("productive time array size should be 24");
   }
-  let dataAvg = chartData.reduce((a, b) => a + b) / chartData.length;
 
   let chartWidth = 280;
   let chartHeight = 100;
@@ -47,6 +46,7 @@ function createProductiveCard(chartData, theme) {
   //custom x axis, here is svg magic
   g.select(".domain").attr("d", `M0.5,0.5H${chartWidth}.5`);
 
+  //Add the Y Axis
   chartPanel
     .append("g")
     .attr("color", theme.text_color)
@@ -71,14 +71,6 @@ function createProductiveCard(chartData, theme) {
     .attr("height", function (d) {
       return chartHeight - y(Number(d));
     });
-
-  // let avgG = chartPanel
-  //   .append("g")
-  //   .attr("class", "domain")
-  //   .attr("stroke", theme.text_color)
-  //   .attr("transform", `translate(0,${100-(chartHeight - y(dataAvg))/chartHeight*100})`);
-  //
-  // avgG.append("path").attr("d", `M0.5,0.5H${chartWidth}.5`);
 
   return card.toString();
 }
