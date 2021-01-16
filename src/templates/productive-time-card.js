@@ -8,7 +8,7 @@ function createProductiveCard(chartData, theme) {
     throw Error("productive time array size should be 24");
   }
 
-  let chartWidth = 280;
+  let chartWidth = card.width - 60;
   let chartHeight = 100;
   var x = d3.scaleBand().range([0, chartWidth]).padding(0.1);
 
@@ -32,7 +32,10 @@ function createProductiveCard(chartData, theme) {
   let chartPanel = svg
     .append("g")
     .attr("color", theme.line_chart_color)
-    .attr("transform", `translate(${card.xPadding},${card.yPadding / 2})`);
+    .attr(
+      "transform",
+      `translate(${(card.width - chartWidth) / 2 + 5},${card.yPadding / 2})`
+    );
 
   var xAxis_woy = d3.axisBottom(x).tickValues([0, 6, 12, 18, 23]);
 
@@ -59,7 +62,7 @@ function createProductiveCard(chartData, theme) {
     .enter()
     .append("rect")
     .attr("class", "bar")
-    .style("hover","green" )
+    .style("hover", "green")
     .attr("fill", theme.line_chart_color)
     .attr("x", function (d, index) {
       return x(index);
