@@ -3,6 +3,7 @@ const createProfileDetailsCard = require("./cards/profile-details-card");
 const createReposPerLanguageCard = require("./cards/repos-per-language-card");
 const createCommitsPerLanguageCard = require("./cards/most-commit-lauguage-card");
 const createStatsCard = require("./cards/stats-card");
+const createProductiveTimeCard = require("./cards/productive-time-card");
 const { spawn } = require("child_process");
 const { outputPath, generatePreviewMarkdown } = require("./utils/file-writer");
 
@@ -59,7 +60,7 @@ const main = async () => {
     }
   }
   try {
-    //remove old output
+    // remove old output
     if (isInGithubAction) {
       core.info(`Remove old cards...`);
       await execCmd("sudo", ["rm", "-rf", outputPath]);
@@ -87,6 +88,12 @@ const main = async () => {
       await createStatsCard(username);
     } catch (error) {
       core.error(`Error when creating StatsCard \n${error}`);
+    }
+    try {
+      core.info(`Creating ProductiveTimeCard...`);
+      await createProductiveTimeCard(username);
+    } catch (error) {
+      core.error(`Error when creating ProductiveTimeCard \n${error}`);
     }
     try {
       core.info(`Creating preview markdown...`);
