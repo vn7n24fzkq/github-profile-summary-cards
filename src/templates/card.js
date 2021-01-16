@@ -34,12 +34,12 @@ class Card {
       .append("rect")
       .attr("x", 1.5)
       .attr("y", 1.5)
-      .attr("rx", 20)
-      .attr("ry", 20)
+      .attr("rx", 5)
+      .attr("ry", 5)
       .attr("height", "98%")
       .attr("width", "98%")
       .attr("stroke", `${theme.stroke_color}`)
-      .attr("stroke-width", "1.2")
+      .attr("stroke-width", "1")
       .attr("fill", `${theme.bg_color}`)
       .attr("stroke-opacity", 1);
 
