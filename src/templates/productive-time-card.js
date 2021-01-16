@@ -47,13 +47,18 @@ function createProductiveCard(chartData, theme) {
   g.call(xAxis_woy);
 
   //custom x axis, here is svg magic
-  g.select(".domain").attr("d", `M0.5,0.5H${chartWidth}.5`);
+  // Add more space for first bar
+  g.select(".domain").attr(
+    "d",
+    `M${0 - x(1) + x(0) + x.bandwidth()},0.5H${chartWidth}.5`
+  );
 
   //Add the Y Axis
   chartPanel
     .append("g")
     .attr("color", theme.text_color)
-    .attr("transform", `translate(0,0)`)
+    // Add gap before first bar
+    .attr("transform", `translate(${0 - x(1) + x(0) + x.bandwidth()},0)`)
     .call(d3.axisLeft(y).ticks(5));
 
   chartPanel
