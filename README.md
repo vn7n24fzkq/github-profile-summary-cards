@@ -63,7 +63,7 @@ Default token doesn't has permission for private content, so if you want to calc
 
 After the action finished. You can see the output is push to a folder which named `profile-summary-card-output`.
 
-`Note: Those cards might not be upadated in time, because github raw file has cache time.`
+`Note: Those cards might not be updated in time, because github raw file has cache time.`
 
 ```yml
 name: GitHub-Profile-Summary-Cards
