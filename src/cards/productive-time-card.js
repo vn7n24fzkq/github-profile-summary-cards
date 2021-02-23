@@ -16,7 +16,7 @@ const createProductiveTimeCard = async function (username) {
   let chartData = new Array(24);
   chartData.fill(0);
   for (let time of productiveTime) {
-    let hour = new Date(time).getHours();
+    let hour = new Date(time).getUTCHours(); //we use UTC+0 here
     chartData[hour] += 1;
   }
 

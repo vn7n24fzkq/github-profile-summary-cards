@@ -60,9 +60,13 @@ async function getProductiveTime(username, authorEmail, until) {
 
   res.data.data.user.contributionsCollection.commitContributionsByRepository.forEach(
     (node) => {
-      node.repository.defaultBranchRef.target.history.edges.forEach((node) => {
-        array.push(node.node.committedDate);
-      });
+      if (node.repository.defaultBranchRef != null) {
+        node.repository.defaultBranchRef.target.history.edges.forEach(
+          (node) => {
+            array.push(node.node.committedDate);
+          }
+        );
+      }
     }
   );
 
