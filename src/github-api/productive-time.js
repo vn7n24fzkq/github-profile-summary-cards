@@ -11,7 +11,7 @@ const fetcher = (token, variables) => {
     },
     {
       query: `
-      query userInfo($login: String!,$authorEmail: String!,$since: GitTimestamp!) {
+      query userInfo($login: String!,$authorEmail: String!,$until: GitTimestamp!) {
         user(login: $login) {
           contributionsCollection{
             commitContributionsByRepository(maxRepositories:100) {
@@ -19,7 +19,7 @@ const fetcher = (token, variables) => {
                 defaultBranchRef {
                   target {
                     ... on Commit {
-                      history(first: 100,since: $since,author:{emails:[$authorEmail]}) {
+                      history(first: 100,until: $until,author:{emails:[$authorEmail]}) {
                         edges {
                           node {
                             message
@@ -46,12 +46,12 @@ const fetcher = (token, variables) => {
 };
 
 //get productive time
-async function getProductiveTime(username, authorEmail, since) {
+async function getProductiveTime(username, authorEmail, until) {
   let array = new Array();
   let res = await fetcher(githubToken, {
     login: username,
     authorEmail: authorEmail,
-    since: since,
+    until: until,
   });
 
   if (res.data.errors) {

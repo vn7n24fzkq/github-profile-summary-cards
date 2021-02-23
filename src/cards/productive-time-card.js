@@ -6,12 +6,11 @@ const { writeSVG } = require("../utils/file-writer");
 
 const createProductiveTimeCard = async function (username) {
   let userEmail = (await getProfileDetails(username))["email"];
-  let since = new Date();
-  since.setFullYear( since.getFullYear() - 1 );
+  let until = new Date(); // get data until now
   let productiveTime = await getProductiveTime(
     username,
     userEmail,
-    since.toISOString()
+    until.toISOString()
   );
   //process productiveTime
   let chartData = new Array(24);
