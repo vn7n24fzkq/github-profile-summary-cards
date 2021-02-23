@@ -12,12 +12,13 @@ const GITHUB_BRANCH =
 const writeSVG = function (folder, filename, svgString) {
   const targetFolder = `${outputPath}${folder}/`;
   fs.mkdirSync(targetFolder, { recursive: true });
-  fs.writeFileSync(`${targetFolder}${filename}.svg`, svgString, function (
-    err,
-    result
-  ) {
-    if (err) throw err;
-  });
+  fs.writeFileSync(
+    `${targetFolder}${filename}.svg`,
+    svgString,
+    function (err, result) {
+      if (err) throw err;
+    }
+  );
 };
 
 function getAllFileInFolder(folder) {
@@ -34,40 +35,80 @@ const generatePreviewMarkdown = function (isInGithubAction) {
   let urlPrefix = isInGithubAction
     ? `https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${GITHUB_BRANCH}/profile-summary-card-output`
     : `.`;
+
+  // First, we generate preview readme for each theme
+
+  for (let themeName in Themes) {
+    generateThemePreviewReadme(urlPrefix, themeName);
+  }
   readmeContent += `
-# Preview Cards
+# Theme Preview
 
 Here are all cards with themes.
-| :warning: | If your workflow does not generate all cards in output folder, then you need to use [Personal access token](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets) instead of GITHUB_TOKEN in workflow. |
+| :bell: | If only show Top Languages card here, then you maybe forgot to use [Personal access token](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets) instead of GITHUB_TOKEN in workflow. |
 | :-------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-
-[Personal token need those permission](https://github.com/vn7n24fzkq/github-profile-summary-cards/wiki/Personal-access-token-permissions)
 
 `;
 
   for (let themeName in Themes) {
-    readmeContent += `
-### ${themeName}
-
-`;
-    for (let file of getAllFileInFolder(targetFolder + themeName)) {
-      readmeContent += `
-\`\`\`
-[![](${urlPrefix}/${themeName}/${file})](https://github.com/vn7n24fzkq/github-profile-summary-cards)
-\`\`\`
-![](${urlPrefix}/${themeName}/${file})
-
-`;
-    }
+    readmeContent += `## [${themeName}](./${themeName}/README.md)`;
+    readmeContent += getThemeMarkdown(`${urlPrefix}/${themeName}`, themeName);
   }
 
-  fs.writeFileSync(`${targetFolder}README.md`, readmeContent, function (
-    err,
-    result
-  ) {
-    if (err) throw err;
-  });
+  fs.writeFileSync(
+    `${targetFolder}README.md`,
+    readmeContent,
+    function (err, result) {
+      if (err) throw err;
+    }
+  );
 };
+
+function generateThemePreviewReadme(urlPrefix, themeName) {
+  let themePreviewMarkdown = "";
+  themePreviewMarkdown += `## ${themeName}`;
+  themePreviewMarkdown += `\n`;
+  themePreviewMarkdown += getThemeMarkdown(".");
+  themePreviewMarkdown += "### Now you can add this to your markdown";
+  themePreviewMarkdown += `
+\`\`\`
+${getThemeMarkdown(urlPrefix)}
+\`\`\`
+`;
+  themePreviewMarkdown += `\n`;
+  themePreviewMarkdown += `### Each card usage`;
+  for (let file of getAllFileInFolder(outputPath + themeName)) {
+    if (!file.endsWith("svg")) continue;
+    themePreviewMarkdown += `
+---
+
+![](./${file})
+
+\`\`\`
+![](${urlPrefix}/${themeName}/${file})
+\`\`\`
+
+    `;
+    themePreviewMarkdown += `\n`;
+  }
+  fs.writeFileSync(
+    `${outputPath}${themeName}/README.md`,
+    themePreviewMarkdown,
+    function (err, result) {
+      if (err) throw err;
+    }
+  );
+}
+
+function getThemeMarkdown(urlPrefix) {
+  let result = "";
+  result += `
+[![](${urlPrefix}/0-profile-details.svg)](https://github.com/vn7n24fzkq/github-profile-summary-cards)
+[![](${urlPrefix}/1-repos-per-language.svg)](https://github.com/vn7n24fzkq/github-profile-summary-cards) [![](${urlPrefix}/2-most-commit-language.svg)](https://github.com/vn7n24fzkq/github-profile-summary-cards)
+[![](${urlPrefix}/3-stats.svg)](https://github.com/vn7n24fzkq/github-profile-summary-cards) [![](${urlPrefix}/4-productive-time.svg)](https://github.com/vn7n24fzkq/github-profile-summary-cards)
+`;
+  return result;
+}
 
 module.exports = {
   writeSVG,
