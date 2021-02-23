@@ -69,37 +69,37 @@ const main = async () => {
       core.info(`Creating ProfileDetailsCard...`);
       await createProfileDetailsCard(username);
     } catch (error) {
-      core.error(`Error when creating ProfileDetailsCard \n${error}`);
+      core.error(`Error when creating ProfileDetailsCard \n${error.stack}`);
     }
     try {
       core.info(`Creating ReposPerLanguageCard...`);
       await createReposPerLanguageCard(username);
     } catch (error) {
-      core.error(`Error when creating ReposPerLanguageCard \n${error}`);
+      core.error(`Error when creating ReposPerLanguageCard \n${error.stack}`);
     }
     try {
       core.info(`Creating CommitsPerLanguageCard...`);
       await createCommitsPerLanguageCard(username);
     } catch (error) {
-      core.error(`Error when creating CommitsPerLanguageCard \n${error}`);
+      core.error(`Error when creating CommitsPerLanguageCard \n${error.stack}`);
     }
     try {
       core.info(`Creating StatsCard...`);
       await createStatsCard(username);
     } catch (error) {
-      core.error(`Error when creating StatsCard \n${error}`);
+      core.error(`Error when creating StatsCard \n${error.stack}`);
     }
     try {
       core.info(`Creating ProductiveTimeCard...`);
       await createProductiveTimeCard(username);
     } catch (error) {
-      core.error(`Error when creating ProductiveTimeCard \n${error}`);
+      core.error(`Error when creating ProductiveTimeCard \n${error.stack}`);
     }
     try {
       core.info(`Creating preview markdown...`);
       await generatePreviewMarkdown(isInGithubAction);
     } catch (error) {
-      core.error(`Error when creating preview markdown \n${error}`);
+      core.error(`Error when creating preview markdown \n${error.stack}`);
     }
     if (isInGithubAction) {
       core.info(`Commit file...`);
