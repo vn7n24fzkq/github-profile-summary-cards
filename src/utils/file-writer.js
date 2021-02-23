@@ -6,7 +6,7 @@ const GITHUB_REPOSITORY = process.env.GITHUB_REPOSITORY;
 // If neither a branch or tag is available for the event type, the variable will not exist. https://docs.github.com/en/actions/configuring-and-managing-workflows/using-environment-variables
 const GITHUB_BRANCH =
   process.env.GITHUB_REF == undefined
-    ? "master"
+    ? "main"
     : process.env.GITHUB_REF.split("/").pop();
 
 const writeSVG = function (folder, filename, svgString) {
