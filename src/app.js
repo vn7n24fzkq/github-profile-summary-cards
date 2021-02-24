@@ -3,6 +3,7 @@ const createProfileDetailsCard = require("./cards/profile-details-card");
 const createReposPerLanguageCard = require("./cards/repos-per-language-card");
 const createCommitsPerLanguageCard = require("./cards/most-commit-lauguage-card");
 const createStatsCard = require("./cards/stats-card");
+const createProductiveTimeCard = require("./cards/productive-time-card");
 const { spawn } = require("child_process");
 const { outputPath, generatePreviewMarkdown } = require("./utils/file-writer");
 
@@ -59,7 +60,7 @@ const main = async () => {
     }
   }
   try {
-    //remove old output
+    // remove old output
     if (isInGithubAction) {
       core.info(`Remove old cards...`);
       await execCmd("sudo", ["rm", "-rf", outputPath]);
@@ -68,31 +69,37 @@ const main = async () => {
       core.info(`Creating ProfileDetailsCard...`);
       await createProfileDetailsCard(username);
     } catch (error) {
-      core.error(`Error when creating ProfileDetailsCard \n${error}`);
+      core.error(`Error when creating ProfileDetailsCard \n${error.stack}`);
     }
     try {
       core.info(`Creating ReposPerLanguageCard...`);
       await createReposPerLanguageCard(username);
     } catch (error) {
-      core.error(`Error when creating ReposPerLanguageCard \n${error}`);
+      core.error(`Error when creating ReposPerLanguageCard \n${error.stack}`);
     }
     try {
       core.info(`Creating CommitsPerLanguageCard...`);
       await createCommitsPerLanguageCard(username);
     } catch (error) {
-      core.error(`Error when creating CommitsPerLanguageCard \n${error}`);
+      core.error(`Error when creating CommitsPerLanguageCard \n${error.stack}`);
     }
     try {
       core.info(`Creating StatsCard...`);
       await createStatsCard(username);
     } catch (error) {
-      core.error(`Error when creating StatsCard \n${error}`);
+      core.error(`Error when creating StatsCard \n${error.stack}`);
+    }
+    try {
+      core.info(`Creating ProductiveTimeCard...`);
+      await createProductiveTimeCard(username);
+    } catch (error) {
+      core.error(`Error when creating ProductiveTimeCard \n${error.stack}`);
     }
     try {
       core.info(`Creating preview markdown...`);
       await generatePreviewMarkdown(isInGithubAction);
     } catch (error) {
-      core.error(`Error when creating preview markdown \n${error}`);
+      core.error(`Error when creating preview markdown \n${error.stack}`);
     }
     if (isInGithubAction) {
       core.info(`Commit file...`);

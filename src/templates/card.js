@@ -7,13 +7,15 @@ class Card {
     title = "Title",
     width = 1280,
     height = 1024,
-    theme = Theme["default"]
+    theme = Theme["default"],
+    xPadding = 30,
+    yPadding = 40
   ) {
     this.title = title;
     this.width = width;
     this.height = height;
-    this.xPadding = 30;
-    this.yPadding = 40;
+    this.xPadding = xPadding;
+    this.yPadding = yPadding;
     // use fake dom let us can get html element
     const fakeDom = new JSDOM("<!DOCTYPE html><html><body></body></html>");
     this.body = d3.select(fakeDom.window.document).select("body");
@@ -34,12 +36,12 @@ class Card {
       .append("rect")
       .attr("x", 1.5)
       .attr("y", 1.5)
-      .attr("rx", 20)
-      .attr("ry", 20)
+      .attr("rx", 5)
+      .attr("ry", 5)
       .attr("height", "98%")
       .attr("width", "98%")
       .attr("stroke", `${theme.stroke_color}`)
-      .attr("stroke-width", "1.2")
+      .attr("stroke-width", "1")
       .attr("fill", `${theme.bg_color}`)
       .attr("stroke-opacity", 1);
 
