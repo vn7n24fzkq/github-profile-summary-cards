@@ -29,7 +29,7 @@ You can also trigger action by yourself after add this action.
 
 ## How to use
 
-:star: [Follow tutorial](https://github.com/vn7n24fzkq/github-profile-summary-cards/wiki/Add-to-my-profile-README) ( Recommendation ) :star:
+:star: [Follow tutorial](https://github.com/vn7n24fzkq/github-profile-summary-cards/wiki/Toturial) ( Recommendation ) :star:
 
 #### First step
 
