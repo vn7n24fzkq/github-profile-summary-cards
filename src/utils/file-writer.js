@@ -72,7 +72,7 @@ function generateThemePreviewReadme(urlPrefix, themeName) {
   themePreviewMarkdown += "### Now you can add this to your markdown";
   themePreviewMarkdown += `
 \`\`\`
-${getThemeMarkdown(urlPrefix / themeName)}
+${getThemeMarkdown(`${urlPrefix}/${themeName}`)}
 \`\`\`
 `;
   themePreviewMarkdown += `\n`;
