@@ -12,7 +12,7 @@ const fetcher = (token, variables) => {
     },
     {
       query: `
-      query userInfo($login: String!) {
+      query UserDetails($login: String!) {
         user(login: $login) {
             id
             name
