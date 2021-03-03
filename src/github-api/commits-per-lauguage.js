@@ -10,7 +10,7 @@ const fetcher = (token, variables, year) => {
     },
     {
       query: `
-      query userInfo($login: String!) {
+      query CommitLanguages($login: String!) {
         user(login: $login) {
           contributionsCollection(from: "${year}-01-01T00:00:00Z", to: "${year}-12-31T23:59:59Z") {
             commitContributionsByRepository(maxRepositories: 100) {

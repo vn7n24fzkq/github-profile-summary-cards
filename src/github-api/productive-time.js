@@ -11,7 +11,7 @@ const fetcher = (token, variables) => {
     },
     {
       query: `
-      query userInfo($login: String!,$authorEmail: String!,$until: GitTimestamp!) {
+      query ProductiveTime($login: String!,$authorEmail: String!,$until: GitTimestamp!) {
         user(login: $login) {
           contributionsCollection{
             commitContributionsByRepository(maxRepositories:100) {
