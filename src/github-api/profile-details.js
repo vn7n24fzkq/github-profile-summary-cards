@@ -12,8 +12,9 @@ const fetcher = (token, variables) => {
     },
     {
       query: `
-      query userInfo($login: String!) {
+      query UserDetails($login: String!) {
         user(login: $login) {
+            id
             name
             email
             createdAt
@@ -51,6 +52,7 @@ const fetcher = (token, variables) => {
 
 async function getProfileDetails(username) {
   let result = {
+    id: 0,
     name: "",
     email: "",
     joinedAt: "",
@@ -74,6 +76,7 @@ async function getProfileDetails(username) {
 
   let user = res.data.data.user;
 
+  result.id = user.id;
   result.name = user.name;
   result.email = user.email;
   result.joinedAt = user.createdAt;

@@ -11,7 +11,7 @@ const fetcher = (token, variables) => {
     },
     {
       query: `
-      query userInfo($login: String!,$endCursor: String) {
+      query ReposPerLanguage($login: String!,$endCursor: String) {
         user(login: $login) {
           repositories(isFork: false, first: 100, after: $endCursor,ownerAffiliations: OWNER) {
             nodes {

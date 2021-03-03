@@ -6,6 +6,7 @@ const mock = new MockAdapter(axios);
 const data = {
   data: {
     user: {
+      id:"userID",
       name: "vn7",
       email: "vn7n24fzkq@gmail.com",
       createdAt: "2016-07-01T10:46:25Z",
@@ -76,6 +77,7 @@ describe("github api for profile details", () => {
     mock.onPost("https://api.github.com/graphql").reply(200, data);
     let profileDetails = await getProfileDetails("vn7n24fzkq");
     expect(profileDetails).toStrictEqual({
+      id:"userID",
       name: "vn7",
       email: "vn7n24fzkq@gmail.com",
       joinedAt: "2016-07-01T10:46:25Z",
