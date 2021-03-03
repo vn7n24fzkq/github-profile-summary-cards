@@ -5,11 +5,11 @@ const productiveTimeCard = require("../templates/productive-time-card");
 const { writeSVG } = require("../utils/file-writer");
 
 const createProductiveTimeCard = async function (username) {
-  let userEmail = (await getProfileDetails(username))["email"];
+  let userId = (await getProfileDetails(username))["id"];
   let until = new Date(); // get data until now
   let productiveTime = await getProductiveTime(
     username,
-    userEmail,
+    userId,
     until.toISOString()
   );
   //process productiveTime
