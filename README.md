@@ -56,7 +56,7 @@ You can also trigger action by yourself after add this action.
 
 After the action finished. You can see all of summary cards are in folder which named `profile-summary-card-output`.
 
-`Note: Those cards might not be updated in time, because github raw file has cache time.`
+`Note: Some summary cards might not be updated in time, because github raw file has cache time.`
 
 ```yml
 name: GitHub-Profile-Summary-Cards
