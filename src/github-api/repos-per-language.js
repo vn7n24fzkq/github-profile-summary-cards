@@ -15,14 +15,9 @@ const fetcher = (token, variables) => {
         user(login: $login) {
           repositories(isFork: false, first: 100, after: $endCursor,ownerAffiliations: OWNER) {
             nodes {
-              languages(first: 10, orderBy: {field: SIZE, direction: DESC}) {
-                edges {
-                  size
-                  node {
-                    color
-                    name
-                  }
-                }
+              primaryLanguage {
+                name
+                color
               }
             }
             pageInfo{
@@ -60,16 +55,15 @@ async function getRepoLanguage(username) {
   }
 
   nodes.forEach((node) => {
-    if (node.languages.edges.length > 0) {
-      let edge = node.languages.edges[0];
-      let langName = edge.node.name;
+    if (node.primaryLanguage) {
+      let langName = node.primaryLanguage.name;
       if (languageMap.has(langName)) {
         let lang = languageMap.get(langName);
         lang.count += 1;
       } else {
         languageMap.set(langName, {
           count: 1,
-          color: edge.node.color ? edge.node.color : "#586e75",
+          color: node.primaryLanguage.color ? node.primaryLanguage.color : "#586e75",
         });
       }
     }
