@@ -9,36 +9,15 @@ const firstData = {
       repositories: {
         nodes: [
           {
-            languages: {
-              edges: [
-                {
-                  size: 2072951,
-                  node: {
-                    color: "#b07219",
-                    name: "Java",
-                  },
-                },
-                {
-                  size: 2600,
-                  node: {
-                    color: "#f18e33",
-                    name: "Kotlin",
-                  },
-                },
-              ],
+            primaryLanguage: {
+              color: "#b07219",
+              name: "Java",
             },
           },
           {
-            languages: {
-              edges: [
-                {
-                  size: 10485,
-                  node: {
-                    color: "#dea584",
-                    name: "Rust",
-                  },
-                },
-              ],
+            primaryLanguage: {
+              color: "#dea584",
+              name: "Rust",
             },
           },
         ],
@@ -56,36 +35,15 @@ const lastData = {
       repositories: {
         nodes: [
           {
-            languages: {
-              edges: [
-                {
-                  size: 2072951,
-                  node: {
-                    color: "#b07219",
-                    name: "Java",
-                  },
-                },
-                {
-                  size: 2600,
-                  node: {
-                    color: "#b07219",
-                    name: "Java",
-                  },
-                },
-              ],
+            primaryLanguage: {
+              color: "#b07219",
+              name: "Java",
             },
           },
           {
-            languages: {
-              edges: [
-                {
-                  size: 10485,
-                  node: {
-                    color: "#f18e33",
-                    name: "Kotlin",
-                  },
-                },
-              ],
+            primaryLanguage: {
+              color: "#f18e33",
+              name: "Kotlin",
             },
           },
         ],
