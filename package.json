@@ -1,36 +1,42 @@
 {
-  "name": "github-profile-summary-cards",
-  "version": "0.2.6",
-  "description": "Generate github profile summary cards",
-  "main": "src/app.js",
-  "scripts": {
-    "run": "node src/app.js",
-    "build": "ncc build src/app.js",
-    "test": "jest --passWithNoTests "
-  },
-  "keywords": [
-    "github"
-  ],
-  "author": "vn7 <vn7n24fzkq@gmail.com>",
-  "license": "MIT",
-  "dependencies": {
-    "@actions/core": "^1.2.6",
-    "@actions/github": "^4.0.0",
-    "axios": "^0.21.1",
-    "childprocess": "^2.0.2",
-    "d3": "^5.16.0",
-    "dotenv": "^8.2.0",
-    "jsdom": "^16.4.0",
-    "moment": "^2.27.0",
-    "number-abbreviate": "^2.0.0"
-  },
-  "devDependencies": {
-    "@vercel/ncc": "^0.27.0",
-    "axios-mock-adapter": "^1.18.2",
-    "jest": "^26.4.2",
-    "pre-commit": "^1.2.2"
-  },
-  "pre-commit": [
-    "test"
-  ]
+    "name": "github-profile-summary-cards",
+    "version": "0.2.6",
+    "description": "Generate github profile summary cards",
+    "main": "src/app.js",
+    "scripts": {
+        "run": "node src/app.js",
+        "build": "ncc build src/app.js",
+        "test": "jest --passWithNoTests "
+    },
+    "keywords": [
+        "github"
+    ],
+    "author": "vn7 <vn7n24fzkq@gmail.com>",
+    "license": "MIT",
+    "type": "module",
+    "dependencies": {
+        "@actions/core": "^1.2.6",
+        "@actions/github": "^4.0.0",
+        "axios": "^0.21.1",
+        "childprocess": "^2.0.2",
+        "d3": "^5.16.0",
+        "dotenv": "^8.2.0",
+        "jsdom": "^16.4.0",
+        "moment": "^2.27.0",
+        "number-abbreviate": "^2.0.0"
+    },
+    "devDependencies": {
+        "@vercel/ncc": "^0.27.0",
+        "axios-mock-adapter": "^1.18.2",
+        "eslint": "^7.22.0",
+        "eslint-config-google": "^0.14.0",
+        "eslint-config-prettier": "^8.1.0",
+        "eslint-plugin-prettier": "^3.3.1",
+        "jest": "^26.4.2",
+        "pre-commit": "^1.2.2",
+        "prettier": "2.2.1"
+    },
+    "pre-commit": [
+        "test"
+    ]
 }

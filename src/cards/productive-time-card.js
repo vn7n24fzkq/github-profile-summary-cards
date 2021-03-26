@@ -1,31 +1,30 @@
-const Themes = require("../const/theme");
-const getProfileDetails = require("../github-api/profile-details");
-const getProductiveTime = require("../github-api/productive-time");
-const productiveTimeCard = require("../templates/productive-time-card");
-const { writeSVG } = require("../utils/file-writer");
+import ThemeMap from '../const/theme.js'
+import getProfileDetails from '../github-api/profile-details.js'
+import getProductiveTime from '../github-api/productive-time.js'
+import productiveTimeCard from '../templates/productive-time-card.js'
+import { writeSVG } from '../utils/file-writer.js'
 
 const createProductiveTimeCard = async function (username) {
-  let userId = (await getProfileDetails(username))["id"];
-  let until = new Date(); // get data until now
-  let productiveTime = await getProductiveTime(
-    username,
-    userId,
-    until.toISOString()
-  );
-  //process productiveTime
-  let chartData = new Array(24);
-  chartData.fill(0);
-  for (let time of productiveTime) {
-    let hour = new Date(time).getUTCHours(); //we use UTC+0 here
-    chartData[hour] += 1;
-  }
+    const userId = (await getProfileDetails(username))['id']
+    const until = new Date() // get data until now
+    const productiveTime = await getProductiveTime(
+        username,
+        userId,
+        until.toISOString()
+    )
+    // process productiveTime
+    const chartData = new Array(24)
+    chartData.fill(0)
+    for (const time of productiveTime) {
+        const hour = new Date(time).getUTCHours() // we use UTC+0 here
+        chartData[hour] += 1
+    }
 
-  for (let themeName in Themes) {
-    let theme = Themes[themeName];
-    let svgString = productiveTimeCard(chartData, theme);
-    //output to folder, use 4- prefix for sort in preview
-    writeSVG(themeName, "4-productive-time", svgString);
-  }
-};
+    for (const themeEntry of ThemeMap.entries()) {
+        const svgString = productiveTimeCard(chartData, themeEntry[1])
+        // output to folder, use 4- prefix for sort in preview
+        writeSVG(themeEntry[0], '4-productive-time', svgString)
+    }
+}
 
-module.exports = createProductiveTimeCard;
+export default createProductiveTimeCard
