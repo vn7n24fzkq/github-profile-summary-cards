@@ -1,17 +1,14 @@
-require("dotenv").config();
-const request = require("../utils/request");
-
-const githubToken = process.env.GITHUB_TOKEN;
+import request from '../utils/request.js'
 
 const fetcher = (token, variables) => {
-  //contain private need token permission
-  //contributionsCollection default to a year ago
-  return request(
-    {
-      Authorization: `bearer ${token}`,
-    },
-    {
-      query: `
+    // contain private need token permission
+    // contributionsCollection default to a year ago
+    return request(
+        {
+            Authorization: `bearer ${token}`,
+        },
+        {
+            query: `
       query UserDetails($login: String!) {
         user(login: $login) {
             id
@@ -45,60 +42,61 @@ const fetcher = (token, variables) => {
       }
 
       `,
-      variables,
-    }
-  );
-};
-
-async function getProfileDetails(username) {
-  let result = {
-    id: 0,
-    name: "",
-    email: "",
-    joinedAt: "",
-    company: null,
-    websiteUrl: null,
-    twitterUsername: null,
-    location: null,
-    totalPublicRepos: 0,
-    totalStars: 0,
-    contributions: [],
-    contributionYears: [],
-  };
-
-  let res = await fetcher(githubToken, {
-    login: username,
-  });
-
-  if (res.data.errors) {
-    throw Error(res.data.errors[0].message || "GetProfileDetails failed");
-  }
-
-  let user = res.data.data.user;
-
-  result.id = user.id;
-  result.name = user.name;
-  result.email = user.email;
-  result.joinedAt = user.createdAt;
-  result.totalPublicRepos = user.repositories.totalCount;
-  result.totalStars = user.repositories.nodes.reduce((stars, curr) => {
-    return stars + curr.stargazers.totalCount;
-  }, 0);
-  result.websiteUrl = user.websiteUrl;
-  result.company = user.company;
-  result.location = user.location;
-  result.twitterUsername = user.twitterUsername;
-  result.contributionYears = user.contributionsCollection.contributionYears;
-
-  //contributions into array
-  for (let week of user.contributionsCollection.contributionCalendar.weeks) {
-    for (let day of week.contributionDays) {
-      day.date = new Date(day.date);
-      result.contributions.push(day);
-    }
-  }
-
-  return result;
+            variables,
+        }
+    )
 }
 
-module.exports = getProfileDetails;
+async function getProfileDetails(username) {
+    const result = {
+        id: 0,
+        name: '',
+        email: '',
+        joinedAt: '',
+        company: null,
+        websiteUrl: null,
+        twitterUsername: null,
+        location: null,
+        totalPublicRepos: 0,
+        totalStars: 0,
+        contributions: [],
+        contributionYears: [],
+    }
+
+    const res = await fetcher(process.env.GITHUB_TOKEN, {
+        login: username,
+    })
+
+    if (res.data.errors) {
+        throw Error(res.data.errors[0].message || 'GetProfileDetails failed')
+    }
+
+    const user = res.data.data.user
+
+    result.id = user.id
+    result.name = user.name
+    result.email = user.email
+    result.joinedAt = user.createdAt
+    result.totalPublicRepos = user.repositories.totalCount
+    result.totalStars = user.repositories.nodes.reduce((stars, curr) => {
+        return stars + curr.stargazers.totalCount
+    }, 0)
+    result.websiteUrl = user.websiteUrl
+    result.company = user.company
+    result.location = user.location
+    result.twitterUsername = user.twitterUsername
+    result.contributionYears = user.contributionsCollection.contributionYears
+
+    // contributions into array
+    for (const week of user.contributionsCollection.contributionCalendar
+        .weeks) {
+        for (const day of week.contributionDays) {
+            day.date = new Date(day.date)
+            result.contributions.push(day)
+        }
+    }
+
+    return result
+}
+
+export default getProfileDetails

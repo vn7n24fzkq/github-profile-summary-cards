@@ -1,12 +1,12 @@
-const axios = require("axios");
+import axios from 'axios'
 
 function request(header, data) {
-  return axios({
-    url: "https://api.github.com/graphql",
-    method: "post",
-    headers: header,
-    data: data,
-  });
+    return axios({
+        url: 'https://api.github.com/graphql',
+        method: 'post',
+        headers: header,
+        data: data,
+    })
 }
 
-module.exports = request;
+export default request
