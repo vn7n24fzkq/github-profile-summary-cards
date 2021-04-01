@@ -1,4 +1,4 @@
-import axios from 'axios'
+const axios = require('axios');
 
 function request(header, data) {
     return axios({
@@ -6,7 +6,7 @@ function request(header, data) {
         method: 'post',
         headers: header,
         data: data,
-    })
+    });
 }
 
-export default request
+module.exports = request;

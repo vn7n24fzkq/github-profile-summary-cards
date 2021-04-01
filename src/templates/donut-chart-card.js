@@ -1,28 +1,29 @@
-import Card from './card.js'
-import { pie as _pie, arc as _arc } from 'd3'
+const Card = require('./card');
+const d3 = require('d3');
 
 function createDonutChartCard(title, data, theme) {
-    const pie = _pie().value(function (d) {
-        return d.value
-    })
-    const pieData = pie(data)
-    const card = new Card(title, 340, 200, theme)
+    const pie = d3.pie().value(function (d) {
+        return d.value;
+    });
+    const pieData = pie(data);
+    const card = new Card(title, 340, 200, theme);
 
-    const margin = 10
+    const margin = 10;
     const radius =
-        (Math.min(card.width, card.height) - 2 * margin - card.yPadding) / 2
+        (Math.min(card.width, card.height) - 2 * margin - card.yPadding) / 2;
 
-    const arc = _arc()
+    const arc = d3
+        .arc()
         .outerRadius(radius - 10)
-        .innerRadius(radius / 2)
+        .innerRadius(radius / 2);
 
-    const svg = card.getSVG()
+    const svg = card.getSVG();
     // draw language node
 
     const panel = svg
         .append('g')
-        .attr('transform', `translate(${card.xPadding + margin},${0})`)
-    const labelHeight = 14
+        .attr('transform', `translate(${card.xPadding + margin},${0})`);
+    const labelHeight = 14;
     panel
         .selectAll(null)
         .data(pieData)
@@ -36,7 +37,7 @@ function createDonutChartCard(title, data, theme) {
         .attr('height', labelHeight)
         .attr('fill', (pieData) => pieData.data.color)
         .attr('stroke', `${theme.bg_color}`)
-        .style('stroke-width', '1px')
+        .style('stroke-width', '1px');
 
     // set language text
     panel
@@ -45,7 +46,7 @@ function createDonutChartCard(title, data, theme) {
         .enter()
         .append('text')
         .text((d) => {
-            return d.data.name
+            return d.data.name;
         })
         .attr('x', labelHeight * 1.2)
         .attr(
@@ -53,7 +54,7 @@ function createDonutChartCard(title, data, theme) {
             (d) => labelHeight * d.index * 1.8 + card.height / 2 - radius
         )
         .style('fill', theme.text_color)
-        .style('font-size', `${labelHeight}px`)
+        .style('font-size', `${labelHeight}px`);
 
     // draw pie chart
     const g = svg
@@ -68,16 +69,16 @@ function createDonutChartCard(title, data, theme) {
         .data(pieData)
         .enter()
         .append('g')
-        .attr('class', 'arc')
+        .attr('class', 'arc');
 
     g.append('path')
         .attr('d', arc)
         .style('fill', function (pieData) {
-            return pieData.data.color
+            return pieData.data.color;
         })
         .attr('stroke', `${theme.bg_color}`)
-        .style('stroke-width', '2px')
-    return card.toString()
+        .style('stroke-width', '2px');
+    return card.toString();
 }
 
-export default createDonutChartCard
+module.exports = createDonutChartCard;
