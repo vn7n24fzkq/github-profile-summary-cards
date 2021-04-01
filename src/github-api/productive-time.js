@@ -1,4 +1,4 @@
-import request from '../utils/request.js'
+const request = require('../utils/request');
 
 // we use commit datetime to caculate productive time
 const fetcher = (token, variables) => {
@@ -39,20 +39,20 @@ const fetcher = (token, variables) => {
      `,
             variables,
         }
-    )
-}
+    );
+};
 
 // get productive time
 async function getProductiveTime(username, userId, until) {
-    const array = []
+    const array = [];
     const res = await fetcher(process.env.GITHUB_TOKEN, {
         login: username,
         userId: userId,
         until: until,
-    })
+    });
 
     if (res.data.errors) {
-        throw Error(res.data.errors[0].message || 'GetProductiveTime failed')
+        throw Error(res.data.errors[0].message || 'GetProductiveTime failed');
     }
 
     res.data.data.user.contributionsCollection.commitContributionsByRepository.forEach(
@@ -60,14 +60,14 @@ async function getProductiveTime(username, userId, until) {
             if (node.repository.defaultBranchRef != null) {
                 node.repository.defaultBranchRef.target.history.edges.forEach(
                     (node) => {
-                        array.push(node.node.committedDate)
+                        array.push(node.node.committedDate);
                     }
-                )
+                );
             }
         }
-    )
+    );
 
-    return array
+    return array;
 }
 
-export default getProductiveTime
+module.exports = getProductiveTime;

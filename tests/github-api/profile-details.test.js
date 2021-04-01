@@ -1,7 +1,7 @@
-import getProfileDetails from '../../src/github-api/profile-details'
-import axios from 'axios'
-import MockAdapter from 'axios-mock-adapter'
-const mock = new MockAdapter(axios)
+import getProfileDetails from '../../src/github-api/profile-details';
+import axios from 'axios';
+import MockAdapter from 'axios-mock-adapter';
+const mock = new MockAdapter(axios);
 
 const data = {
     data: {
@@ -55,7 +55,7 @@ const data = {
             },
         },
     },
-}
+};
 
 const error = {
     errors: [
@@ -66,16 +66,16 @@ const error = {
             message: 'GitHub api failed',
         },
     ],
-}
+};
 
 afterEach(() => {
-    mock.reset()
-})
+    mock.reset();
+});
 
 describe('github api for profile details', () => {
     it('should get correct profile data', async () => {
-        mock.onPost('https://api.github.com/graphql').reply(200, data)
-        const profileDetails = await getProfileDetails('vn7n24fzkq')
+        mock.onPost('https://api.github.com/graphql').reply(200, data);
+        const profileDetails = await getProfileDetails('vn7n24fzkq');
         expect(profileDetails).toStrictEqual({
             id: 'userID',
             name: 'vn7',
@@ -102,13 +102,13 @@ describe('github api for profile details', () => {
                     contributionCount: 5,
                 },
             ],
-        })
-    })
+        });
+    });
 
     it('should throw error when api failed', async () => {
-        mock.onPost('https://api.github.com/graphql').reply(200, error)
+        mock.onPost('https://api.github.com/graphql').reply(200, error);
         await expect(getProfileDetails('vn7n24fzkq')).rejects.toThrow(
             'GitHub api failed'
-        )
-    })
-})
+        );
+    });
+});

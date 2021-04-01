@@ -1,28 +1,28 @@
-import ThemeMap from '../const/theme.js'
-import Icons from '../const/icon.js'
-import NumAbbr from 'number-abbreviate'
-import getProfileDetails from '../github-api/profile-details.js'
-import getContributionByYear from '../github-api/contributions-by-year.js'
-import statsCard from '../templates/stats-card.js'
-import { writeSVG } from '../utils/file-writer.js'
+const ThemeMap = require('../const/theme');
+const Icons = require('../const/icon');
+const NumAbbr = require('number-abbreviate');
+const getProfileDetails = require('../github-api/profile-details');
+const getContributionByYear = require('../github-api/contributions-by-year');
+const statsCard = require('../templates/stats-card');
+const { writeSVG } = require('../utils/file-writer');
 
 const createStatsCard = async function (username) {
-    const userDetails = await getProfileDetails(username)
-    const totalStars = userDetails.totalStars
-    let totalCommitContributions = 0
-    let totalPullRequestContributions = 0
-    let totalIssueContributions = 0
-    let totalRepositoryContributions = 0
+    const userDetails = await getProfileDetails(username);
+    const totalStars = userDetails.totalStars;
+    let totalCommitContributions = 0;
+    let totalPullRequestContributions = 0;
+    let totalIssueContributions = 0;
+    let totalRepositoryContributions = 0;
     for (const year of userDetails.contributionYears) {
-        const contributions = await getContributionByYear(username, year)
-        totalCommitContributions += contributions.totalCommitContributions
+        const contributions = await getContributionByYear(username, year);
+        totalCommitContributions += contributions.totalCommitContributions;
         totalPullRequestContributions +=
-            contributions.totalPullRequestContributions
-        totalIssueContributions += contributions.totalIssueContributions
+            contributions.totalPullRequestContributions;
+        totalIssueContributions += contributions.totalIssueContributions;
         totalRepositoryContributions +=
-            contributions.totalRepositoryContributions
+            contributions.totalRepositoryContributions;
     }
-    const numAbbr = new NumAbbr()
+    const numAbbr = new NumAbbr();
     const statsData = [
         {
             index: 0,
@@ -54,14 +54,14 @@ const createStatsCard = async function (username) {
             name: 'Contributed to:',
             value: `${numAbbr.abbreviate(totalRepositoryContributions, 1)}`,
         },
-    ]
+    ];
 
     for (const themeEntry of ThemeMap.entries()) {
-        const title = 'Stats'
-        const svgString = statsCard(`${title}`, statsData, themeEntry[1])
+        const title = 'Stats';
+        const svgString = statsCard(`${title}`, statsData, themeEntry[1]);
         // output to folder, use 3- prefix for sort in preview
-        writeSVG(themeEntry[0], '3-stats', svgString)
+        writeSVG(themeEntry[0], '3-stats', svgString);
     }
-}
+};
 
-export default createStatsCard
+module.exports = createStatsCard;

@@ -1,4 +1,4 @@
-import request from '../utils/request.js'
+const request = require('../utils/request');
 
 const fetcher = (token, variables) => {
     // contain private need token permission
@@ -44,8 +44,8 @@ const fetcher = (token, variables) => {
       `,
             variables,
         }
-    )
-}
+    );
+};
 
 async function getProfileDetails(username) {
     const result = {
@@ -61,42 +61,42 @@ async function getProfileDetails(username) {
         totalStars: 0,
         contributions: [],
         contributionYears: [],
-    }
+    };
 
     const res = await fetcher(process.env.GITHUB_TOKEN, {
         login: username,
-    })
+    });
 
     if (res.data.errors) {
-        throw Error(res.data.errors[0].message || 'GetProfileDetails failed')
+        throw Error(res.data.errors[0].message || 'GetProfileDetails failed');
     }
 
-    const user = res.data.data.user
+    const user = res.data.data.user;
 
-    result.id = user.id
-    result.name = user.name
-    result.email = user.email
-    result.joinedAt = user.createdAt
-    result.totalPublicRepos = user.repositories.totalCount
+    result.id = user.id;
+    result.name = user.name;
+    result.email = user.email;
+    result.joinedAt = user.createdAt;
+    result.totalPublicRepos = user.repositories.totalCount;
     result.totalStars = user.repositories.nodes.reduce((stars, curr) => {
-        return stars + curr.stargazers.totalCount
-    }, 0)
-    result.websiteUrl = user.websiteUrl
-    result.company = user.company
-    result.location = user.location
-    result.twitterUsername = user.twitterUsername
-    result.contributionYears = user.contributionsCollection.contributionYears
+        return stars + curr.stargazers.totalCount;
+    }, 0);
+    result.websiteUrl = user.websiteUrl;
+    result.company = user.company;
+    result.location = user.location;
+    result.twitterUsername = user.twitterUsername;
+    result.contributionYears = user.contributionsCollection.contributionYears;
 
     // contributions into array
     for (const week of user.contributionsCollection.contributionCalendar
         .weeks) {
         for (const day of week.contributionDays) {
-            day.date = new Date(day.date)
-            result.contributions.push(day)
+            day.date = new Date(day.date);
+            result.contributions.push(day);
         }
     }
 
-    return result
+    return result;
 }
 
-export default getProfileDetails
+module.exports = getProfileDetails;

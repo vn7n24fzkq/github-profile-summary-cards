@@ -1,7 +1,7 @@
-import getContributionByYear from '../../src/github-api/contributions-by-year'
-import axios from 'axios'
-import MockAdapter from 'axios-mock-adapter'
-const mock = new MockAdapter(axios)
+import getContributionByYear from '../../src/github-api/contributions-by-year';
+import axios from 'axios';
+import MockAdapter from 'axios-mock-adapter';
+const mock = new MockAdapter(axios);
 
 const data = {
     data: {
@@ -18,7 +18,7 @@ const data = {
             },
         },
     },
-}
+};
 
 const error = {
     errors: [
@@ -29,19 +29,19 @@ const error = {
             message: 'GitHub api failed',
         },
     ],
-}
+};
 
 afterEach(() => {
-    mock.reset()
-})
+    mock.reset();
+});
 
 describe('contributions count on github', () => {
     it('should get correct contributions', async () => {
-        mock.onPost('https://api.github.com/graphql').reply(200, data)
+        mock.onPost('https://api.github.com/graphql').reply(200, data);
         const totalContributions = await getContributionByYear(
             'vn7n24fzkq',
             2020
-        )
+        );
         expect(totalContributions).toStrictEqual({
             totalPullRequestReviewContributions: 60,
             totalPullRequestContributions: 50,
@@ -49,13 +49,13 @@ describe('contributions count on github', () => {
             totalCommitContributions: 30,
             totalIssueContributions: 20,
             totalContributions: 10,
-        })
-    })
+        });
+    });
 
     it('should throw error when api failed', async () => {
-        mock.onPost('https://api.github.com/graphql').reply(200, error)
+        mock.onPost('https://api.github.com/graphql').reply(200, error);
         await expect(getContributionByYear('vn7n24fzkq', 2020)).rejects.toThrow(
             'GitHub api failed'
-        )
-    })
-})
+        );
+    });
+});

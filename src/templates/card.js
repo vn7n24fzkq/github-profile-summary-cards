@@ -1,6 +1,5 @@
-import { select } from 'd3'
-import jsdom from 'jsdom'
-const { JSDOM } = jsdom
+const select = require('d3').select;
+const JSDOM = require('jsdom').JSDOM;
 
 class Card {
     constructor(
@@ -11,14 +10,14 @@ class Card {
         xPadding = 30,
         yPadding = 40
     ) {
-        this.title = title
-        this.width = width
-        this.height = height
-        this.xPadding = xPadding
-        this.yPadding = yPadding
+        this.title = title;
+        this.width = width;
+        this.height = height;
+        this.xPadding = xPadding;
+        this.yPadding = yPadding;
         // use fake dom let us can get html element
-        const fakeDom = new JSDOM('<!DOCTYPE html><html><body></body></html>')
-        this.body = select(fakeDom.window.document).select('body')
+        const fakeDom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
+        this.body = select(fakeDom.window.document).select('body');
         this.svg = this.body
             .append('div')
             .attr('class', 'container')
@@ -26,12 +25,12 @@ class Card {
             .attr('xmlns', 'http://www.w3.org/2000/svg')
             .attr('width', width)
             .attr('height', height)
-            .attr('viewBox', `0 0 ${this.width} ${this.height}`)
+            .attr('viewBox', `0 0 ${this.width} ${this.height}`);
         this.svg.append('style').html(
             `* {
           font-family: Ubuntu, 'Lucida Grande', Arial, Helvetica, sans-serif
         }`
-        )
+        );
         this.svg
             .append('rect')
             .attr('x', 1.5)
@@ -43,9 +42,9 @@ class Card {
             .attr('stroke', `${theme.stroke_color}`)
             .attr('stroke-width', '1')
             .attr('fill', `${theme.bg_color}`)
-            .attr('stroke-opacity', 1)
+            .attr('stroke-opacity', 1);
 
-        const isEmptyTitle = this.title == ''
+        const isEmptyTitle = this.title == '';
         if (!isEmptyTitle) {
             this.svg
                 .append('text')
@@ -53,23 +52,23 @@ class Card {
                 .attr('y', this.yPadding)
                 .style('font-size', `22px`)
                 .style('fill', `${theme.title_color}`)
-                .text(this.title)
+                .text(this.title);
         }
         this.svg = this.svg
             .append('g')
             .attr(
                 'transform',
                 `translate(0,${isEmptyTitle ? 0 : this.yPadding})`
-            )
+            );
     }
 
     getSVG() {
-        return this.svg
+        return this.svg;
     }
 
     toString() {
-        return this.body.select('.container').html()
+        return this.body.select('.container').html();
     }
 }
 
-export default Card
+module.exports = Card;

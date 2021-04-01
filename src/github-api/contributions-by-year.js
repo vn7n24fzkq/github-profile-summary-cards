@@ -1,4 +1,4 @@
-import request from '../utils/request.js'
+const request = require('../utils/request');
 
 const fetcher = (token, variables, year) => {
     return request(
@@ -24,8 +24,8 @@ const fetcher = (token, variables, year) => {
       `,
             variables,
         }
-    )
-}
+    );
+};
 
 async function getContributionByYear(username, year) {
     const result = {
@@ -35,7 +35,7 @@ async function getContributionByYear(username, year) {
         totalCommitContributions: 0,
         totalPullRequestContributions: 0,
         totalRepositoryContributions: 0,
-    }
+    };
 
     const res = await fetcher(
         process.env.GITHUB_TOKEN,
@@ -43,30 +43,30 @@ async function getContributionByYear(username, year) {
             login: username,
         },
         year
-    )
+    );
 
     if (res.data.errors) {
         throw Error(
             res.data.errors[0].message || 'GetContributionByYear failed'
-        )
+        );
     }
 
-    const user = res.data.data.user
+    const user = res.data.data.user;
 
     result.totalRepositoryContributions =
-        user.contributionsCollection.totalRepositoryContributions
+        user.contributionsCollection.totalRepositoryContributions;
     result.totalPullRequestContributions =
-        user.contributionsCollection.totalPullRequestContributions
+        user.contributionsCollection.totalPullRequestContributions;
     result.totalPullRequestReviewContributions =
-        user.contributionsCollection.totalPullRequestReviewContributions
+        user.contributionsCollection.totalPullRequestReviewContributions;
     result.totalIssueContributions =
-        user.contributionsCollection.totalIssueContributions
+        user.contributionsCollection.totalIssueContributions;
     result.totalCommitContributions =
-        user.contributionsCollection.totalCommitContributions
+        user.contributionsCollection.totalCommitContributions;
     result.totalContributions =
-        user.contributionsCollection.contributionCalendar.totalContributions
+        user.contributionsCollection.contributionCalendar.totalContributions;
 
-    return result
+    return result;
 }
 
-export default getContributionByYear
+module.exports = getContributionByYear;
