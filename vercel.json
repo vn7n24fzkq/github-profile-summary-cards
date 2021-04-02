@@ -6,7 +6,7 @@
             "headers": [
                 {
                     "key": "cache-control",
-                    "value": "public, max-age=14400, s-maxage=7200"
+                    "value": "public, max-age=0, s-maxage=14400"
                 }
             ]
         }
