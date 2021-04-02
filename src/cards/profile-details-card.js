@@ -8,38 +8,35 @@ const createDetailCard = require('../templates/profile-details-card');
 const { writeSVG } = require('../utils/file-writer');
 
 const createProfileDetailsCard = async function (username) {
-    const processedProfileDetails = await getProcessdProfileDetails(username);
+    const profileDetailsData = await getProfileDetailsData(username);
     for (const themeName of ThemeMap.keys()) {
-        const svgString = getProfileDetailsSVG(
-            processedProfileDetails,
-            themeName
-        );
+        const svgString = getProfileDetailsSVG(profileDetailsData, themeName);
         // output to folder, use 0- prefix for sort in preview
         writeSVG(themeName, '0-profile-details', svgString);
     }
 };
 const getProfileDetailsSVGWithThemeName = async function (username, themeName) {
     if (!ThemeMap.has(themeName)) throw new Error('Theme does not exist');
-    const processedProfileDetails = await getProcessdProfileDetails(username);
-    return getProfileDetailsSVG(processedProfileDetails, themeName);
+    const profileDetailsData = await getProfileDetailsData(username);
+    return getProfileDetailsSVG(profileDetailsData, themeName);
 };
 
-const getProfileDetailsSVG = function (processedProfileDetails, themeName) {
-    const contributionsData = processedProfileDetails.contributions;
+const getProfileDetailsSVG = function (profileDetailsData, themeName) {
+    const contributionsData = profileDetailsData.contributions;
     const title =
-        processedProfileDetails.name == null
-            ? `${processedProfileDetails.username}`
-            : `${processedProfileDetails.username} (${processedProfileDetails.name})`;
+        profileDetailsData.name == null
+            ? `${profileDetailsData.username}`
+            : `${profileDetailsData.username} (${profileDetailsData.name})`;
     const svgString = createDetailCard(
         `${title}`,
-        processedProfileDetails.userDetails,
+        profileDetailsData.userDetails,
         contributionsData,
         ThemeMap.get(themeName)
     );
     return svgString;
 };
 
-const getProcessdProfileDetails = async function (username) {
+const getProfileDetailsData = async function (username) {
     const profileDetails = await getProfileDetails(username);
     profileDetails.username = username;
     let totalContributions = 0;

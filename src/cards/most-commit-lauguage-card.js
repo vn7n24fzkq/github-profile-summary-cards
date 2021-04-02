@@ -5,6 +5,33 @@ const getProfileDetails = require('../github-api/profile-details');
 const { writeSVG } = require('../utils/file-writer');
 
 const createCommitsPerLanguageCard = async function (username) {
+    const statsData = await getCommitsLanguageData(username);
+    for (const themeName of ThemeMap.keys()) {
+        const svgString = getCommitsLanguageSVG(statsData, themeName);
+        // output to folder, use 2- prefix for sort in preview
+        writeSVG(themeName, '2-most-commit-language', svgString);
+    }
+};
+
+const getCommitsLanguageSVGWithThemeName = async function (
+    username,
+    themeName
+) {
+    if (!ThemeMap.has(themeName)) throw new Error('Theme does not exist');
+    const langData = await getCommitsLanguageData(username);
+    return getCommitsLanguageSVG(langData, themeName);
+};
+
+const getCommitsLanguageSVG = function (langData, themeName) {
+    const svgString = createDonutChartCard(
+        'Top Languages by Commit',
+        langData,
+        ThemeMap.get(themeName)
+    );
+    return svgString;
+};
+
+const getCommitsLanguageData = async function (username) {
     const userDetails = await getProfileDetails(username);
     const langMap = new Map();
     for (const year of userDetails.contributionYears) {
@@ -36,15 +63,10 @@ const createCommitsPerLanguageCard = async function (username) {
     });
     langData = langData.slice(0, 5); // get top 5
 
-    for (const themeEntry of ThemeMap.entries()) {
-        const svgString = createDonutChartCard(
-            'Top Languages by Commit',
-            langData,
-            themeEntry[1]
-        );
-        // output to folder, use 2- prefix for sort in preview
-        writeSVG(themeEntry[0], '2-most-commit-language', svgString);
-    }
+    return langData;
 };
 
-module.exports = createCommitsPerLanguageCard;
+module.exports = {
+    createCommitsPerLanguageCard,
+    getCommitsLanguageSVGWithThemeName,
+};

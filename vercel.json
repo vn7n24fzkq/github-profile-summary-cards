@@ -1,5 +1,20 @@
 {
     "rewrites": [{ "source": "/api/(.*)", "destination": "/api" }],
+    "headers": [
+        {
+            "source": "/api/cards/(.*)",
+            "headers": [
+                {
+                    "key": "Content-Type",
+                    "value": "image/svg+xml"
+                },
+                {
+                    "key": "Cache-Control",
+                    "value": "public, max-age=14400"
+                }
+            ]
+        }
+    ],
     "redirects": [
         {
             "source": "/",
