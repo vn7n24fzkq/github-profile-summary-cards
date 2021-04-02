@@ -5,11 +5,11 @@
             "source": "/api/cards/(.*)",
             "headers": [
                 {
-                    "key": "Content-Type",
+                    "key": "content-type",
                     "value": "image/svg+xml"
                 },
                 {
-                    "key": "Cache-Control",
+                    "key": "cache-control",
                     "value": "public, max-age=14400, s-maxage=7200"
                 },
                 {
