@@ -8,14 +8,47 @@ const createDetailCard = require('../templates/profile-details-card');
 const { writeSVG } = require('../utils/file-writer');
 
 const createProfileDetailsCard = async function (username) {
-    const userDetails = await getProfileDetails(username);
+    const processedProfileDetails = await getProcessdProfileDetails(username);
+    for (const themeName of ThemeMap.keys()) {
+        const svgString = getProfileDetailsSVG(
+            processedProfileDetails,
+            themeName
+        );
+        // output to folder, use 0- prefix for sort in preview
+        writeSVG(themeName, '0-profile-details', svgString);
+    }
+};
+const getProfileDetailsSVGWithThemeName = async function (username, themeName) {
+    if (!ThemeMap.has(themeName)) throw new Error('Theme does not exist');
+    const processedProfileDetails = await getProcessdProfileDetails(username);
+    return getProfileDetailsSVG(processedProfileDetails, themeName);
+};
+
+const getProfileDetailsSVG = function (processedProfileDetails, themeName) {
+    const contributionsData = processedProfileDetails.contributions;
+    const title =
+        processedProfileDetails.name == null
+            ? `${processedProfileDetails.username}`
+            : `${processedProfileDetails.username} (${processedProfileDetails.name})`;
+    const svgString = createDetailCard(
+        `${title}`,
+        processedProfileDetails.userDetails,
+        contributionsData,
+        ThemeMap.get(themeName)
+    );
+    return svgString;
+};
+
+const getProcessdProfileDetails = async function (username) {
+    const profileDetails = await getProfileDetails(username);
+    profileDetails.username = username;
     let totalContributions = 0;
-    for (const year of userDetails.contributionYears) {
+    for (const year of profileDetails.contributionYears) {
         totalContributions += (await getContributionByYear(username, year))
             .totalContributions;
     }
     const numAbbr = new NumAbbr();
-    const details = [
+    profileDetails.userDetails = [
         {
             index: 0,
             icon: Icons.GITHUB,
@@ -30,7 +63,7 @@ const createProfileDetailsCard = async function (username) {
             icon: Icons.REPOS,
             name: 'Public Repos',
             value: `${numAbbr.abbreviate(
-                userDetails['totalPublicRepos'],
+                profileDetails['totalPublicRepos'],
                 2
             )} Public Repos`,
         },
@@ -38,50 +71,40 @@ const createProfileDetailsCard = async function (username) {
             index: 2,
             icon: Icons.CLOCK,
             name: 'JoinedAt',
-            value: `Joined GitHub ${moment(userDetails['joinedAt']).fromNow()}`,
+            value: `Joined GitHub ${moment(
+                profileDetails['joinedAt']
+            ).fromNow()}`,
         },
     ];
 
     // hard code here, cuz I'm lazy
-    if (userDetails['email']) {
-        details.push({
+    if (profileDetails['email']) {
+        profileDetails.userDetails.push({
             index: 3,
             icon: Icons.EMAIL,
             name: 'Email',
-            value: userDetails['email'],
+            value: profileDetails['email'],
         });
-    } else if (userDetails['company']) {
-        details.push({
+    } else if (profileDetails['company']) {
+        profileDetails.userDetails.push({
             index: 3,
             icon: Icons.COMPANY,
             name: 'Company',
-            value: userDetails['company'],
+            value: profileDetails['company'],
         });
-    } else if (userDetails['location']) {
-        details.push({
+    } else if (profileDetails['location']) {
+        profileDetails.userDetails.push({
             index: 3,
             icon: Icons.LOCATION,
             name: 'Location',
-            value: userDetails['location'],
+            value: profileDetails['location'],
         });
     }
 
-    const contributionsData = userDetails.contributions;
-
-    for (const themeEntry of ThemeMap.entries()) {
-        const title =
-            userDetails.name == null
-                ? `${username}`
-                : `${username} (${userDetails.name})`;
-        const svgString = createDetailCard(
-            `${title}`,
-            details,
-            contributionsData,
-            themeEntry[1]
-        );
-        // output to folder, use 0- prefix for sort in preview
-        writeSVG(themeEntry[0], '0-profile-details', svgString);
-    }
+    return profileDetails;
 };
 
-module.exports = createProfileDetailsCard;
+module.exports = {
+    createProfileDetailsCard,
+    getProfileDetailsSVGWithThemeName,
+};
