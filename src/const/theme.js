@@ -1,6 +1,6 @@
 const ThemeMap = new Map();
 
-ThemeMap.set('defaul', {
+ThemeMap.set('default', {
     title_color: '#586e75',
     text_color: '#586e75',
     bg_color: '#ffffff',
