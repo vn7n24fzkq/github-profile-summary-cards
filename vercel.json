@@ -11,7 +11,7 @@
             ]
         },
         {
-            "source": "/api/(.*)",
+            "source": "/api/theme",
             "headers": [
                 { "key": "Access-Control-Allow-Credentials", "value": "true" },
                 { "key": "Access-Control-Allow-Origin", "value": "*" },
@@ -30,6 +30,7 @@
         {
             "source": "/",
             "destination": "https://github.com/vn7n24fzkq/github-profile-summary-cards"
-        }
+        },
+        { "source": "/demo", "destination": "/demo.html" }
     ]
 }
