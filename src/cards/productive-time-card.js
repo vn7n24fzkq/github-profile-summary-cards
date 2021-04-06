@@ -5,6 +5,29 @@ const productiveTimeCard = require('../templates/productive-time-card');
 const { writeSVG } = require('../utils/file-writer');
 
 const createProductiveTimeCard = async function (username) {
+    const productiveTimeData = await getProductiveTimeData(username);
+    for (const themeName of ThemeMap.keys()) {
+        const svgString = getProductiveTimeSVG(productiveTimeData, themeName);
+        // output to folder, use 4- prefix for sort in preview
+        writeSVG(themeName, '4-productive-time', svgString);
+    }
+};
+
+const getProductiveTimeSVGWithThemeName = async function (username, themeName) {
+    if (!ThemeMap.has(themeName)) throw new Error('Theme does not exist');
+    const productiveTimeData = await getProductiveTimeData(username);
+    return getProductiveTimeSVG(productiveTimeData, themeName);
+};
+
+const getProductiveTimeSVG = function (productiveTimeData, themeName) {
+    const svgString = productiveTimeCard(
+        productiveTimeData,
+        ThemeMap.get(themeName)
+    );
+    return svgString;
+};
+
+const getProductiveTimeData = async function (username) {
     const userId = (await getProfileDetails(username))['id'];
     const until = new Date(); // get data until now
     const productiveTime = await getProductiveTime(
@@ -20,11 +43,10 @@ const createProductiveTimeCard = async function (username) {
         chartData[hour] += 1;
     }
 
-    for (const themeEntry of ThemeMap.entries()) {
-        const svgString = productiveTimeCard(chartData, themeEntry[1]);
-        // output to folder, use 4- prefix for sort in preview
-        writeSVG(themeEntry[0], '4-productive-time', svgString);
-    }
+    return chartData;
 };
 
-module.exports = createProductiveTimeCard;
+module.exports = {
+    createProductiveTimeCard,
+    getProductiveTimeSVGWithThemeName,
+};
