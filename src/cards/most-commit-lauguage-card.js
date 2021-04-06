@@ -1,7 +1,6 @@
 const ThemeMap = require('../const/theme');
 const getCommitLanguage = require('../github-api/commits-per-lauguage');
 const createDonutChartCard = require('../templates/donut-chart-card');
-const getProfileDetails = require('../github-api/profile-details');
 const { writeSVG } = require('../utils/file-writer');
 
 const createCommitsPerLanguageCard = async function (username) {
@@ -32,20 +31,17 @@ const getCommitsLanguageSVG = function (langData, themeName) {
 };
 
 const getCommitsLanguageData = async function (username) {
-    const userDetails = await getProfileDetails(username);
     const langMap = new Map();
-    for (const year of userDetails.contributionYears) {
-        const map = await getCommitLanguage(username, year);
-        for (const [key, value] of map) {
-            if (langMap.has(key)) {
-                const lang = langMap.get(key);
-                lang.count += value.count;
-            } else {
-                langMap.set(key, {
-                    count: value.count,
-                    color: value.color == null ? '#586e75' : value.color,
-                });
-            }
+    const map = await getCommitLanguage(username);
+    for (const [key, value] of map) {
+        if (langMap.has(key)) {
+            const lang = langMap.get(key);
+            lang.count += value.count;
+        } else {
+            langMap.set(key, {
+                count: value.count,
+                color: value.color == null ? '#586e75' : value.color,
+            });
         }
     }
     let langData = [];

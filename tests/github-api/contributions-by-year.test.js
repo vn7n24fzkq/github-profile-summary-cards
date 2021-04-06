@@ -7,11 +7,7 @@ const data = {
     data: {
         user: {
             contributionsCollection: {
-                totalIssueContributions: 20,
                 totalCommitContributions: 30,
-                totalRepositoryContributions: 40,
-                totalPullRequestContributions: 50,
-                totalPullRequestReviewContributions: 60,
                 contributionCalendar: {
                     totalContributions: 10,
                 },
@@ -43,11 +39,7 @@ describe('contributions count on github', () => {
             2020
         );
         expect(totalContributions).toStrictEqual({
-            totalPullRequestReviewContributions: 60,
-            totalPullRequestContributions: 50,
-            totalRepositoryContributions: 40,
             totalCommitContributions: 30,
-            totalIssueContributions: 20,
             totalContributions: 10,
         });
     });

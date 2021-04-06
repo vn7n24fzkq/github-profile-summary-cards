@@ -40,9 +40,21 @@ const getProfileDetailsData = async function (username) {
     const profileDetails = await getProfileDetails(username);
     profileDetails.username = username;
     let totalContributions = 0;
-    for (const year of profileDetails.contributionYears) {
-        totalContributions += (await getContributionByYear(username, year))
-            .totalContributions;
+    if (process.env.VERCEL) {
+        // If running on vercel, we only caculate for last 2 year to avoid hobby timeout limit
+        profileDetails.contributionYears = profileDetails.contributionYears.slice(
+            0,
+            2
+        );
+        for (const year of profileDetails.contributionYears) {
+            totalContributions += (await getContributionByYear(username, year))
+                .totalContributions;
+        }
+    } else {
+        for (const year of profileDetails.contributionYears) {
+            totalContributions += (await getContributionByYear(username, year))
+                .totalContributions;
+        }
     }
     const numAbbr = new NumAbbr();
     profileDetails.userDetails = [
