@@ -38,7 +38,7 @@ const getStatsData = async function (username) {
     const totalRepositoryContributions =
         profileDetails.totalRepositoryContributions;
     if (process.env.VERCEL) {
-        // If running on vercel, we only caculate for last 2 year to avoid hobby timeout limit
+        // If running on vercel, we only calculate for last 2 year to avoid hobby timeout limit
         profileDetails.contributionYears = profileDetails.contributionYears.slice(
             0,
             2
