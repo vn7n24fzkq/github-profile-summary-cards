@@ -7,6 +7,27 @@ const statsCard = require('../templates/stats-card');
 const { writeSVG } = require('../utils/file-writer');
 
 const createStatsCard = async function (username) {
+    const statsData = await getStatsData(username);
+    for (const themeName of ThemeMap.keys()) {
+        const svgString = getStatsSVG(statsData, themeName);
+        // output to folder, use 3- prefix for sort in preview
+        writeSVG(themeName, '3-stats', svgString);
+    }
+};
+
+const getStatsSVGWithThemeName = async function (username, themeName) {
+    if (!ThemeMap.has(themeName)) throw new Error('Theme does not exist');
+    const statsData = await getStatsData(username);
+    return getStatsSVG(statsData, themeName);
+};
+
+const getStatsSVG = function (StatsData, themeName) {
+    const title = 'Stats';
+    const svgString = statsCard(`${title}`, StatsData, ThemeMap.get(themeName));
+    return svgString;
+};
+
+const getStatsData = async function (username) {
     const userDetails = await getProfileDetails(username);
     const totalStars = userDetails.totalStars;
     let totalCommitContributions = 0;
@@ -55,13 +76,10 @@ const createStatsCard = async function (username) {
             value: `${numAbbr.abbreviate(totalRepositoryContributions, 1)}`,
         },
     ];
-
-    for (const themeEntry of ThemeMap.entries()) {
-        const title = 'Stats';
-        const svgString = statsCard(`${title}`, statsData, themeEntry[1]);
-        // output to folder, use 3- prefix for sort in preview
-        writeSVG(themeEntry[0], '3-stats', svgString);
-    }
+    return statsData;
 };
 
-module.exports = createStatsCard;
+module.exports = {
+    createStatsCard,
+    getStatsSVGWithThemeName,
+};
