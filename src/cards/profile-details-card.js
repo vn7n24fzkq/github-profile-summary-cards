@@ -40,21 +40,44 @@ const getProfileDetailsData = async function (username) {
     const profileDetails = await getProfileDetails(username);
     profileDetails.username = username;
     let totalContributions = 0;
-    for (const year of profileDetails.contributionYears) {
-        totalContributions += (await getContributionByYear(username, year))
-            .totalContributions;
+    if (process.env.VERCEL) {
+        // If running on vercel, we only calculate for last 1 year to avoid hobby timeout limit
+        profileDetails.contributionYears = profileDetails.contributionYears.slice(
+            0,
+            1
+        );
+        for (const year of profileDetails.contributionYears) {
+            totalContributions += (await getContributionByYear(username, year))
+                .totalContributions;
+        }
+    } else {
+        for (const year of profileDetails.contributionYears) {
+            totalContributions += (await getContributionByYear(username, year))
+                .totalContributions;
+        }
     }
     const numAbbr = new NumAbbr();
     profileDetails.userDetails = [
-        {
-            index: 0,
-            icon: Icons.GITHUB,
-            name: 'Contributions',
-            value: `${numAbbr.abbreviate(
-                totalContributions,
-                2
-            )} Contributions on GitHub`,
-        },
+        // If running on vercel, we only display for last 1 year contributions count
+        !process.env.VERCEL
+            ? {
+                  index: 0,
+                  icon: Icons.GITHUB,
+                  name: 'Contributions',
+                  value: `${numAbbr.abbreviate(
+                      totalContributions,
+                      2
+                  )} Contributions on GitHub`,
+              }
+            : {
+                  index: 0,
+                  icon: Icons.GITHUB,
+                  name: 'Contributions',
+                  value: `${numAbbr.abbreviate(
+                      totalContributions,
+                      2
+                  )} Contributions in ${profileDetails.contributionYears[0]}`,
+              },
         {
             index: 1,
             icon: Icons.REPOS,
