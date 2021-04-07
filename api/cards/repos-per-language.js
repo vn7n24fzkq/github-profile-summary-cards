@@ -1,8 +1,8 @@
 const {
     getReposPerLanguageSVGWithThemeName,
 } = require('../../src/cards/repos-per-language-card');
-
 const { changToNextGitHubToken } = require('../utils/github-token-updater');
+const { getErrorMsgCard } = require('../utils/error-card');
 
 module.exports = async (req, res) => {
     const { username, theme } = req.query;

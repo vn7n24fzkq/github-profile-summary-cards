@@ -1,6 +1,6 @@
 const { getStatsSVGWithThemeName } = require('../../src/cards/stats-card');
-
 const { changToNextGitHubToken } = require('../utils/github-token-updater');
+const { getErrorMsgCard } = require('../utils/error-card');
 
 module.exports = async (req, res) => {
     const { username, theme } = req.query;
