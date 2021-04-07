@@ -28,21 +28,32 @@ const getStatsSVG = function (StatsData, themeName) {
 };
 
 const getStatsData = async function (username) {
-    const userDetails = await getProfileDetails(username);
-    const totalStars = userDetails.totalStars;
+    const profileDetails = await getProfileDetails(username);
+    const totalStars = profileDetails.totalStars;
     let totalCommitContributions = 0;
-    let totalPullRequestContributions = 0;
-    let totalIssueContributions = 0;
-    let totalRepositoryContributions = 0;
-    for (const year of userDetails.contributionYears) {
-        const contributions = await getContributionByYear(username, year);
-        totalCommitContributions += contributions.totalCommitContributions;
-        totalPullRequestContributions +=
-            contributions.totalPullRequestContributions;
-        totalIssueContributions += contributions.totalIssueContributions;
-        totalRepositoryContributions +=
-            contributions.totalRepositoryContributions;
+    const totalPullRequestContributions =
+        profileDetails.totalPullRequestContributions;
+    const totalIssueContributions = profileDetails.totalIssueContributions;
+
+    const totalRepositoryContributions =
+        profileDetails.totalRepositoryContributions;
+    if (process.env.VERCEL) {
+        // If running on vercel, we only calculate for last 1 year to avoid hobby timeout limit
+        profileDetails.contributionYears = profileDetails.contributionYears.slice(
+            0,
+            1
+        );
+        for (const year of profileDetails.contributionYears) {
+            const contributions = await getContributionByYear(username, year);
+            totalCommitContributions += contributions.totalCommitContributions;
+        }
+    } else {
+        for (const year of profileDetails.contributionYears) {
+            const contributions = await getContributionByYear(username, year);
+            totalCommitContributions += contributions.totalCommitContributions;
+        }
     }
+
     const numAbbr = new NumAbbr();
     const statsData = [
         {
@@ -51,12 +62,20 @@ const getStatsData = async function (username) {
             name: 'Total Stars:',
             value: `${numAbbr.abbreviate(totalStars, 1)}`,
         },
-        {
-            index: 1,
-            icon: Icons.COMMIT,
-            name: 'Total Commits:',
-            value: `${numAbbr.abbreviate(totalCommitContributions, 1)}`,
-        },
+        // If running on vercel, we only display for last 1 year commits count
+        !process.env.VERCEL
+            ? {
+                  index: 1,
+                  icon: Icons.COMMIT,
+                  name: 'Total Commits:',
+                  value: `${numAbbr.abbreviate(totalCommitContributions, 1)}`,
+              }
+            : {
+                  index: 1,
+                  icon: Icons.COMMIT,
+                  name: `${profileDetails.contributionYears[0]} Commits:`,
+                  value: `${numAbbr.abbreviate(totalCommitContributions, 1)}`,
+              },
         {
             index: 2,
             icon: Icons.PULL_REQUEST,

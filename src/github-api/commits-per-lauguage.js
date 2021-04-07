@@ -1,6 +1,6 @@
 const request = require('../utils/request.js');
 
-const fetcher = (token, variables, year) => {
+const fetcher = (token, variables) => {
     return request(
         {
             Authorization: `bearer ${token}`,
@@ -9,7 +9,7 @@ const fetcher = (token, variables, year) => {
             query: `
       query CommitLanguages($login: String!) {
         user(login: $login) {
-          contributionsCollection(from: "${year}-01-01T00:00:00Z", to: "${year}-12-31T23:59:59Z") {
+          contributionsCollection {
             commitContributionsByRepository(maxRepositories: 100) {
               repository {
                 primaryLanguage {
@@ -31,16 +31,12 @@ const fetcher = (token, variables, year) => {
 };
 
 // repos per language
-async function getCommitLanguage(username, year) {
+async function getCommitLanguage(username) {
     const languageMap = new Map();
 
-    const res = await fetcher(
-        process.env.GITHUB_TOKEN,
-        {
-            login: username,
-        },
-        year
-    );
+    const res = await fetcher(process.env.GITHUB_TOKEN, {
+        login: username,
+    });
 
     if (res.data.errors) {
         throw Error(res.data.errors[0].message || 'GetCommitLanguage failed');

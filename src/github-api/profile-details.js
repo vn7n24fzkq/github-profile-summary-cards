@@ -38,6 +38,15 @@ const fetcher = (token, variables) => {
                 }
                 contributionYears
             }
+            repositoriesContributedTo(first: 1,includeUserRepositories:true, privacy:PUBLIC, contributionTypes: [COMMIT, ISSUE, PULL_REQUEST, REPOSITORY]) {
+                totalCount
+            }
+            pullRequests(first: 1) {
+                totalCount
+            }
+            issues(first: 1) {
+                totalCount
+            }
         }
       }
 
@@ -59,6 +68,9 @@ async function getProfileDetails(username) {
         location: null,
         totalPublicRepos: 0,
         totalStars: 0,
+        totalIssueContributions: 0,
+        totalPullRequestContributions: 0,
+        totalRepositoryContributions: 0,
         contributions: [],
         contributionYears: [],
     };
@@ -82,6 +94,10 @@ async function getProfileDetails(username) {
         return stars + curr.stargazers.totalCount;
     }, 0);
     result.websiteUrl = user.websiteUrl;
+    result.totalIssueContributions = user.issues.totalCount;
+    result.totalPullRequestContributions = user.pullRequests.totalCount;
+    result.totalRepositoryContributions =
+        user.repositoriesContributedTo.totalCount;
     result.company = user.company;
     result.location = user.location;
     result.twitterUsername = user.twitterUsername;

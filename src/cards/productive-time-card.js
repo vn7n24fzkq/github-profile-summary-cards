@@ -1,5 +1,4 @@
 const ThemeMap = require('../const/theme');
-const getProfileDetails = require('../github-api/profile-details');
 const getProductiveTime = require('../github-api/productive-time');
 const productiveTimeCard = require('../templates/productive-time-card');
 const { writeSVG } = require('../utils/file-writer');
@@ -28,12 +27,13 @@ const getProductiveTimeSVG = function (productiveTimeData, themeName) {
 };
 
 const getProductiveTimeData = async function (username) {
-    const userId = (await getProfileDetails(username))['id'];
-    const until = new Date(); // get data until now
+    const until = new Date();
+    const since = new Date();
+    since.setFullYear(since.getFullYear() - 1);
     const productiveTime = await getProductiveTime(
         username,
-        userId,
-        until.toISOString()
+        until.toISOString(),
+        since.toISOString()
     );
     // process productiveTime
     const chartData = new Array(24);

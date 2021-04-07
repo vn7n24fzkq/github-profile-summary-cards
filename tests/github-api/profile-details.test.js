@@ -21,12 +21,10 @@ const data = {
                     { stargazers: { totalCount: 20 } },
                 ],
             },
+            issues: { totalCount: 10 },
+            repositoriesContributedTo: { totalCount: 30 },
+            pullRequests: { totalCount: 40 },
             contributionsCollection: {
-                totalIssueContributions: 10,
-                totalCommitContributions: 20,
-                totalRepositoryContributions: 30,
-                totalPullRequestContributions: 40,
-                totalPullRequestReviewContributions: 50,
                 contributionYears: [2019, 2020],
                 contributionCalendar: {
                     weeks: [
@@ -88,6 +86,9 @@ describe('github api for profile details', () => {
             contributionYears: [2019, 2020],
             totalPublicRepos: 30,
             totalStars: 130,
+            totalIssueContributions: 10,
+            totalPullRequestContributions: 40,
+            totalRepositoryContributions: 30,
             contributions: [
                 {
                     date: new Date('2019-09-06T00:00:00.000+00:00'),
