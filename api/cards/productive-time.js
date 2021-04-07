@@ -7,7 +7,7 @@ const { getErrorMsgCard } = require('../utils/error-card');
 module.exports = async (req, res) => {
     const { username, theme } = req.query;
     try {
-        const tokenIndex = 0;
+        let tokenIndex = 0;
         while (true) {
             tokenIndex += 1;
             try {
