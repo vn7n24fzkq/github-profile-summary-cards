@@ -14,7 +14,7 @@ module.exports = async (req, res) => {
                 res.send(cardSVG);
                 return;
             } catch (err) {
-                console.log(err);
+                console.log(err.message);
                 // We update github token and try again, until getNextGitHubToken throw an Error
                 changToNextGitHubToken(tokenIndex);
             }
