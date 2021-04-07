@@ -7,7 +7,6 @@ module.exports = async (req, res) => {
     try {
         let tokenIndex = 0;
         while (true) {
-            tokenIndex += 1;
             try {
                 const cardSVG = await getStatsSVGWithThemeName(username, theme);
                 res.setHeader('Content-Type', 'image/svg+xml');
@@ -17,6 +16,7 @@ module.exports = async (req, res) => {
                 console.log(err.message);
                 // We update github token and try again, until getNextGitHubToken throw an Error
                 changToNextGitHubToken(tokenIndex);
+                tokenIndex += 1;
             }
         }
     } catch (err) {
