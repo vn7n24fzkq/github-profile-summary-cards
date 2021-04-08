@@ -10,10 +10,21 @@
 
 :star: 這份 repo 是好玩才寫的,任何貢獻都很歡迎！ :star:
 
-這個 GitHub Action 會產生你的 GitHub 個人統計圖表並且 commit 到你的 repo 裡.
-新增 這個Action 之後你也可以自己觸發 action.
-
 ---
+
+## Markdown 用法
+
+[馬上試試!!](https://github-profile-summary-cards.vercel.app/demo.html)
+
+```![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=vue)```
+
+|   |   |   |
+|:---:|:---:|:---:|
+|default|solarized|monokai|
+|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=default)|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=solarized)| ![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=monokai)|
+|solarized_dark|vue|nord_bright|
+|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=solarized_dark)|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=vue)| ![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=nord_bright)|
+
 
 ## 範例
 
@@ -27,7 +38,10 @@
 
 ---
 
-## 如何使用
+## 如何使用 (GitHub Actions)
+
+這個 GitHub Action 會產生你的 GitHub 個人統計圖表並且 commit 到你的 repo 裡.
+新增 這個Action 之後你也可以自己觸發 action.
 
 :star: [跟著教學](https://github.com/vn7n24fzkq/github-profile-summary-cards/wiki/Toturial) ( 推薦 ) :star:
 
