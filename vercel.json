@@ -1,0 +1,36 @@
+{
+    "rewrites": [{ "source": "/api/(.*)", "destination": "/api" }],
+    "headers": [
+        {
+            "source": "/api/cards/(.*)",
+            "headers": [
+                {
+                    "key": "cache-control",
+                    "value": "public, max-age=0, s-maxage=14400"
+                }
+            ]
+        },
+        {
+            "source": "/api/theme",
+            "headers": [
+                { "key": "Access-Control-Allow-Credentials", "value": "true" },
+                { "key": "Access-Control-Allow-Origin", "value": "*" },
+                {
+                    "key": "Access-Control-Allow-Methods",
+                    "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT"
+                },
+                {
+                    "key": "Access-Control-Allow-Headers",
+                    "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version"
+                }
+            ]
+        }
+    ],
+    "redirects": [
+        {
+            "source": "/",
+            "destination": "https://github.com/vn7n24fzkq/github-profile-summary-cards"
+        },
+        { "source": "/demo", "destination": "/demo.html" }
+    ]
+}

@@ -10,10 +10,20 @@ This repo is inspired by [profile-summary-for-github](https://github.com/tipsy/p
 
 :star: This repo just for fun, feel free to contribution! :star:
 
-This action generate your github profile summary cards and make a commit to your repo.
-You can also trigger action by yourself after add this action.
-
 ---
+
+## Markdown Usage
+
+[Try it now!!](https://github-profile-summary-cards.vercel.app/demo.html)
+
+```![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=vue)```
+
+|   |   |   |
+|:---:|:---:|:---:|
+|default|solarized|monokai|
+|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=default)|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=solarized)| ![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=monokai)|
+|solarized_dark|vue|nord_bright|
+|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=solarized_dark)|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=vue)| ![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=nord_bright)|
 
 ## Example
 
@@ -27,7 +37,10 @@ You can also trigger action by yourself after add this action.
 
 ---
 
-## How to use
+## How to use (GitHub Actions)
+
+This action generate your github profile summary cards and make a commit to your repo.
+You can also trigger action by yourself after add this action.
 
 :star: [Follow tutorial](https://github.com/vn7n24fzkq/github-profile-summary-cards/wiki/Toturial) ( Recommendation ) :star:
 
