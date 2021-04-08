@@ -1,3 +1,4 @@
+const ThemeMap = require('../const/theme');
 const select = require('d3').select;
 const JSDOM = require('jsdom').JSDOM;
 
@@ -6,7 +7,7 @@ class Card {
         title = 'Title',
         width = 1280,
         height = 1024,
-        theme = Theme['default'],
+        theme = ThemeMap.get('default'),
         xPadding = 30,
         yPadding = 40
     ) {

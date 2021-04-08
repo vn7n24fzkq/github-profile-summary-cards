@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html>
    <head>
@@ -27,7 +25,7 @@
       <div id="app">
          <v-app>
             <v-main>
-               <v-container>
+               <v-container fluid class="py-8 px-6">
       <a href="https://github.com/vn7n24fzkq/github-profile-summary-cards" class="github-corner" aria-label="View source on GitHub">
          <svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true">
             <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
@@ -39,6 +37,12 @@
                   <v-col cols="3">
                      <v-card width="800">
                         <v-col md="auto">
+                           <p class="font-weight-black text-center">
+                              GitHub Profile Summary Cards
+                           </p>
+                           <div>
+                                <iframe src="https://ghbtns.com/github-btn.html?user=vn7n24fzkq&repo=github-profile-summary-cards&type=star&count=true&size=large" frameborder="0" scrolling="0" width="100%" height="30" title="GitHub"></iframe>
+                           </div>
                            <v-switch
                               v-model="$vuetify.theme.dark"
                               inset
@@ -66,6 +70,7 @@
                               >
                               Submit 
                            </v-btn>
+                               
                         </v-col>
                      </v-card>
                   </v-col>
@@ -146,6 +151,14 @@
                   </v-card>
                   <v-row>
                </v-container>
+               <v-footer padless>
+                    <v-col
+                        class="text-center"
+                        cols="12"
+                    >
+                        <strong>GitHub Profile Summary Cards</strong>
+                    </v-col>
+               </v-footer>
             </v-main>
          </v-app>
       </div>
@@ -165,7 +178,7 @@
                  commitLanguageSource:'',
                  statsSource:'',
                  productiveTimeSource:'',
-                 baseURL:'https://github-profile-summary-cards.vercel.app',
+                 baseURL:`https://${window.location.host}`,
              },
              created(){
                  axios
@@ -194,5 +207,3 @@
       </script>
    </body>
 </html>
-
-
