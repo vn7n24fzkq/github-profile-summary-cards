@@ -22,6 +22,23 @@ const getCommitsLanguageSVGWithThemeName = async function (
 };
 
 const getCommitsLanguageSVG = function (langData, themeName) {
+    if (langData.length == 0) {
+        langData.push({
+            name: 'There are no',
+            value: 1,
+            color: '#586e75',
+        });
+        langData.push({
+            name: 'any commits',
+            value: 1,
+            color: '#586e75',
+        });
+        langData.push({
+            name: 'in the last year',
+            value: 1,
+            color: '#586e75',
+        });
+    }
     const svgString = createDonutChartCard(
         'Top Languages by Commit',
         langData,
