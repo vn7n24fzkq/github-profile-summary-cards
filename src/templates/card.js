@@ -42,7 +42,7 @@ class Card {
       .attr("stroke-width", "1.2")
       .attr("fill", `${theme.bg_color}`)
       .attr("fill-opacity", 0)
-      .attr("stroke-opacity", 1);
+      .attr("stroke-opacity", 0);
 
     let isEmptyTitle = this.title == "";
     if (!isEmptyTitle) {
