@@ -1,11 +1,11 @@
 const Themes = {
-    default: {
-        title_color:"#24292e",
-        text_color:"#24292e",
+    default: { //24292e
+        title_color:"#586069", //24292e
+        text_color:"#586069", //24292e
         bg_color:"#ffffff",
         stroke_color:"#ffffff",
-        icon_color:"#24292e",
-        line_chart_color:"#24292e",
+        icon_color:"#586069", //24292e
+        line_chart_color:"#586069", //24292e
     },
     solarized: {
         title_color:"#268bd2",
