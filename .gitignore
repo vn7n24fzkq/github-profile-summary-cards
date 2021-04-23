@@ -118,5 +118,8 @@ profile-summary-card-output/
 
 #ctag
 tags
+tags.*
 
 package-lock\.json
+
+*.orig
