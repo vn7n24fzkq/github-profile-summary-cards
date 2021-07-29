@@ -5,7 +5,7 @@ const { changToNextGitHubToken } = require('../utils/github-token-updater');
 const { getErrorMsgCard } = require('../utils/error-card');
 
 module.exports = async (req, res) => {
-    const { username, theme } = req.query;
+    const { username, theme="default" } = req.query;
     try {
         let tokenIndex = 0;
         while (true) {
