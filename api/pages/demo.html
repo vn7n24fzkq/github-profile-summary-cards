@@ -51,7 +51,7 @@
         <div id="app">
             <v-app>
                 <v-main>
-                    <v-container fluid class="py-8 px-6">
+                    <v-container class="py-8 px-6" width="950px">
                         <a
                             href="https://github.com/vn7n24fzkq/github-profile-summary-cards"
                             class="github-corner"
@@ -87,6 +87,7 @@
                                 ></path>
                             </svg>
                         </a>
+                        <v-content>
                         <v-row justify="center" no-gutters>
                             <v-col cols="10">
                                 <div
@@ -115,12 +116,17 @@
                                 </v-row>
                             </v-col>
                             <v-col cols="5">
+                                <v-row
+                                    justify="center"
+                                    no-gutters
+                                >
                                 <v-switch
                                     v-model="$vuetify.theme.dark"
                                     inset
                                     label="Dark Mode"
                                     persistent-hint
                                 ></v-switch>
+                                </v-row>
                             </v-col>
                         </v-row>
                         <v-row justify="center" no-gutters>
