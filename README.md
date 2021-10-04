@@ -8,7 +8,7 @@ This repo is inspired by [profile-summary-for-github](https://github.com/tipsy/p
 
 [繁體中文](./docs/README.zh-tw.md)
 
-:star: This repo just for fun, feel free to contribution! :star:
+:star: This repo just for fun, feel free to contribute! :star:
 
 ---
 
