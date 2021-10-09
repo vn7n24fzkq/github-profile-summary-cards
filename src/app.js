@@ -53,11 +53,13 @@ const commitFile = async () => {
 const main = async () => {
     core.info(`Start...`);
     let username = process.argv[2];
+    let timezone = process.argv[3]
     let isInGithubAction = false;
 
-    if (process.argv.length == 2) {
+    if (process.argv.length == 3) {
         try {
             username = core.getInput('USERNAME');
+            timezone = core.getInput('TIMEZONE');
             isInGithubAction = true;
         } catch (error) {
             throw Error(error.message);
@@ -101,7 +103,7 @@ const main = async () => {
         }
         try {
             core.info(`Creating ProductiveTimeCard...`);
-            await createProductiveTimeCard(username);
+            await createProductiveTimeCard(username, timezone);
         } catch (error) {
             core.error(
                 `Error when creating ProductiveTimeCard \n${error.stack}`

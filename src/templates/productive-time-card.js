@@ -1,8 +1,9 @@
 const Card = require('./card');
 const d3 = require('d3');
 
-function createProductiveCard(chartData, theme) {
-    const card = new Card('Commits per day hour (UTC)', 340, 200, theme);
+function createProductiveCard(chartData, theme, timezone) {
+    const title='Commits ' + '(' + timezone + ')'
+    const card = new Card(title, 340, 200, theme);
     const svg = card.getSVG();
     if (chartData.length != 24) {
         throw Error('productive time array size should be 24');

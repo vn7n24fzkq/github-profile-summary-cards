@@ -5,14 +5,15 @@ const { changToNextGitHubToken } = require('../utils/github-token-updater');
 const { getErrorMsgCard } = require('../utils/error-card');
 
 module.exports = async (req, res) => {
-    const { username, theme="default" } = req.query;
+    const { username, theme="default", timezone="Europe/London" } = req.query;
     try {
         let tokenIndex = 0;
         while (true) {
             try {
                 const cardSVG = await getProductiveTimeSVGWithThemeName(
                     username,
-                    theme
+                    theme,
+                    timezone
                 );
                 res.setHeader('Content-Type', 'image/svg+xml');
                 res.send(cardSVG);
