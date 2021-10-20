@@ -41,11 +41,11 @@ ThemeMap.set('dracula', {
     line_chart_color: '#bd93f9',
 });
 ThemeMap.set('monokai', {
-    title_color: '#eb1f6a',
-    text_color: '#ffffff',
-    bg_color: '#2c292d',
-    stroke_color: '#2c292d',
-    icon_color: '#e28905',
+    title_color: '#fd428d',
+    text_color: '#a9fef7',
+    bg_color: '#141321',
+    stroke_color: '#141321',
+    icon_color: '#f7d747',
     line_chart_color: '#ae81ff',
 });
 ThemeMap.set('nord_bright', {

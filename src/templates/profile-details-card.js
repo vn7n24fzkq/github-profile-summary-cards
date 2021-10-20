@@ -138,7 +138,7 @@ function createDetailCard(title, userDetails, contributionsData, theme) {
     chartPanel
         .append('g')
         .append('text')
-        .text('contributions in the last year')
+        .text('Contributions in the last year')
         .attr('y', title.length > 30 ? 140 : -15) // if title too long, then put text to bottom
         .attr('x', 230)
         .style('fill', theme.text_color)
