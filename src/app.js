@@ -56,7 +56,7 @@ const main = async () => {
     let timezone = process.argv[3]
     let isInGithubAction = false;
 
-    if (process.argv.length == 3) {
+    if (process.argv.length == 2) {
         try {
             username = core.getInput('USERNAME');
             timezone = core.getInput('TIMEZONE');
