@@ -111,14 +111,17 @@ out
 .yarn/install-state.gz
 .pnp.*
 
-
-
-#custom output
+# Ignore output
 profile-summary-card-output/
 
-#ctag
+# ctag
 tags
 tags.*
 
-
+# vercel files
 .vercel
+
+# Ignore built ts files
+lib/**/*
+__tests__/runner/*
+
