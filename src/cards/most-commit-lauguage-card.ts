@@ -1,9 +1,9 @@
-const ThemeMap = require('../const/theme');
-const getCommitLanguage = require('../github-api/commits-per-lauguage');
-const createDonutChartCard = require('../templates/donut-chart-card');
-const { writeSVG } = require('../utils/file-writer');
+import {ThemeMap} from '../const/theme';
+import getCommitLanguage from '../github-api/commits-per-language';
+import {createDonutChartCard} from '../templates/donut-chart-card';
+import {writeSVG} from '../utils/file-writer';
 
-const createCommitsPerLanguageCard = async function (username) {
+export const createCommitsPerLanguageCard = async function (username: string) {
     const statsData = await getCommitsLanguageData(username);
     for (const themeName of ThemeMap.keys()) {
         const svgString = getCommitsLanguageSVG(statsData, themeName);
@@ -12,42 +12,43 @@ const createCommitsPerLanguageCard = async function (username) {
     }
 };
 
-const getCommitsLanguageSVGWithThemeName = async function (
-    username,
-    themeName
-) {
+export const getCommitsLanguageSVGWithThemeName = async function (
+    username: string,
+    themeName: string
+): Promise<string> {
     if (!ThemeMap.has(themeName)) throw new Error('Theme does not exist');
     const langData = await getCommitsLanguageData(username);
     return getCommitsLanguageSVG(langData, themeName);
 };
 
-const getCommitsLanguageSVG = function (langData, themeName) {
+const getCommitsLanguageSVG = function (
+    langData: {name: string; value: number; color: string}[],
+    themeName: string
+): string {
     if (langData.length == 0) {
         langData.push({
             name: 'There are no',
             value: 1,
-            color: '#586e75',
+            color: '#586e75'
         });
         langData.push({
             name: 'any commits',
             value: 1,
-            color: '#586e75',
+            color: '#586e75'
         });
         langData.push({
             name: 'in the last year',
             value: 1,
-            color: '#586e75',
+            color: '#586e75'
         });
     }
-    const svgString = createDonutChartCard(
-        'Top Languages by Commit',
-        langData,
-        ThemeMap.get(themeName)
-    );
+    const svgString = createDonutChartCard('Top Languages by Commit', langData, ThemeMap.get(themeName)!);
     return svgString;
 };
 
-const getCommitsLanguageData = async function (username) {
+const getCommitsLanguageData = async function (
+    username: string
+): Promise<{name: string; value: number; color: string}[]> {
     const langMap = new Map();
     const map = await getCommitLanguage(username);
     for (const [key, value] of map) {
@@ -57,7 +58,7 @@ const getCommitsLanguageData = async function (username) {
         } else {
             langMap.set(key, {
                 count: value.count,
-                color: value.color == null ? '#586e75' : value.color,
+                color: value.color == null ? '#586e75' : value.color
             });
         }
     }
@@ -68,7 +69,7 @@ const getCommitsLanguageData = async function (username) {
         langData.push({
             name: key,
             value: value.count,
-            color: value.color,
+            color: value.color
         });
     }
     langData.sort(function (a, b) {
@@ -77,9 +78,4 @@ const getCommitsLanguageData = async function (username) {
     langData = langData.slice(0, 5); // get top 5
 
     return langData;
-};
-
-module.exports = {
-    createCommitsPerLanguageCard,
-    getCommitsLanguageSVGWithThemeName,
 };

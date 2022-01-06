@@ -1,9 +1,9 @@
-const request = require('../utils/request.js');
+import request from '../utils/request';
 
-const fetcher = (token, variables) => {
+const fetcher = (token: string, variables: any) => {
     return request(
         {
-            Authorization: `bearer ${token}`,
+            Authorization: `bearer ${token}`
         },
         {
             query: `
@@ -25,17 +25,17 @@ const fetcher = (token, variables) => {
         }
       }
       `,
-            variables,
+            variables
         }
     );
 };
 
 // repos per language
-async function getCommitLanguage(username) {
+async function getCommitLanguage(username: string) {
     const languageMap = new Map();
 
-    const res = await fetcher(process.env.GITHUB_TOKEN, {
-        login: username,
+    const res = await fetcher(process.env.GITHUB_TOKEN!, {
+        login: username
     });
 
     if (res.data.errors) {
@@ -43,7 +43,10 @@ async function getCommitLanguage(username) {
     }
 
     res.data.data.user.contributionsCollection.commitContributionsByRepository.forEach(
-        (node) => {
+        (node: {
+            repository: {primaryLanguage: {name: string; color: string} | null};
+            contributions: {totalCount: number};
+        }) => {
             if (node.repository.primaryLanguage == null) {
                 return;
             }
@@ -57,7 +60,7 @@ async function getCommitLanguage(username) {
                 } else {
                     languageMap.set(langName, {
                         count: totalCount,
-                        color: langColor ? langColor : '#586e75',
+                        color: langColor ? langColor : '#586e75'
                     });
                 }
             }
@@ -67,4 +70,4 @@ async function getCommitLanguage(username) {
     return languageMap;
 }
 
-module.exports = getCommitLanguage;
+export default getCommitLanguage;

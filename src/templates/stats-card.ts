@@ -1,7 +1,12 @@
-const Card = require('./card');
-const Icons = require('../const/icon');
+import {Card} from './card';
+import {Icon} from '../const/icon';
+import {Theme} from '../const/theme';
 
-function createStatsCard(title, statsData, theme) {
+export function createStatsCard(
+    title: string,
+    statsData: {index: number; icon: string; name: string; value: string}[],
+    theme: Theme
+) {
     const card = new Card(title, 340, 200, theme);
     const svg = card.getSVG();
 
@@ -13,14 +18,14 @@ function createStatsCard(title, statsData, theme) {
         .data(statsData)
         .enter()
         .append('g')
-        .attr('transform', (d) => {
+        .attr('transform', d => {
             const y = labelHeight * d.index * 1.8;
             return `translate(0,${y})`;
         })
         .attr('width', labelHeight)
         .attr('height', labelHeight)
-        .attr('fill', theme.icon_color)
-        .html((d) => d.icon);
+        .attr('fill', theme.icon)
+        .html(d => d.icon);
 
     // draw text
     panel
@@ -28,12 +33,12 @@ function createStatsCard(title, statsData, theme) {
         .data(statsData)
         .enter()
         .append('text')
-        .text((d) => {
+        .text(d => {
             return `${d.name}`;
         })
         .attr('x', labelHeight * 1.5)
-        .attr('y', (d) => labelHeight * d.index * 1.8 + labelHeight)
-        .style('fill', theme.text_color)
+        .attr('y', d => labelHeight * d.index * 1.8 + labelHeight)
+        .style('fill', theme.text)
         .style('font-size', `${labelHeight}px`);
 
     panel
@@ -41,24 +46,16 @@ function createStatsCard(title, statsData, theme) {
         .data(statsData)
         .enter()
         .append('text')
-        .text((d) => {
+        .text(d => {
             return `${d.value}`;
         })
         .attr('x', 130)
-        .attr('y', (d) => labelHeight * d.index * 1.8 + labelHeight)
-        .style('fill', theme.text_color)
+        .attr('y', d => labelHeight * d.index * 1.8 + labelHeight)
+        .style('fill', theme.text)
         .style('font-size', `${labelHeight}px`);
 
-    const panelForGitHubLogo = svg
-        .append('g')
-        .attr('transform', `translate(220,20)`);
-    panelForGitHubLogo
-        .append('g')
-        .attr('transform', `scale(6)`)
-        .style('fill', theme.icon_color)
-        .html(Icons.GITHUB);
+    const panelForGitHubLogo = svg.append('g').attr('transform', `translate(220,20)`);
+    panelForGitHubLogo.append('g').attr('transform', `scale(6)`).style('fill', theme.icon).html(Icon.GITHUB);
 
     return card.toString();
 }
-
-module.exports = createStatsCard;

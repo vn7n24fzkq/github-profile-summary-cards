@@ -1,9 +1,9 @@
-const request = require('../utils/request');
+import request from '../utils/request';
 
-const userIdFetcher = (token, variables) => {
+const userIdFetcher = (token: string, variables: any) => {
     return request(
         {
-            Authorization: `bearer ${token}`,
+            Authorization: `bearer ${token}`
         },
         {
             query: `
@@ -13,15 +13,15 @@ const userIdFetcher = (token, variables) => {
         }
       }
      `,
-            variables,
+            variables
         }
     );
 };
 // we use commit datetime to caculate productive time
-const fetcher = (token, variables) => {
+const fetcher = (token: string, variables: any) => {
     return request(
         {
-            Authorization: `bearer ${token}`,
+            Authorization: `bearer ${token}`
         },
         {
             query: `
@@ -54,31 +54,28 @@ const fetcher = (token, variables) => {
         }
       }
      `,
-            variables,
+            variables
         }
     );
 };
 
 // get productive time
-async function getProductiveTime(username, until, since) {
-    const userIdResponse = await userIdFetcher(process.env.GITHUB_TOKEN, {
-        login: username,
+async function getProductiveTime(username: string, until: string, since: string) {
+    const userIdResponse = await userIdFetcher(process.env.GITHUB_TOKEN!, {
+        login: username
     });
 
     if (userIdResponse.data.errors) {
-        throw Error(
-            userIdResponse.data.errors[0].message ||
-                'GetProductiveTime(getUserId) failed'
-        );
+        throw Error(userIdResponse.data.errors[0].message || 'GetProductiveTime(getUserId) failed');
     }
 
     const userId = userIdResponse.data.data.user.id;
-    const array = [];
-    const res = await fetcher(process.env.GITHUB_TOKEN, {
+    const array: string[] = [];
+    const res = await fetcher(process.env.GITHUB_TOKEN!, {
         login: username,
         userId: userId,
         until: until,
-        since: since,
+        since: since
     });
 
     if (res.data.errors) {
@@ -86,13 +83,15 @@ async function getProductiveTime(username, until, since) {
     }
 
     res.data.data.user.contributionsCollection.commitContributionsByRepository.forEach(
-        (node) => {
+        (node: {
+            repository: {
+                defaultBranchRef: {target: {history: {edges: any[]}}} | null;
+            };
+        }) => {
             if (node.repository.defaultBranchRef != null) {
-                node.repository.defaultBranchRef.target.history.edges.forEach(
-                    (node) => {
-                        array.push(node.node.committedDate);
-                    }
-                );
+                node.repository.defaultBranchRef.target.history.edges.forEach(node => {
+                    array.push(node.node.committedDate);
+                });
             }
         }
     );
@@ -100,4 +99,4 @@ async function getProductiveTime(username, until, since) {
     return array;
 }
 
-module.exports = getProductiveTime;
+export default getProductiveTime;

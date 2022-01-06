@@ -11,23 +11,23 @@ const firstData = {
                     {
                         primaryLanguage: {
                             color: '#b07219',
-                            name: 'Java',
-                        },
+                            name: 'Java'
+                        }
                     },
                     {
                         primaryLanguage: {
                             color: '#dea584',
-                            name: 'Rust',
-                        },
-                    },
+                            name: 'Rust'
+                        }
+                    }
                 ],
                 pageInfo: {
                     endCursor: 'ABCD29yOnYyOpHOBslODA==',
-                    hasNextPage: true,
-                },
-            },
-        },
-    },
+                    hasNextPage: true
+                }
+            }
+        }
+    }
 };
 const lastData = {
     data: {
@@ -37,23 +37,23 @@ const lastData = {
                     {
                         primaryLanguage: {
                             color: '#b07219',
-                            name: 'Java',
-                        },
+                            name: 'Java'
+                        }
                     },
                     {
                         primaryLanguage: {
                             color: '#f18e33',
-                            name: 'Kotlin',
-                        },
-                    },
+                            name: 'Kotlin'
+                        }
+                    }
                 ],
                 pageInfo: {
                     endCursor: null,
-                    hasNextPage: false,
-                },
-            },
-        },
-    },
+                    hasNextPage: false
+                }
+            }
+        }
+    }
 };
 
 const error = {
@@ -62,9 +62,9 @@ const error = {
             type: 'NOT_FOUND',
             path: ['user'],
             locations: [],
-            message: 'GitHub api failed',
-        },
-    ],
+            message: 'GitHub api failed'
+        }
+    ]
 };
 
 afterEach(() => {
@@ -81,17 +81,15 @@ describe('repos per language on github', () => {
         const repoData = await getRepoLanguage('vn7n24fzkq');
         expect(repoData).toEqual(
             new Map([
-                ['Java', { color: '#b07219', count: 2 }],
-                ['Rust', { color: '#dea584', count: 1 }],
-                ['Kotlin', { color: '#f18e33', count: 1 }],
+                ['Java', {color: '#b07219', count: 2}],
+                ['Rust', {color: '#dea584', count: 1}],
+                ['Kotlin', {color: '#f18e33', count: 1}]
             ])
         );
     });
 
     it('should throw error when api failed', async () => {
         mock.onPost('https://api.github.com/graphql').reply(200, error);
-        await expect(getRepoLanguage('vn7n24fzkq')).rejects.toThrow(
-            'GitHub api failed'
-        );
+        await expect(getRepoLanguage('vn7n24fzkq')).rejects.toThrow('GitHub api failed');
     });
 });

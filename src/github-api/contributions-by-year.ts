@@ -1,9 +1,9 @@
-const request = require('../utils/request');
+import request from '../utils/request';
 
-const fetcher = (token, variables, year) => {
+const fetcher = (token: string, variables: any, year: number) => {
     return request(
         {
-            Authorization: `bearer ${token}`,
+            Authorization: `bearer ${token}`
         },
         {
             query: `
@@ -22,38 +22,34 @@ const fetcher = (token, variables, year) => {
             }
         }
       `,
-            variables,
+            variables
         }
     );
 };
 
-async function getContributionByYear(username, year) {
+async function getContributionByYear(username: string, year: number) {
     const result = {
         totalCommitContributions: 0,
-        totalContributions: 0,
+        totalContributions: 0
     };
 
     const res = await fetcher(
-        process.env.GITHUB_TOKEN,
+        process.env.GITHUB_TOKEN!,
         {
-            login: username,
+            login: username
         },
         year
     );
 
     if (res.data.errors) {
-        throw Error(
-            res.data.errors[0].message || 'GetContributionByYear failed'
-        );
+        throw Error(res.data.errors[0].message || 'GetContributionByYear failed');
     }
 
     const user = res.data.data.user;
 
-    result.totalCommitContributions =
-        user.contributionsCollection.totalCommitContributions;
-    result.totalContributions =
-        user.contributionsCollection.contributionCalendar.totalContributions;
+    result.totalCommitContributions = user.contributionsCollection.totalCommitContributions;
+    result.totalContributions = user.contributionsCollection.contributionCalendar.totalContributions;
     return result;
 }
 
-module.exports = getContributionByYear;
+export default getContributionByYear;

@@ -1,11 +1,11 @@
-const request = require('../utils/request');
+import request from '../utils/request';
 
-const fetcher = (token, variables) => {
+const fetcher = (token: string, variables: any) => {
     // contain private need token permission
     // contributionsCollection default to a year ago
     return request(
         {
-            Authorization: `bearer ${token}`,
+            Authorization: `bearer ${token}`
         },
         {
             query: `
@@ -51,13 +51,47 @@ const fetcher = (token, variables) => {
       }
 
       `,
-            variables,
+            variables
         }
     );
 };
 
-async function getProfileDetails(username) {
-    const result = {
+async function getProfileDetails(
+    username: string
+): Promise<{
+    id: number;
+    name: string;
+    email: string;
+    joinedAt: string;
+    company: string | null;
+    websiteUrl: string | null;
+    twitterUsername: string | null;
+    location: string | null;
+    totalPublicRepos: number;
+    totalStars: number;
+    totalIssueContributions: number;
+    totalPullRequestContributions: number;
+    totalRepositoryContributions: number;
+    contributions: any[];
+    contributionYears: number[];
+}> {
+    const result: {
+        id: number;
+        name: string;
+        email: string;
+        joinedAt: string;
+        company: string | null;
+        websiteUrl: string | null;
+        twitterUsername: string | null;
+        location: string | null;
+        totalPublicRepos: number;
+        totalStars: number;
+        totalIssueContributions: number;
+        totalPullRequestContributions: number;
+        totalRepositoryContributions: number;
+        contributions: any[];
+        contributionYears: number[];
+    } = {
         id: 0,
         name: '',
         email: '',
@@ -72,11 +106,11 @@ async function getProfileDetails(username) {
         totalPullRequestContributions: 0,
         totalRepositoryContributions: 0,
         contributions: [],
-        contributionYears: [],
+        contributionYears: []
     };
 
-    const res = await fetcher(process.env.GITHUB_TOKEN, {
-        login: username,
+    const res = await fetcher(process.env.GITHUB_TOKEN!, {
+        login: username
     });
 
     if (res.data.errors) {
@@ -90,22 +124,20 @@ async function getProfileDetails(username) {
     result.email = user.email;
     result.joinedAt = user.createdAt;
     result.totalPublicRepos = user.repositories.totalCount;
-    result.totalStars = user.repositories.nodes.reduce((stars, curr) => {
+    result.totalStars = user.repositories.nodes.reduce((stars: number, curr: {stargazers: {totalCount: number}}) => {
         return stars + curr.stargazers.totalCount;
     }, 0);
     result.websiteUrl = user.websiteUrl;
     result.totalIssueContributions = user.issues.totalCount;
     result.totalPullRequestContributions = user.pullRequests.totalCount;
-    result.totalRepositoryContributions =
-        user.repositoriesContributedTo.totalCount;
+    result.totalRepositoryContributions = user.repositoriesContributedTo.totalCount;
     result.company = user.company;
     result.location = user.location;
     result.twitterUsername = user.twitterUsername;
     result.contributionYears = user.contributionsCollection.contributionYears;
 
     // contributions into array
-    for (const week of user.contributionsCollection.contributionCalendar
-        .weeks) {
+    for (const week of user.contributionsCollection.contributionCalendar.weeks) {
         for (const day of week.contributionDays) {
             day.date = new Date(day.date);
             result.contributions.push(day);
@@ -115,4 +147,4 @@ async function getProfileDetails(username) {
     return result;
 }
 
-module.exports = getProfileDetails;
+export default getProfileDetails;

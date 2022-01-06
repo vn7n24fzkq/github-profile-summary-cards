@@ -1,9 +1,9 @@
-const ThemeMap = require('../const/theme');
-const getRepoLanguage = require('../github-api/repos-per-language');
-const createDonutChartCard = require('../templates/donut-chart-card');
-const { writeSVG } = require('../utils/file-writer');
+import {ThemeMap} from '../const/theme';
+import getRepoLanguage from '../github-api/repos-per-language';
+import {createDonutChartCard} from '../templates/donut-chart-card';
+import {writeSVG} from '../utils/file-writer';
 
-const createReposPerLanguageCard = async function (username) {
+export const createReposPerLanguageCard = async function (username: string) {
     const langData = await getRepoLanguageData(username);
     for (const themeName of ThemeMap.keys()) {
         const svgString = getReposPerLanguageSVG(langData, themeName);
@@ -12,25 +12,18 @@ const createReposPerLanguageCard = async function (username) {
     }
 };
 
-const getReposPerLanguageSVGWithThemeName = async function (
-    username,
-    themeName
-) {
+export const getReposPerLanguageSVGWithThemeName = async function (username: string, themeName: string) {
     if (!ThemeMap.has(themeName)) throw new Error('Theme does not exist');
     const langData = await getRepoLanguageData(username);
     return getReposPerLanguageSVG(langData, themeName);
 };
 
-const getReposPerLanguageSVG = function (langData, themeName) {
-    const svgString = createDonutChartCard(
-        'Top Languages by Repo',
-        langData,
-        ThemeMap.get(themeName)
-    );
+const getReposPerLanguageSVG = function (langData: {name: string; value: number; color: string}[], themeName: string) {
+    const svgString = createDonutChartCard('Top Languages by Repo', langData, ThemeMap.get(themeName)!);
     return svgString;
 };
 
-const getRepoLanguageData = async function (username) {
+const getRepoLanguageData = async function (username: string) {
     const langMap = await getRepoLanguage(username);
     let langData = [];
 
@@ -39,7 +32,7 @@ const getRepoLanguageData = async function (username) {
         langData.push({
             name: key,
             value: value.count,
-            color: value.color,
+            color: value.color
         });
     }
     langData.sort(function (a, b) {
@@ -47,10 +40,4 @@ const getRepoLanguageData = async function (username) {
     });
     langData = langData.slice(0, 5); // get top 5
     return langData;
-};
-
-module.exports = createReposPerLanguageCard;
-module.exports = {
-    createReposPerLanguageCard,
-    getReposPerLanguageSVGWithThemeName,
 };

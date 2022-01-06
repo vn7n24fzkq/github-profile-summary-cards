@@ -1,39 +1,28 @@
-const mkdirSync = require('fs').mkdirSync;
-const writeFileSync = require('fs').writeFileSync;
-const readdirSync = require('fs').readdirSync;
-const Themes = require('../const/theme.js');
+import {mkdirSync, writeFileSync, readdirSync} from 'fs';
+import {ThemeMap} from '../const/theme';
+
+export const OUTPUT_PATH = './profile-summary-card-output/';
 const GITHUB_REPOSITORY = process.env.GITHUB_REPOSITORY;
 
-const outputPath = './profile-summary-card-output/';
-
 // If neither a branch or tag is available for the event type, the variable will not exist. https://docs.github.com/en/actions/configuring-and-managing-workflows/using-environment-variables
-const GITHUB_BRANCH =
-    process.env.GITHUB_REF == undefined
-        ? 'main'
-        : process.env.GITHUB_REF.split('/').pop();
+const GITHUB_BRANCH = process.env.GITHUB_REF == undefined ? 'main' : process.env.GITHUB_REF.split('/').pop();
 
-const writeSVG = function (folder, filename, svgString) {
-    const targetFolder = `${outputPath}${folder}/`;
-    mkdirSync(targetFolder, { recursive: true });
-    writeFileSync(
-        `${targetFolder}${filename}.svg`,
-        svgString,
-        function (err, result) {
-            if (err) throw err;
-        }
-    );
+export const writeSVG = function (folder: string, filename: string, svgString: string) {
+    const targetFolder = `${OUTPUT_PATH}${folder}/`;
+    mkdirSync(targetFolder, {recursive: true});
+    writeFileSync(`${targetFolder}${filename}.svg`, svgString);
 };
 
-function getAllFileInFolder(folder) {
-    const files = [];
-    readdirSync(folder).forEach((file) => {
+function getAllFileInFolder(folder: string) {
+    const files: string[] = [];
+    readdirSync(folder).forEach(file => {
         files.push(file);
     });
     return files;
 }
 
-const generatePreviewMarkdown = function (isInGithubAction) {
-    const targetFolder = `${outputPath}`;
+export const generatePreviewMarkdown = function (isInGithubAction: boolean) {
+    const targetFolder = `${OUTPUT_PATH}`;
     let readmeContent = '';
     const urlPrefix = isInGithubAction
         ? `https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${GITHUB_BRANCH}/profile-summary-card-output`
@@ -41,7 +30,7 @@ const generatePreviewMarkdown = function (isInGithubAction) {
 
     // First, we generate preview readme for each theme
 
-    for (const themeName of Themes.keys()) {
+    for (const themeName of ThemeMap.keys()) {
         generateThemePreviewReadme(urlPrefix, themeName);
     }
     readmeContent += `
@@ -53,24 +42,15 @@ Here are all cards with themes.
 
 `;
 
-    for (const themeName of Themes.keys()) {
+    for (const themeName of ThemeMap.keys()) {
         readmeContent += `## [${themeName}](./${themeName}/README.md)`;
-        readmeContent += getThemeMarkdown(
-            `${urlPrefix}/${themeName}`,
-            themeName
-        );
+        readmeContent += getThemeMarkdown(`${urlPrefix}/${themeName}`);
     }
 
-    writeFileSync(
-        `${targetFolder}README.md`,
-        readmeContent,
-        function (err, result) {
-            if (err) throw err;
-        }
-    );
+    writeFileSync(`${targetFolder}README.md`, readmeContent);
 };
 
-function generateThemePreviewReadme(urlPrefix, themeName) {
+function generateThemePreviewReadme(urlPrefix: string, themeName: string) {
     let themePreviewMarkdown = '';
     themePreviewMarkdown += `## ${themeName}`;
     themePreviewMarkdown += `\n`;
@@ -83,7 +63,7 @@ ${getThemeMarkdown(`${urlPrefix}/${themeName}`)}
 `;
     themePreviewMarkdown += `\n`;
     themePreviewMarkdown += `### Each card usage`;
-    for (const file of getAllFileInFolder(outputPath + themeName)) {
+    for (const file of getAllFileInFolder(OUTPUT_PATH + themeName)) {
         if (!file.endsWith('svg')) continue;
         themePreviewMarkdown += `
 ---
@@ -97,16 +77,10 @@ ${getThemeMarkdown(`${urlPrefix}/${themeName}`)}
     `;
         themePreviewMarkdown += `\n`;
     }
-    writeFileSync(
-        `${outputPath}${themeName}/README.md`,
-        themePreviewMarkdown,
-        function (err, result) {
-            if (err) throw err;
-        }
-    );
+    writeFileSync(`${OUTPUT_PATH}${themeName}/README.md`, themePreviewMarkdown);
 }
 
-function getThemeMarkdown(urlPrefix) {
+function getThemeMarkdown(urlPrefix: string) {
     let result = '';
     result += `
 [![](${urlPrefix}/0-profile-details.svg)](https://github.com/vn7n24fzkq/github-profile-summary-cards)
@@ -115,9 +89,3 @@ function getThemeMarkdown(urlPrefix) {
 `;
     return result;
 }
-
-module.exports = {
-    writeSVG,
-    outputPath,
-    generatePreviewMarkdown,
-};

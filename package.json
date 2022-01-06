@@ -10,7 +10,7 @@
         "lint": "eslint src/**/*.ts",
         "package": "ncc build --source-map --license licenses.txt",
         "test": "jest --passWithNoTests ",
-        "run": "node -r dotenv/config src/app.js",
+        "run": "node -r dotenv/config src/app.ts",
         "all": "npm run build && npm run format && npm run lint && npm run package && npm test"
     },
     "keywords": [
@@ -26,6 +26,7 @@
         "childprocess": "^2.0.2",
         "d3": "^5.16.0",
         "dotenv": "^8.2.0",
+        "js-abbreviation-number": "^1.4.0",
         "jsdom": "^16.4.0",
         "moment": "^2.27.0",
         "number-abbreviate": "^2.0.0",
@@ -35,6 +36,9 @@
         "@babel/core": "^7.13.10",
         "@babel/node": "^7.13.12",
         "@babel/preset-env": "^7.13.12",
+        "@types/d3": "^7.1.0",
+        "@types/jest": "^27.0.2",
+        "@types/jsdom": "^16.2.13",
         "@typescript-eslint/parser": "^5.2.0",
         "@vercel/ncc": "^0.27.0",
         "axios-mock-adapter": "^1.18.2",

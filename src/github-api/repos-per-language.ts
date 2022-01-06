@@ -1,10 +1,10 @@
-const request = require('../utils/request');
+import request from '../utils/request';
 
-const fetcher = (token, variables) => {
+const fetcher = (token: string, variables: any) => {
     // contain private repo need token permission
     return request(
         {
-            Authorization: `bearer ${token}`,
+            Authorization: `bearer ${token}`
         },
         {
             query: `
@@ -25,22 +25,22 @@ const fetcher = (token, variables) => {
         }
       }
       `,
-            variables,
+            variables
         }
     );
 };
 
 // repos per language
-async function getRepoLanguage(username) {
+async function getRepoLanguage(username: string) {
     let hasNextPage = true;
     let cursor = null;
     const languageMap = new Map();
     const nodes = [];
 
     while (hasNextPage) {
-        const res = await fetcher(process.env.GITHUB_TOKEN, {
+        const res: any = await fetcher(process.env.GITHUB_TOKEN!, {
             login: username,
-            endCursor: cursor,
+            endCursor: cursor
         });
 
         if (res.data.errors) {
@@ -51,7 +51,7 @@ async function getRepoLanguage(username) {
         nodes.push(...res.data.data.user.repositories.nodes);
     }
 
-    nodes.forEach((node) => {
+    nodes.forEach(node => {
         if (node.primaryLanguage) {
             const langName = node.primaryLanguage.name;
             if (languageMap.has(langName)) {
@@ -60,9 +60,7 @@ async function getRepoLanguage(username) {
             } else {
                 languageMap.set(langName, {
                     count: 1,
-                    color: node.primaryLanguage.color
-                        ? node.primaryLanguage.color
-                        : '#586e75',
+                    color: node.primaryLanguage.color ? node.primaryLanguage.color : '#586e75'
                 });
             }
         }
@@ -71,4 +69,4 @@ async function getRepoLanguage(username) {
     return languageMap;
 }
 
-module.exports = getRepoLanguage;
+export default getRepoLanguage;

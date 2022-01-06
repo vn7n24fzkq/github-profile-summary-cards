@@ -1,16 +1,16 @@
-const ThemeMap = require('../const/theme');
-const select = require('d3').select;
-const JSDOM = require('jsdom').JSDOM;
+import {Theme} from '../const/theme';
+import * as d3 from 'd3';
+import {JSDOM} from 'jsdom';
 
-class Card {
-    constructor(
-        title = 'Title',
-        width = 1280,
-        height = 1024,
-        theme = ThemeMap.get('default'),
-        xPadding = 30,
-        yPadding = 40
-    ) {
+export class Card {
+    title: string;
+    width: number;
+    height: number;
+    xPadding: number;
+    yPadding: number;
+    body: d3.Selection<d3.ContainerElement, any, null, undefined>;
+    svg: d3.Selection<SVGSVGElement, any, null, undefined>;
+    constructor(title = 'Title', width = 1280, height = 1024, theme: Theme, xPadding = 30, yPadding = 40) {
         this.title = title;
         this.width = width;
         this.height = height;
@@ -18,7 +18,7 @@ class Card {
         this.yPadding = yPadding;
         // use fake dom let us can get html element
         const fakeDom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
-        this.body = select(fakeDom.window.document).select('body');
+        this.body = d3.select(fakeDom.window.document).select('body');
         this.svg = this.body
             .append('div')
             .attr('class', 'container')
@@ -40,9 +40,9 @@ class Card {
             .attr('ry', 5)
             .attr('height', '98%')
             .attr('width', '98%')
-            .attr('stroke', `${theme.stroke_color}`)
+            .attr('stroke', `${theme.stroke}`)
             .attr('stroke-width', '1')
-            .attr('fill', `${theme.bg_color}`)
+            .attr('fill', `${theme.background}`)
             .attr('stroke-opacity', 1);
 
         const isEmptyTitle = this.title == '';
@@ -52,15 +52,11 @@ class Card {
                 .attr('x', this.xPadding)
                 .attr('y', this.yPadding)
                 .style('font-size', `22px`)
-                .style('fill', `${theme.title_color}`)
+                .style('fill', `${theme.title}`)
                 .text(this.title);
         }
-        this.svg = this.svg
-            .append('g')
-            .attr(
-                'transform',
-                `translate(0,${isEmptyTitle ? 0 : this.yPadding})`
-            );
+        // this.svg = this.svg
+        this.svg.append('g').attr('transform', `translate(0,${isEmptyTitle ? 0 : this.yPadding})`);
     }
 
     getSVG() {
@@ -71,5 +67,3 @@ class Card {
         return this.body.select('.container').html();
     }
 }
-
-module.exports = Card;

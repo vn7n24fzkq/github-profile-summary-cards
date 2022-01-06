@@ -16,14 +16,11 @@ const data = {
             websiteUrl: null,
             repositories: {
                 totalCount: 30,
-                nodes: [
-                    { stargazers: { totalCount: 110 } },
-                    { stargazers: { totalCount: 20 } },
-                ],
+                nodes: [{stargazers: {totalCount: 110}}, {stargazers: {totalCount: 20}}]
             },
-            issues: { totalCount: 10 },
-            repositoriesContributedTo: { totalCount: 30 },
-            pullRequests: { totalCount: 40 },
+            issues: {totalCount: 10},
+            repositoriesContributedTo: {totalCount: 30},
+            pullRequests: {totalCount: 40},
             contributionsCollection: {
                 contributionYears: [2019, 2020],
                 contributionCalendar: {
@@ -32,27 +29,27 @@ const data = {
                             contributionDays: [
                                 {
                                     date: '2019-09-06T00:00:00.000+00:00',
-                                    contributionCount: 20,
+                                    contributionCount: 20
                                 },
                                 {
                                     date: '2019-09-07T00:00:00.000+00:00',
-                                    contributionCount: 10,
-                                },
-                            ],
+                                    contributionCount: 10
+                                }
+                            ]
                         },
                         {
                             contributionDays: [
                                 {
                                     date: '2020-01-12T00:00:00.000+00:00',
-                                    contributionCount: 5,
-                                },
-                            ],
-                        },
-                    ],
-                },
-            },
-        },
-    },
+                                    contributionCount: 5
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        }
+    }
 };
 
 const error = {
@@ -61,9 +58,9 @@ const error = {
             type: 'NOT_FOUND',
             path: ['user'],
             locations: [],
-            message: 'GitHub api failed',
-        },
-    ],
+            message: 'GitHub api failed'
+        }
+    ]
 };
 
 afterEach(() => {
@@ -92,24 +89,22 @@ describe('github api for profile details', () => {
             contributions: [
                 {
                     date: new Date('2019-09-06T00:00:00.000+00:00'),
-                    contributionCount: 20,
+                    contributionCount: 20
                 },
                 {
                     date: new Date('2019-09-07T00:00:00.000+00:00'),
-                    contributionCount: 10,
+                    contributionCount: 10
                 },
                 {
                     date: new Date('2020-01-12T00:00:00.000+00:00'),
-                    contributionCount: 5,
-                },
-            ],
+                    contributionCount: 5
+                }
+            ]
         });
     });
 
     it('should throw error when api failed', async () => {
         mock.onPost('https://api.github.com/graphql').reply(200, error);
-        await expect(getProfileDetails('vn7n24fzkq')).rejects.toThrow(
-            'GitHub api failed'
-        );
+        await expect(getProfileDetails('vn7n24fzkq')).rejects.toThrow('GitHub api failed');
     });
 });

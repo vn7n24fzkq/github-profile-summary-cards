@@ -1,10 +1,10 @@
-const core = require('@actions/core');
-const rax = require('retry-axios');
-const axios = require('axios');
+import core from '@actions/core';
+import rax from 'retry-axios';
+import axios from 'axios';
 
 rax.attach();
 
-function request(header, data) {
+export default function request(header: any, data: any) {
     return axios({
         url: 'https://api.github.com/graphql',
         method: 'post',
@@ -16,13 +16,11 @@ function request(header, data) {
             retryDelay: 1000,
             backoffType: 'linear',
             httpMethodsToRetry: ['POST'],
-            onRetryAttempt: (err) => {
+            onRetryAttempt: err => {
                 const cfg = rax.getConfig(err);
-                core.info(err);
-                core.info(`Retry attempt #${cfg.currentRetryAttempt}`);
-            },
-        },
+                core.warning(err);
+                core.warning(`Retry attempt #${cfg?.currentRetryAttempt}`);
+            }
+        }
     });
 }
-
-module.exports = request;
