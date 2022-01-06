@@ -1,4 +1,4 @@
-import {ThemeMap} from '../../src/const/theme.js';
+import {ThemeMap} from '../../src/const/theme';
 
 describe('Validate all theme', () => {
     it('theme colors are match the color regex', () => {
