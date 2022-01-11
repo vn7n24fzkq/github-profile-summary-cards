@@ -1,7 +1,6 @@
 import {Theme} from '../const/theme';
 import * as d3 from 'd3';
 import {JSDOM} from 'jsdom';
-
 export class Card {
     title: string;
     width: number;
@@ -55,8 +54,7 @@ export class Card {
                 .style('fill', `${theme.title}`)
                 .text(this.title);
         }
-        // this.svg = this.svg
-        this.svg.append('g').attr('transform', `translate(0,${isEmptyTitle ? 0 : this.yPadding})`);
+        this.svg = this.svg.append<SVGSVGElement>('g').attr('transform', 'translate(0,40)');
     }
 
     getSVG() {

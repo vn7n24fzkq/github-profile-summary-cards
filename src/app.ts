@@ -1,4 +1,4 @@
-import core from '@actions/core';
+import * as core from '@actions/core';
 import {createProfileDetailsCard} from './cards/profile-details-card';
 import {createReposPerLanguageCard} from './cards/repos-per-language-card';
 import {createCommitsPerLanguageCard} from './cards/most-commit-lauguage-card';

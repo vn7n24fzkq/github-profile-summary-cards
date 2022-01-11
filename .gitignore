@@ -123,5 +123,5 @@ tags.*
 
 # Ignore built ts files
 lib/**/*
-__tests__/runner/*
+tests/runner/*
 
