@@ -16,7 +16,7 @@ const execCmd = (cmd: string, args: string[] = []) =>
         });
         app.on('close', code => {
             if (code !== 0 && !stdout.includes('nothing to commit')) {
-                let err = new Error(`${cmd} ${args} \n ${stdout} \n Invalid status code: ${code}`);
+                const err = new Error(`${cmd} ${args} \n ${stdout} \n Invalid status code: ${code}`);
                 return reject(err);
             }
             return resolve(code);
@@ -33,27 +33,14 @@ const commitFile = async () => {
 };
 
 // main
-const main = async () => {
+const action = async () => {
     core.info(`Start...`);
-    let username = process.argv[2];
-    let timezone = process.argv[3];
-    let isInGithubAction = false;
-
-    if (process.argv.length == 2) {
-        try {
-            username = core.getInput('USERNAME');
-            timezone = core.getInput('TIMEZONE');
-            isInGithubAction = true;
-        } catch (error: any) {
-            throw Error(error.message);
-        }
-    }
+    const username = core.getInput('USERNAME', {required: true});
+    const timezone = core.getInput('TIMEZONE');
     try {
         // remove old output
-        if (isInGithubAction) {
-            core.info(`Remove old cards...`);
-            await execCmd('sudo', ['rm', '-rf', OUTPUT_PATH]);
-        }
+        core.info(`Remove old cards...`);
+        await execCmd('sudo', ['rm', '-rf', OUTPUT_PATH]);
         try {
             core.info(`Creating ProfileDetailsCard...`);
             await createProfileDetailsCard(username);
@@ -86,24 +73,22 @@ const main = async () => {
         }
         try {
             core.info(`Creating preview markdown...`);
-            generatePreviewMarkdown(isInGithubAction);
+            generatePreviewMarkdown(true);
         } catch (error: any) {
             core.error(`Error when creating preview markdown \n${error.stack}`);
         }
-        if (isInGithubAction) {
-            core.info(`Commit file...`);
-            let retry = 0;
-            const maxRetry = 3;
-            while (retry < maxRetry) {
-                retry += 1;
-                try {
-                    await commitFile();
-                } catch (error) {
-                    if (retry == maxRetry) {
-                        throw error;
-                    }
-                    core.warning(`Commit failed. Retry...`);
+        core.info(`Commit file...`);
+        let retry = 0;
+        const maxRetry = 3;
+        while (retry < maxRetry) {
+            retry += 1;
+            try {
+                await commitFile();
+            } catch (error) {
+                if (retry == maxRetry) {
+                    throw error;
                 }
+                core.warning(`Commit failed. Retry...`);
             }
         }
     } catch (error: any) {
@@ -112,4 +97,25 @@ const main = async () => {
     }
 };
 
-main();
+const main = async (username: string, timezone: string) => {
+    try {
+        await createProfileDetailsCard(username);
+        await createReposPerLanguageCard(username);
+        await createCommitsPerLanguageCard(username);
+        await createStatsCard(username);
+        await createProductiveTimeCard(username, timezone);
+        generatePreviewMarkdown(false);
+    } catch (error: any) {
+        console.error(error);
+    }
+};
+
+// program entry point
+// check if run in github action
+if (process.argv.length == 2) {
+    action();
+} else {
+    const username = process.argv[2];
+    const timezone = process.argv[3];
+    main(username, timezone);
+}
