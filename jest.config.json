@@ -5,7 +5,7 @@
     "transform": {
         "^.+\\.ts$": "ts-jest"
     },
-    "setupFilesAfterEnv": ["./tests/setupTests.ts"],
+    "setupFilesAfterEnv": [],
     "testMatch": ["**/*.test.ts"],
     "verbose": true
 }

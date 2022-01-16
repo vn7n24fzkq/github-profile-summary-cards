@@ -10,7 +10,7 @@
         "lint": "eslint src/**/*.ts",
         "package": "ncc build --source-map --license licenses.txt",
         "test": "jest --passWithNoTests ",
-        "run": "node -r dotenv/config src/app.ts",
+        "run": "node -r dotenv/config lib/app.js",
         "all": "npm run build && npm run format && npm run lint && npm run package && npm test"
     },
     "keywords": [
@@ -19,9 +19,8 @@
     "author": "Casper <vn7n24fzkq@gmail.com>",
     "license": "MIT",
     "dependencies": {
-        "@actions/core": "^1.2.6",
-        "@actions/github": "^4.0.0",
-        "@types/node": "^16.11.6",
+        "@actions/core": "^1.6.0",
+        "@actions/github": "^5.0.0",
         "axios": "^0.21.2",
         "childprocess": "^2.0.2",
         "d3": "^5.16.0",
@@ -29,13 +28,13 @@
         "js-abbreviation-number": "^1.4.0",
         "jsdom": "^16.4.0",
         "moment": "^2.27.0",
-        "number-abbreviate": "^2.0.0",
         "retry-axios": "^2.6.0"
     },
     "devDependencies": {
         "@types/d3": "^7.1.0",
         "@types/jest": "^27.0.2",
         "@types/jsdom": "^16.2.13",
+        "@types/node": "^16.11.6",
         "@typescript-eslint/parser": "^5.2.0",
         "@vercel/ncc": "^0.27.0",
         "axios-mock-adapter": "^1.18.2",
@@ -47,7 +46,6 @@
         "jest": "^27.4.7",
         "pre-commit": "^1.2.2",
         "prettier": "2.2.1",
-        "regenerator-runtime": "^0.13.7",
         "ts-jest": "^27.0.7",
         "typescript": "^4.4.4"
     },
