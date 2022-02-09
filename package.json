@@ -37,6 +37,7 @@
         "@types/node": "^16.11.6",
         "@typescript-eslint/parser": "^5.2.0",
         "@vercel/ncc": "^0.27.0",
+        "@vercel/node": "^1.12.1",
         "axios-mock-adapter": "^1.18.2",
         "eslint": "^7.22.0",
         "eslint-config-google": "^0.14.0",
