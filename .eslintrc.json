@@ -1,17 +1,19 @@
 {
     "env": {
         "node": true,
-        "commonjs": true,
-        "es2021": true
+        "es6": true,
+        "jest": true
     },
-    "plugins": ["prettier"],
+    "plugins": ["jest", "prettier"],
     "extends": ["google", "plugin:prettier/recommended"],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "ecmaVersion": 12,
+        "sourceType": "module",
+        "project": "./tsconfig.json"
+    },
     "rules": {
         "prettier/prettier": "error",
         "require-jsdoc": 0
-    },
-    "parserOptions": {
-        "ecmaVersion": 12,
-        "sourceType": "module"
     }
 }
