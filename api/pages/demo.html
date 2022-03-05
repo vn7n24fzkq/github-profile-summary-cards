@@ -245,12 +245,12 @@
                     commitLanguageSource: '',
                     statsSource: '',
                     productiveTimeSource: '',
-                    baseURL: `https://${window.location.host}`,
+                    baseURL: `http://${window.location.host}`,
                 },
                 created() {
                     axios
                         .get(
-                            'https://github-profile-summary-cards.vercel.app/api/theme'
+                            `${this.baseURL}/api/theme`
                         )
                         .then((response) => {
                             this.themes = response.data.themes;
