@@ -1,5 +1,35 @@
 import request from '../utils/request';
 
+export class CommitLanguageInfo {
+    name: string;
+    color: string; // hexadecimal color code
+    count: number;
+
+    constructor(name: string, color: string = '#586e75', count: number) {
+        this.name = name;
+        this.color = color;
+        this.count = count;
+    }
+}
+
+export class CommitLanguages {
+    private languageMap = new Map<string, CommitLanguageInfo>();
+
+    public addLanguageCount(name: string, color: string, count: number): void {
+        if (this.languageMap.has(name)) {
+            const lang = this.languageMap.get(name)!;
+            lang.count += count;
+            this.languageMap.set(name, lang);
+        } else {
+            this.languageMap.set(name, new CommitLanguageInfo(name, color, count));
+        }
+    }
+
+    public getLanguageMap(): Map<string, CommitLanguageInfo> {
+        return this.languageMap;
+    }
+}
+
 const fetcher = (token: string, variables: any) => {
     return request(
         {
@@ -31,8 +61,8 @@ const fetcher = (token: string, variables: any) => {
 };
 
 // repos per language
-async function getCommitLanguage(username: string) {
-    const languageMap = new Map();
+export async function getCommitLanguage(username: string): Promise<CommitLanguages> {
+    const commitLanguages = new CommitLanguages();
 
     const res = await fetcher(process.env.GITHUB_TOKEN!, {
         login: username
@@ -53,21 +83,9 @@ async function getCommitLanguage(username: string) {
             const langName = node.repository.primaryLanguage.name;
             const langColor = node.repository.primaryLanguage.color;
             const totalCount = node.contributions.totalCount;
-            if (totalCount > 0) {
-                if (languageMap.has(langName)) {
-                    const lang = languageMap.get(langName);
-                    lang.count += totalCount;
-                } else {
-                    languageMap.set(langName, {
-                        count: totalCount,
-                        color: langColor ? langColor : '#586e75'
-                    });
-                }
-            }
+            commitLanguages.addLanguageCount(langName, langColor, totalCount);
         }
     );
 
-    return languageMap;
+    return commitLanguages;
 }
-
-export default getCommitLanguage;

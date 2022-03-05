@@ -13,7 +13,7 @@ export const writeSVG = function (folder: string, filename: string, svgString: s
     writeFileSync(`${targetFolder}${filename}.svg`, svgString);
 };
 
-function getAllFileInFolder(folder: string) {
+function getAllFileInFolder(folder: string): string[] {
     const files: string[] = [];
     readdirSync(folder).forEach(file => {
         files.push(file);
@@ -29,7 +29,6 @@ export const generatePreviewMarkdown = function (isInGithubAction: boolean) {
         : `.`;
 
     // First, we generate preview readme for each theme
-
     for (const themeName of ThemeMap.keys()) {
         generateThemePreviewReadme(urlPrefix, themeName);
     }
@@ -80,7 +79,7 @@ ${getThemeMarkdown(`${urlPrefix}/${themeName}`)}
     writeFileSync(`${OUTPUT_PATH}${themeName}/README.md`, themePreviewMarkdown);
 }
 
-function getThemeMarkdown(urlPrefix: string) {
+function getThemeMarkdown(urlPrefix: string): string {
     let result = '';
     result += `
 [![](${urlPrefix}/0-profile-details.svg)](https://github.com/vn7n24fzkq/github-profile-summary-cards)

@@ -1,5 +1,16 @@
 import request from '../utils/request';
 
+export class ConrtibutionByYear {
+    year: number;
+    totalCommitContributions: number;
+    totalContributions: number;
+    constructor(year: number, totalCommitContributions: number, totalContributions: number) {
+        this.year = year;
+        this.totalCommitContributions = totalCommitContributions;
+        this.totalContributions = totalContributions;
+    }
+}
+
 const fetcher = (token: string, variables: any, year: number) => {
     return request(
         {
@@ -27,12 +38,7 @@ const fetcher = (token: string, variables: any, year: number) => {
     );
 };
 
-async function getContributionByYear(username: string, year: number) {
-    const result = {
-        totalCommitContributions: 0,
-        totalContributions: 0
-    };
-
+export async function getContributionByYear(username: string, year: number): Promise<ConrtibutionByYear> {
     const res = await fetcher(
         process.env.GITHUB_TOKEN!,
         {
@@ -47,9 +53,10 @@ async function getContributionByYear(username: string, year: number) {
 
     const user = res.data.data.user;
 
-    result.totalCommitContributions = user.contributionsCollection.totalCommitContributions;
-    result.totalContributions = user.contributionsCollection.contributionCalendar.totalContributions;
+    const result = new ConrtibutionByYear(
+        year,
+        user.contributionsCollection.totalCommitContributions,
+        user.contributionsCollection.contributionCalendar.totalContributions
+    );
     return result;
 }
-
-export default getContributionByYear;

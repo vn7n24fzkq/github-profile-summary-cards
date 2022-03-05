@@ -1,5 +1,13 @@
 import request from '../utils/request';
 
+export class ProfuctiveTime {
+    productiveDate: Date[] = [];
+
+    public addProductiveDate(date: Date) {
+        this.productiveDate.push(date);
+    }
+}
+
 const userIdFetcher = (token: string, variables: any) => {
     return request(
         {
@@ -60,17 +68,16 @@ const fetcher = (token: string, variables: any) => {
 };
 
 // get productive time
-async function getProductiveTime(username: string, until: string, since: string) {
+export async function getProductiveTime(username: string, until: string, since: string): Promise<ProfuctiveTime> {
     const userIdResponse = await userIdFetcher(process.env.GITHUB_TOKEN!, {
         login: username
     });
 
     if (userIdResponse.data.errors) {
-        throw Error(userIdResponse.data.errors[0].message || 'GetProductiveTime(getUserId) failed');
+        throw Error(userIdResponse.data.errors[0].message || 'GetProductiveTime failed');
     }
 
     const userId = userIdResponse.data.data.user.id;
-    const array: string[] = [];
     const res = await fetcher(process.env.GITHUB_TOKEN!, {
         login: username,
         userId: userId,
@@ -82,6 +89,7 @@ async function getProductiveTime(username: string, until: string, since: string)
         throw Error(res.data.errors[0].message || 'GetProductiveTime failed');
     }
 
+    const productiveTime = new ProfuctiveTime();
     res.data.data.user.contributionsCollection.commitContributionsByRepository.forEach(
         (node: {
             repository: {
@@ -90,13 +98,11 @@ async function getProductiveTime(username: string, until: string, since: string)
         }) => {
             if (node.repository.defaultBranchRef != null) {
                 node.repository.defaultBranchRef.target.history.edges.forEach(node => {
-                    array.push(node.node.committedDate);
+                    productiveTime.addProductiveDate(node.node.committedDate);
                 });
             }
         }
     );
 
-    return array;
+    return productiveTime;
 }
-
-export default getProductiveTime;

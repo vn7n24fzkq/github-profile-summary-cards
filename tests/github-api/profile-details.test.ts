@@ -1,4 +1,4 @@
-import getProfileDetails from '../../src/github-api/profile-details';
+import {getProfileDetails} from '../../src/github-api/profile-details';
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 const mock = new MockAdapter(axios);
@@ -71,11 +71,11 @@ describe('github api for profile details', () => {
     it('should get correct profile data', async () => {
         mock.onPost('https://api.github.com/graphql').reply(200, data);
         const profileDetails = await getProfileDetails('vn7n24fzkq');
-        expect(profileDetails).toStrictEqual({
+        expect(profileDetails).toEqual({
             id: 'userID',
             name: 'vn7',
             email: 'vn7n24fzkq@gmail.com',
-            joinedAt: '2016-07-01T10:46:25Z',
+            createdAt: '2016-07-01T10:46:25Z',
             company: 'vn7',
             location: 'Taiwan',
             websiteUrl: null,

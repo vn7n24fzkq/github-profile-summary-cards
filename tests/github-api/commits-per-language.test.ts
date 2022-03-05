@@ -1,4 +1,4 @@
-import getCommitLanguage from '../../src/github-api/commits-per-language';
+import {getCommitLanguage} from '../../src/github-api/commits-per-language';
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 const mock = new MockAdapter(axios);
@@ -74,12 +74,12 @@ describe('commit contributions on github', () => {
     it('should get correct commit contributions', async () => {
         mock.onPost('https://api.github.com/graphql').reply(200, data);
         const totalContributions = await getCommitLanguage('vn7n24fzkq');
-        expect(totalContributions).toStrictEqual(
-            new Map([
-                ['Rust', {color: '#dea584', count: 199}],
-                ['JavaScript', {color: '#f1e05a', count: 84}]
+        expect(totalContributions).toEqual({
+            languageMap: new Map([
+                ['Rust', {color: '#dea584', count: 199, name: 'Rust'}],
+                ['JavaScript', {color: '#f1e05a', count: 84, name: 'JavaScript'}]
             ])
-        );
+        });
     });
 
     it('should throw error when api failed', async () => {

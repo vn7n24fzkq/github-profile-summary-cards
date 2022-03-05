@@ -18,7 +18,6 @@ export function createDetailCard(
     const svg = card.getSVG();
 
     // draw icon
-
     const panel = svg.append('g').attr('transform', `translate(30,30)`);
     const labelHeight = 14;
     panel
@@ -147,7 +146,7 @@ export function createDetailCard(
         .append('g')
         .append('text')
         .text('contributions in the last year')
-        .attr('y', title.length > 30 ? 140 : -15) // if title too long, then put text to bottom
+        .attr('y', title.length > 30 ? 140 : -15) // if the title is too long, then put text to the bottom
         .attr('x', 230)
         .style('fill', theme.text)
         .style('font-size', `10px`);

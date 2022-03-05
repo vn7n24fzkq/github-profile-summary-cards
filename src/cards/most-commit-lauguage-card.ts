@@ -1,5 +1,5 @@
 import {ThemeMap} from '../const/theme';
-import getCommitLanguage from '../github-api/commits-per-language';
+import {getCommitLanguage, CommitLanguages} from '../github-api/commits-per-language';
 import {createDonutChartCard} from '../templates/donut-chart-card';
 import {writeSVG} from '../utils/file-writer';
 
@@ -49,23 +49,11 @@ const getCommitsLanguageSVG = function (
 const getCommitsLanguageData = async function (
     username: string
 ): Promise<{name: string; value: number; color: string}[]> {
-    const langMap = new Map();
-    const map = await getCommitLanguage(username);
-    for (const [key, value] of map) {
-        if (langMap.has(key)) {
-            const lang = langMap.get(key);
-            lang.count += value.count;
-        } else {
-            langMap.set(key, {
-                count: value.count,
-                color: value.color == null ? '#586e75' : value.color
-            });
-        }
-    }
+    const commitLanguages: CommitLanguages = await getCommitLanguage(username);
     let langData = [];
 
     // make a pie data
-    for (const [key, value] of langMap) {
+    for (const [key, value] of commitLanguages.getLanguageMap()) {
         langData.push({
             name: key,
             value: value.count,

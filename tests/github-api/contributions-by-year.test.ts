@@ -1,4 +1,4 @@
-import getContributionByYear from '../../src/github-api/contributions-by-year';
+import {getContributionByYear} from '../../src/github-api/contributions-by-year';
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 const mock = new MockAdapter(axios);
@@ -35,9 +35,10 @@ describe('contributions count on github', () => {
     it('should get correct contributions', async () => {
         mock.onPost('https://api.github.com/graphql').reply(200, data);
         const totalContributions = await getContributionByYear('vn7n24fzkq', 2020);
-        expect(totalContributions).toStrictEqual({
+        expect(totalContributions).toEqual({
             totalCommitContributions: 30,
-            totalContributions: 10
+            totalContributions: 10,
+            year: 2020
         });
     });
 

@@ -1,5 +1,5 @@
 import {ThemeMap} from '../const/theme';
-import getProductiveTime from '../github-api/productive-time';
+import {getProductiveTime} from '../github-api/productive-time';
 import {createProductiveCard as productiveTimeCard} from '../templates/productive-time-card';
 import {writeSVG} from '../utils/file-writer';
 
@@ -35,7 +35,7 @@ const getProductiveTimeData = async function (username: string, timezone: string
     // process productiveTime
     const chartData = new Array(24);
     chartData.fill(0);
-    for (const time of productiveTime) {
+    for (const time of productiveTime.productiveDate) {
         const hour = new Date(time).getUTCHours(); // we use UTC+0 here
         chartData[hour] += 1;
     }

@@ -1,4 +1,4 @@
-import getRepoLanguage from '../../src/github-api/repos-per-language';
+import {getRepoLanguages} from '../../src/github-api/repos-per-language';
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 const mock = new MockAdapter(axios);
@@ -78,18 +78,18 @@ describe('repos per language on github', () => {
             .onPost('https://api.github.com/graphql')
             .replyOnce(200, lastData)
             .onAny();
-        const repoData = await getRepoLanguage('vn7n24fzkq');
-        expect(repoData).toEqual(
-            new Map([
-                ['Java', {color: '#b07219', count: 2}],
-                ['Rust', {color: '#dea584', count: 1}],
-                ['Kotlin', {color: '#f18e33', count: 1}]
+        const repoData = await getRepoLanguages('vn7n24fzkq');
+        expect(repoData).toEqual({
+            languageMap: new Map([
+                ['Java', {color: '#b07219', count: 2, name: 'Java'}],
+                ['Rust', {color: '#dea584', count: 1, name: 'Rust'}],
+                ['Kotlin', {color: '#f18e33', count: 1, name: 'Kotlin'}]
             ])
-        );
+        });
     });
 
     it('should throw error when api failed', async () => {
         mock.onPost('https://api.github.com/graphql').reply(200, error);
-        await expect(getRepoLanguage('vn7n24fzkq')).rejects.toThrow('GitHub api failed');
+        await expect(getRepoLanguages('vn7n24fzkq')).rejects.toThrow('GitHub api failed');
     });
 });

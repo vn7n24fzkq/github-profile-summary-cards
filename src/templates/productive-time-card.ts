@@ -23,10 +23,8 @@ export function createProductiveCard(chartData: number[], theme: Theme, timezone
         })
     );
 
-    // eslint-disable-next-line prefer-spread
-    const yMax = Math.max.apply(
-        Math,
-        chartData.map(function (d: any) {
+    const yMax = Math.max(
+        ...chartData.map(function (d: number) {
             return d;
         })
     );

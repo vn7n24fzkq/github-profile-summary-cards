@@ -1,5 +1,5 @@
 import {ThemeMap} from '../const/theme';
-import getRepoLanguage from '../github-api/repos-per-language';
+import {getRepoLanguages} from '../github-api/repos-per-language';
 import {createDonutChartCard} from '../templates/donut-chart-card';
 import {writeSVG} from '../utils/file-writer';
 
@@ -24,11 +24,11 @@ const getReposPerLanguageSVG = function (langData: {name: string; value: number;
 };
 
 const getRepoLanguageData = async function (username: string) {
-    const langMap = await getRepoLanguage(username);
+    const repoLanguages = await getRepoLanguages(username);
     let langData = [];
 
     // make a pie data
-    for (const [key, value] of langMap) {
+    for (const [key, value] of repoLanguages.getLanguageMap()) {
         langData.push({
             name: key,
             value: value.count,

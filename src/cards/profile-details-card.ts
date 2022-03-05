@@ -2,8 +2,8 @@ import {ThemeMap} from '../const/theme';
 import {Icon} from '../const/icon';
 import {abbreviateNumber} from 'js-abbreviation-number';
 import moment from 'moment';
-import getProfileDetails from '../github-api/profile-details';
-import getContributionByYear from '../github-api/contributions-by-year';
+import {getProfileDetails, ProfileDetails, ProfileContribution} from '../github-api/profile-details';
+import {getContributionByYear} from '../github-api/contributions-by-year';
 import {createDetailCard} from '../templates/profile-details-card';
 import {writeSVG} from '../utils/file-writer';
 
@@ -31,7 +31,7 @@ export const getProfileDetailsSVGWithThemeName = async function (username: strin
 
 const getProfileDetailsSVG = function (
     title: string,
-    contributionsData: any[],
+    contributionsData: ProfileContribution[],
     userDetails: {index: number; icon: string; name: string; value: string}[],
     themeName: string
 ): string {
@@ -41,28 +41,7 @@ const getProfileDetailsSVG = function (
 
 const getProfileDetailsData = async function (
     username: string
-): Promise<
-    [
-        {
-            id: number;
-            name: string;
-            email: string;
-            joinedAt: string;
-            company: string | null;
-            websiteUrl: string | null;
-            twitterUsername: string | null;
-            location: string | null;
-            totalPublicRepos: number;
-            totalStars: number;
-            totalIssueContributions: number;
-            totalPullRequestContributions: number;
-            totalRepositoryContributions: number;
-            contributions: any[];
-            contributionYears: number[];
-        },
-        {index: number; icon: string; name: string; value: string}[]
-    ]
-> {
+): Promise<[ProfileDetails, {index: number; icon: string; name: string; value: string}[]]> {
     const profileDetails = await getProfileDetails(username);
     let totalContributions = 0;
     if (process.env.VERCEL) {
@@ -98,32 +77,32 @@ const getProfileDetailsData = async function (
             index: 1,
             icon: Icon.REPOS,
             name: 'Public Repos',
-            value: `${abbreviateNumber(profileDetails['totalPublicRepos'], 2)} Public Repos`
+            value: `${abbreviateNumber(profileDetails.totalPublicRepos, 2)} Public Repos`
         },
         {
             index: 2,
             icon: Icon.CLOCK,
             name: 'JoinedAt',
-            value: `Joined GitHub ${moment(profileDetails['joinedAt']).fromNow()}`
+            value: `Joined GitHub ${moment(profileDetails.createdAt).fromNow()}`
         }
     ];
 
     // hard code here, cuz I'm lazy
-    if (profileDetails['email']) {
+    if (profileDetails.email) {
         userDetails.push({
             index: 3,
             icon: Icon.EMAIL,
             name: 'Email',
             value: profileDetails['email']
         });
-    } else if (profileDetails['company']) {
+    } else if (profileDetails.company) {
         userDetails.push({
             index: 3,
             icon: Icon.COMPANY,
             name: 'Company',
             value: profileDetails['company']
         });
-    } else if (profileDetails['location']) {
+    } else if (profileDetails.location) {
         userDetails.push({
             index: 3,
             icon: Icon.LOCATION,

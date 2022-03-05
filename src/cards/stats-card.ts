@@ -1,8 +1,8 @@
 import {ThemeMap} from '../const/theme';
 import {Icon} from '../const/icon';
 import {abbreviateNumber} from 'js-abbreviation-number';
-import getProfileDetails from '../github-api/profile-details';
-import getContributionByYear from '../github-api/contributions-by-year';
+import {getProfileDetails} from '../github-api/profile-details';
+import {getContributionByYear} from '../github-api/contributions-by-year';
 import {createStatsCard as statsCard} from '../templates/stats-card';
 import {writeSVG} from '../utils/file-writer';
 
@@ -41,7 +41,7 @@ const getStatsData = async function (
 
     const totalRepositoryContributions = profileDetails.totalRepositoryContributions;
     if (process.env.VERCEL) {
-        // If running on vercel, we only calculate for last 1 year to avoid hobby timeout limit
+        // If running on vercel, we only calculate for last 1 year to avoid Vercel timeout limit
         profileDetails.contributionYears = profileDetails.contributionYears.slice(0, 1);
         for (const year of profileDetails.contributionYears) {
             const contributions = await getContributionByYear(username, year);

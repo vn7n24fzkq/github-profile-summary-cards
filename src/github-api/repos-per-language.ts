@@ -1,5 +1,35 @@
 import request from '../utils/request';
 
+export class RepoLanguageInfo {
+    name: string;
+    color: string; // hexadecimal color code
+    count: number;
+
+    constructor(name: string, color: string = '#586e75', count: number) {
+        this.name = name;
+        this.color = color;
+        this.count = count;
+    }
+}
+
+export class RepoLanguages {
+    private languageMap = new Map<string, RepoLanguageInfo>();
+
+    public addLanguage(name: string, color: string): void {
+        if (this.languageMap.has(name)) {
+            const lang = this.languageMap.get(name)!;
+            lang.count += 1;
+            this.languageMap.set(name, lang);
+        } else {
+            this.languageMap.set(name, new RepoLanguageInfo(name, color, 1));
+        }
+    }
+
+    public getLanguageMap(): Map<string, RepoLanguageInfo> {
+        return this.languageMap;
+    }
+}
+
 const fetcher = (token: string, variables: any) => {
     // contain private repo need token permission
     return request(
@@ -31,10 +61,10 @@ const fetcher = (token: string, variables: any) => {
 };
 
 // repos per language
-async function getRepoLanguage(username: string) {
+export async function getRepoLanguages(username: string): Promise<RepoLanguages> {
     let hasNextPage = true;
     let cursor = null;
-    const languageMap = new Map();
+    const repoLanguages = new RepoLanguages();
     const nodes = [];
 
     while (hasNextPage) {
@@ -54,19 +84,10 @@ async function getRepoLanguage(username: string) {
     nodes.forEach(node => {
         if (node.primaryLanguage) {
             const langName = node.primaryLanguage.name;
-            if (languageMap.has(langName)) {
-                const lang = languageMap.get(langName);
-                lang.count += 1;
-            } else {
-                languageMap.set(langName, {
-                    count: 1,
-                    color: node.primaryLanguage.color ? node.primaryLanguage.color : '#586e75'
-                });
-            }
+            const langColor = node.primaryLanguage.color;
+            repoLanguages.addLanguage(langName, langColor);
         }
     });
 
-    return languageMap;
+    return repoLanguages;
 }
-
-export default getRepoLanguage;
