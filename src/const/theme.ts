@@ -31,5 +31,3 @@ ThemeMap.set('github_dark', new Theme('#0366d6', '#77909c', '#0d1117', '#2e343b'
 ThemeMap.set('radical', new Theme('#fe428e','#a9fef7','#141321','#141321','#f8d847','#ae81ff'));
 ThemeMap.set('gruvbox', new Theme('#fabd2f','#8ec07c','#282828','#282828','#fe8019','#fe8019'));
 ThemeMap.set('tokyonight', new Theme('#70a5fd','#38bdae','#1a1b27','#1a1b27','#bf91f3','#bf91f3'));
-ThemeMap.set('cobalt', new Theme('#ffc600','#0088ff','#193549','#193549','#ffffff','#ffffff'));
-ThemeMap.set('dark', new Theme('#ffffff','#ffffff','#343a40','#343a40','#ffffff','#ae81ff'));
