@@ -21,7 +21,7 @@
     "dependencies": {
         "@actions/core": "^1.6.0",
         "@actions/github": "^5.0.0",
-        "axios": "^0.21.2",
+        "axios": "^0.21.3",
         "childprocess": "^2.0.2",
         "d3": "^5.16.0",
         "dotenv": "^8.2.0",
