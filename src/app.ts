@@ -38,45 +38,58 @@ const action = async () => {
     const username = core.getInput('USERNAME', {required: true});
     const timezone = core.getInput('TIMEZONE');
     try {
-        // remove old output
+        // Remove old output
         core.info(`Remove old cards...`);
         await execCmd('sudo', ['rm', '-rf', OUTPUT_PATH]);
+
+        // ProfileDetailsCard
         try {
             core.info(`Creating ProfileDetailsCard...`);
             await createProfileDetailsCard(username);
         } catch (error: any) {
             core.error(`Error when creating ProfileDetailsCard \n${error.stack}`);
         }
+
+        // ReposPerLanguageCard
         try {
             core.info(`Creating ReposPerLanguageCard...`);
             await createReposPerLanguageCard(username);
         } catch (error: any) {
             core.error(`Error when creating ReposPerLanguageCard \n${error.stack}`);
         }
+
+        // CommitsPerLanguageCard
         try {
             core.info(`Creating CommitsPerLanguageCard...`);
             await createCommitsPerLanguageCard(username);
         } catch (error: any) {
             core.error(`Error when creating CommitsPerLanguageCard \n${error.stack}`);
         }
+
+        // StatsCard
         try {
             core.info(`Creating StatsCard...`);
             await createStatsCard(username);
         } catch (error: any) {
             core.error(`Error when creating StatsCard \n${error.stack}`);
         }
+        // ProductiveTimeCard
         try {
             core.info(`Creating ProductiveTimeCard...`);
             await createProductiveTimeCard(username, timezone);
         } catch (error: any) {
             core.error(`Error when creating ProductiveTimeCard \n${error.stack}`);
         }
+
+        // generate markdown
         try {
             core.info(`Creating preview markdown...`);
             generatePreviewMarkdown(true);
         } catch (error: any) {
             core.error(`Error when creating preview markdown \n${error.stack}`);
         }
+
+        // Commit changes
         core.info(`Commit file...`);
         let retry = 0;
         const maxRetry = 3;
