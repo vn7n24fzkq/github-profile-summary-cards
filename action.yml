@@ -9,7 +9,7 @@ inputs:
     default: ${{ github.repository_owner }}
 
 runs:
-  using: 'node12'
+  using: 'node16'
   main: 'dist/index.js'
 
 branding:
