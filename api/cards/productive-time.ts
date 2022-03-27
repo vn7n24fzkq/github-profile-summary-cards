@@ -4,12 +4,12 @@ import {getErrorMsgCard} from '../utils/error-card';
 import type {VercelRequest, VercelResponse} from '@vercel/node';
 
 export default async (req: VercelRequest, res: VercelResponse) => {
-    const {username, theme = 'default', timezone = 'Europe/London'} = req.query;
+    const {username, theme = 'default', utcOffset = '0'} = req.query;
     try {
         let tokenIndex = 0;
         while (true) {
             try {
-                const cardSVG = await getProductiveTimeSVGWithThemeName(username, theme, timezone);
+                const cardSVG = await getProductiveTimeSVGWithThemeName(username, theme, utcOffset);
                 res.setHeader('Content-Type', 'image/svg+xml');
                 res.send(cardSVG);
                 return;
