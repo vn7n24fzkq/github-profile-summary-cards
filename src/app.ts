@@ -36,7 +36,7 @@ const commitFile = async () => {
 const action = async () => {
     core.info(`Start...`);
     const username = core.getInput('USERNAME', {required: true});
-    const timezone = core.getInput('TIMEZONE');
+    const timezone = Number(core.getInput('TIMEZONE'));
     try {
         // Remove old output
         core.info(`Remove old cards...`);
@@ -110,13 +110,13 @@ const action = async () => {
     }
 };
 
-const main = async (username: string, timezone: string) => {
+const main = async (username: string, utcOffset: number) => {
     try {
         await createProfileDetailsCard(username);
         await createReposPerLanguageCard(username);
         await createCommitsPerLanguageCard(username);
         await createStatsCard(username);
-        await createProductiveTimeCard(username, timezone);
+        await createProductiveTimeCard(username, utcOffset);
         generatePreviewMarkdown(false);
     } catch (error: any) {
         console.error(error);
@@ -129,6 +129,6 @@ if (process.argv.length == 2) {
     action();
 } else {
     const username = process.argv[2];
-    const timezone = process.argv[3];
-    main(username, timezone);
+    const utcOffset = Number(process.argv[3]);
+    main(username, utcOffset);
 }

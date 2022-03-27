@@ -25,7 +25,8 @@ const userIdFetcher = (token: string, variables: any) => {
         }
     );
 };
-// we use commit datetime to caculate productive time
+
+// We use commit datetime to caculate productive time
 const fetcher = (token: string, variables: any) => {
     return request(
         {

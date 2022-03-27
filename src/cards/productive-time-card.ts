@@ -3,10 +3,10 @@ import {getProductiveTime} from '../github-api/productive-time';
 import {createProductiveCard as productiveTimeCard} from '../templates/productive-time-card';
 import {writeSVG} from '../utils/file-writer';
 
-export const createProductiveTimeCard = async function (username: string, timezone: string) {
-    const productiveTimeData = await getProductiveTimeData(username, timezone);
+export const createProductiveTimeCard = async function (username: string, utcOffset: number) {
+    const productiveTimeData = await getProductiveTimeData(username, utcOffset);
     for (const themeName of ThemeMap.keys()) {
-        const svgString = getProductiveTimeSVG(productiveTimeData, themeName, timezone);
+        const svgString = getProductiveTimeSVG(productiveTimeData, themeName, utcOffset);
         // output to folder, use 4- prefix for sort in preview
         writeSVG(themeName, '4-productive-time', svgString);
     }
@@ -15,19 +15,23 @@ export const createProductiveTimeCard = async function (username: string, timezo
 export const getProductiveTimeSVGWithThemeName = async function (
     username: string,
     themeName: string,
-    timezone: string
+    utcOffset: number
 ) {
     if (!ThemeMap.has(themeName)) throw new Error('Theme does not exist');
-    const productiveTimeData = await getProductiveTimeData(username, timezone);
-    return getProductiveTimeSVG(productiveTimeData, themeName, timezone);
+    const productiveTimeData = await getProductiveTimeData(username, utcOffset);
+    return getProductiveTimeSVG(productiveTimeData, themeName, utcOffset);
 };
 
-const getProductiveTimeSVG = function (productiveTimeData: Array<number>, themeName: string, timezone: string): string {
-    const svgString = productiveTimeCard(productiveTimeData, ThemeMap.get(themeName)!, timezone);
+const getProductiveTimeSVG = function (
+    productiveTimeData: Array<number>,
+    themeName: string,
+    utcOffset: number
+): string {
+    const svgString = productiveTimeCard(productiveTimeData, ThemeMap.get(themeName)!, utcOffset);
     return svgString;
 };
 
-const getProductiveTimeData = async function (username: string, timezone: string): Promise<Array<number>> {
+const getProductiveTimeData = async function (username: string, utcOffset: number): Promise<Array<number>> {
     const until = new Date();
     const since = new Date();
     since.setFullYear(since.getFullYear() - 1);
@@ -36,30 +40,20 @@ const getProductiveTimeData = async function (username: string, timezone: string
     const chartData = new Array(24);
     chartData.fill(0);
     for (const time of productiveTime.productiveDate) {
-        const hour = new Date(time).getUTCHours(); // we use UTC+0 here
-        chartData[hour] += 1;
+        const hour = new Date(time).getUTCHours(); // We use UTC+0 here
+        const afterOffset = Number(hour) + Number(utcOffset); // Add offset to hour
+        // covert afterOffset to 0-23
+        if (afterOffset < 0) {
+            // if afterOffset is negative, we need to add 24 to get the correct hour
+            chartData[24 + afterOffset] += 1;
+        } else if (afterOffset > 23) {
+            // if afterOffset is greater than 23, we need to subtract 24 to get the correct hour
+            chartData[afterOffset - 24] += 1;
+        } else {
+            // if afterOffset is between 0 and 23, we can use it as the hour
+            chartData[afterOffset] += 1;
+        }
     }
 
-    return transferDataWithTimezone(timezone, chartData);
-};
-
-export const transferDataWithTimezone = function (timezone: string, chartData: number[]): Array<number> {
-    const offset = getHourOffset(timezone);
-    const newChartData = new Array(24);
-
-    for (let i = 0; i < chartData.length; i++) {
-        newChartData[(i + offset) % 24] = chartData[i];
-    }
-
-    return newChartData;
-};
-
-const getHourOffset = function (timezone: string) {
-    process.env.TZ = timezone || 'Europe/London';
-    const lag = new Date().getTimezoneOffset() / 60;
-
-    if (lag > 0) {
-        return 24 - lag;
-    }
-    return -lag;
+    return chartData;
 };

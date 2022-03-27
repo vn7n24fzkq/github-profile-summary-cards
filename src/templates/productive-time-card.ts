@@ -3,8 +3,8 @@ import {Theme} from '../const/theme';
 import * as d3 from 'd3';
 import * as d3Axis from 'd3-axis';
 
-export function createProductiveCard(chartData: number[], theme: Theme, timezone: String) {
-    const title = 'Commits ' + '(' + timezone + ')';
+export function createProductiveCard(chartData: number[], theme: Theme, utcOffset: number) {
+    const title = 'Commits ' + '(UTC ' + (utcOffset >= 0 ? '+' : '') + utcOffset + ')';
     const card = new Card(title, 340, 200, theme);
     const svg = card.getSVG();
 
@@ -79,6 +79,15 @@ export function createProductiveCard(chartData: number[], theme: Theme, timezone
         .attr('height', function (d) {
             return chartHeight - y(Number(d));
         });
+
+    chartPanel
+        .append('g')
+        .append('text')
+        .text('per day hour')
+        .attr('y', 130)
+        .attr('x', 230)
+        .style('fill', theme.text)
+        .style('font-size', `10px`);
 
     return card.toString();
 }
