@@ -1,10 +1,11 @@
 {
     "collectCoverage": true,
-    "moduleFileExtensions": ["js", "mjs"],
+    "clearMocks": true,
+    "moduleFileExtensions": ["js", "ts"],
     "transform": {
-        "^.+\\.js$": "babel-jest",
-        "^.+\\.mjs$": "babel-jest"
+        "^.+\\.ts$": "ts-jest"
     },
-    "setupFilesAfterEnv": ["./tests/setupTests.js"],
-    "testRegex": "./tests/.*\\.test.js$"
+    "setupFilesAfterEnv": [],
+    "testMatch": ["**/*.test.ts"],
+    "verbose": true
 }

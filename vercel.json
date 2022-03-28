@@ -1,4 +1,7 @@
 {
+    "github": {
+        "silent": true
+    },
     "rewrites": [{ "source": "/api/(.*)", "destination": "/api" }],
     "headers": [
         {
@@ -29,7 +32,7 @@
     "redirects": [
         {
             "source": "/",
-            "destination": "https://github.com/vn7n24fzkq/github-profile-summary-cards"
+            "destination": "/demo"
         },
         { "source": "/demo", "destination": "/demo.html" }
     ]

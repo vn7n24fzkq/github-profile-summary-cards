@@ -7,9 +7,13 @@ inputs:
     required: true
     description: 'GitHub username'
     default: ${{ github.repository_owner }}
+  UTC_OFFSET:
+    required: false
+    description: 'The UTC offset used in the Productive Time Card.(e.g., 8, -3)'
+    default: 0
 
 runs:
-  using: 'node12'
+  using: 'node16'
   main: 'dist/index.js'
 
 branding:

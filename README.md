@@ -2,13 +2,15 @@
 
 This repo is inspired by [profile-summary-for-github](https://github.com/tipsy/profile-summary-for-github)
 
-![Unit Tests](https://github.com/vn7n24fzkq/github-profile-summary-cards/workflows/Unit%20Tests/badge.svg)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/vn7n24fzkq/github-profile-summary-cards/blob/master/LICENSE)
+![Test and Lint](https://github.com/vn7n24fzkq/github-profile-summary-cards/workflows/Test%20and%20Lint/badge.svg)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/vn7n24fzkq/github-profile-summary-cards/blob/master/LICENSE)
 ![release](https://img.shields.io/github/v/release/vn7n24fzkq/github-profile-summary-cards.svg)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
+
 
 [繁體中文](./docs/README.zh-tw.md)
 
-:star: This repo just for fun, feel free to contribution! :star:
+:star: This repo is just for fun, feel free to contribute! :star:
 
 ---
 
@@ -87,19 +89,27 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: vn7n24fzkq/github-profile-summary-cards@release
-        env: # default use ${{ secrets.GITHUB_TOKEN }}, you should replace with your personal access token
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        env: # default use ${{ secrets.SUMMARY_GITHUB_TOKEN }}, you should replace with your personal access token
+          GITHUB_TOKEN: ${{ secrets.SUMMARY_GITHUB_TOKEN }}
         with:
           USERNAME: ${{ github.repository_owner }}
+          # UTC_OFFSET is optional, default to zero
+          UTC_OFFSET: 8 
 ```
 
 ---
 
 ## Local Run
 
-- I build this on `node 12`, lower version should get some problems.
+- Require `node 16`, lower version should get some problems.
 - Add personal access token to `.env` file. ex:`GITHUB_TOKEN=abcda69ddf66ae95538c5b1666591b59b4abc73a`
+- Remember ```npm run build``` after modify any code
 
 ```
-npm run run [username]
+npm run run [username] [UTC offset]
+```
+
+Example
+```
+npm run run vn7n24fzkq 8
 ```

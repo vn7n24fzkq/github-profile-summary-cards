@@ -2,7 +2,7 @@
 
 這份專案受到 [profile-summary-for-github](https://github.com/tipsy/profile-summary-for-github) 啟發
 
-![Unit Tests](https://github.com/vn7n24fzkq/github-profile-summary-cards/workflows/Unit%20Tests/badge.svg)
+![Test and Lint](https://github.com/vn7n24fzkq/github-profile-summary-cards/workflows/Test%20and%20Lint/badge.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/vn7n24fzkq/github-profile-summary-cards/blob/master/LICENSE)
 ![release](https://img.shields.io/github/v/release/vn7n24fzkq/github-profile-summary-cards.svg)
 
@@ -88,19 +88,27 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: vn7n24fzkq/github-profile-summary-cards@release
-        env: # default use ${{ secrets.GITHUB_TOKEN }}, you should replace with your personal access token
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        env: # default use ${{ secrets.SUMMARY_GITHUB_TOKEN }}, you should replace with your personal access token
+          GITHUB_TOKEN: ${{ secrets.SUMMARY_GITHUB_TOKEN }}
         with:
           USERNAME: ${{ github.repository_owner }}
+          # UTC_OFFSET is optional, default to zero
+          UTC_OFFSET: 8 
 ```
 
 ---
 
 ## 本地執行
 
-- 建立環境是 `node 12`, 較低版本可能會出錯。
+- 要求 `node 16`, 較低版本可能會出錯。
 - 新增 GITHUB_TOKEN 到 `.evn` 檔案裡。 ex:`GITHUB_TOKEN=abcda69ddf66ae95538c5b1666591b59b4abc73a`
+- 修改之後記得要 ```npm run build```
 
 ```
-npm run run [username]
+npm run run [username] [UTC offset]
+```
+
+範例
+```
+npm run run vn7n24fzkq 8
 ```
