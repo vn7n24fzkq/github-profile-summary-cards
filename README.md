@@ -93,15 +93,22 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.SUMMARY_GITHUB_TOKEN }}
         with:
           USERNAME: ${{ github.repository_owner }}
+          # UTC_OFFSET is optional, default to zero
+          UTC_OFFSET: 8 
 ```
 
 ---
 
 ## Local Run
 
-- I build this on `node 12`, lower version should get some problems.
+- Require `node 16`, lower version should get some problems.
 - Add personal access token to `.env` file. ex:`GITHUB_TOKEN=abcda69ddf66ae95538c5b1666591b59b4abc73a`
 
 ```
-npm run run [username]
+npm run run [username] [UTC offset]
+```
+
+Example
+```
+npm run run vn7n24fzkq 8
 ```

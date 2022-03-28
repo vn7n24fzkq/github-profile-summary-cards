@@ -92,15 +92,22 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.SUMMARY_GITHUB_TOKEN }}
         with:
           USERNAME: ${{ github.repository_owner }}
+          # UTC_OFFSET is optional, default to zero
+          UTC_OFFSET: 8 
 ```
 
 ---
 
 ## 本地執行
 
-- 建立環境是 `node 12`, 較低版本可能會出錯。
+- 要求 `node 16`, 較低版本可能會出錯。
 - 新增 GITHUB_TOKEN 到 `.evn` 檔案裡。 ex:`GITHUB_TOKEN=abcda69ddf66ae95538c5b1666591b59b4abc73a`
 
 ```
-npm run run [username]
+npm run run [username] [UTC offset]
+```
+
+範例
+```
+npm run run vn7n24fzkq 8
 ```
