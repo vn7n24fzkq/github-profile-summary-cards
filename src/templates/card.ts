@@ -28,7 +28,7 @@ export class Card {
             .attr('viewBox', `0 0 ${this.width} ${this.height}`);
         this.svg.append('style').html(
             `* {
-          font-family: Ubuntu, 'Lucida Grande', Arial, Helvetica, sans-serif
+          font-family: 'Segoe UI', Ubuntu, "Helvetica Neue", Sans-Serif
         }`
         );
         this.svg

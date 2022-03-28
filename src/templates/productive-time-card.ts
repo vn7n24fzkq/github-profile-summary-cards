@@ -85,7 +85,7 @@ export function createProductiveCard(chartData: number[], theme: Theme, utcOffse
         .append('text')
         .text('per day hour')
         .attr('y', 130)
-        .attr('x', 230)
+        .attr('x', 220)
         .style('fill', theme.text)
         .style('font-size', `10px`);
 
