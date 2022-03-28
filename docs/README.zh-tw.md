@@ -2,7 +2,7 @@
 
 這份專案受到 [profile-summary-for-github](https://github.com/tipsy/profile-summary-for-github) 啟發
 
-![Unit Tests](https://github.com/vn7n24fzkq/github-profile-summary-cards/workflows/Unit%20Tests/badge.svg)
+![Test and Lint](https://github.com/vn7n24fzkq/github-profile-summary-cards/workflows/Test%20and%20Lint/badge.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/vn7n24fzkq/github-profile-summary-cards/blob/master/LICENSE)
 ![release](https://img.shields.io/github/v/release/vn7n24fzkq/github-profile-summary-cards.svg)
 
@@ -102,6 +102,7 @@ jobs:
 
 - 要求 `node 16`, 較低版本可能會出錯。
 - 新增 GITHUB_TOKEN 到 `.evn` 檔案裡。 ex:`GITHUB_TOKEN=abcda69ddf66ae95538c5b1666591b59b4abc73a`
+- 修改之後記得要 ```npm run build```
 
 ```
 npm run run [username] [UTC offset]
