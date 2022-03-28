@@ -250,7 +250,7 @@
                 created() {
                     axios
                         .get(
-                            `${this.baseURL}/api/theme`
+                            `/api/theme`
                         )
                         .then((response) => {
                             this.themes = response.data.themes;
