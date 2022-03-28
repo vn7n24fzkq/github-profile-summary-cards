@@ -36,7 +36,9 @@ const commitFile = async () => {
 const action = async () => {
     core.info(`Start...`);
     const username = core.getInput('USERNAME', {required: true});
-    const timezone = Number(core.getInput('TIMEZONE'));
+    core.info(`Username: ${username}`);
+    const utcOffset = Number(core.getInput('UTC_OFFSET', {required: false}));
+    core.info(`UTC offset: ${utcOffset}`);
     try {
         // Remove old output
         core.info(`Remove old cards...`);
@@ -76,7 +78,7 @@ const action = async () => {
         // ProductiveTimeCard
         try {
             core.info(`Creating ProductiveTimeCard...`);
-            await createProductiveTimeCard(username, timezone);
+            await createProductiveTimeCard(username, utcOffset);
         } catch (error: any) {
             core.error(`Error when creating ProductiveTimeCard \n${error.stack}`);
         }
