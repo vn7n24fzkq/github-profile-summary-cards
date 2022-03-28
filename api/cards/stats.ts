@@ -5,6 +5,14 @@ import type {VercelRequest, VercelResponse} from '@vercel/node';
 
 export default async (req: VercelRequest, res: VercelResponse) => {
     const {username, theme = 'default'} = req.query;
+    if (typeof theme !== 'string') {
+        res.status(400).send('theme must be a string');
+        return;
+    }
+    if (typeof username !== 'string') {
+        res.status(400).send('username must be a string');
+        return;
+    }
     try {
         let tokenIndex = 0;
         while (true) {

@@ -5,11 +5,23 @@ import type {VercelRequest, VercelResponse} from '@vercel/node';
 
 export default async (req: VercelRequest, res: VercelResponse) => {
     const {username, theme = 'default', utcOffset = '0'} = req.query;
+    if (typeof theme !== 'string') {
+        res.status(400).send('theme must be a string');
+        return;
+    }
+    if (typeof username !== 'string') {
+        res.status(400).send('username must be a string');
+        return;
+    }
+    if (typeof utcOffset !== 'string') {
+        res.status(400).send('utcOffset must be a string');
+        return;
+    }
     try {
         let tokenIndex = 0;
         while (true) {
             try {
-                const cardSVG = await getProductiveTimeSVGWithThemeName(username, theme, utcOffset);
+                const cardSVG = await getProductiveTimeSVGWithThemeName(username, theme, Number(utcOffset));
                 res.setHeader('Content-Type', 'image/svg+xml');
                 res.send(cardSVG);
                 return;
