@@ -1,7 +1,6 @@
 import {ThemeMap} from '../const/theme';
 import {Icon} from '../const/icon';
 import {abbreviateNumber} from 'js-abbreviation-number';
-import moment from 'moment';
 import {getProfileDetails, ProfileDetails, ProfileContribution} from '../github-api/profile-details';
 import {getContributionByYear} from '../github-api/contributions-by-year';
 import {createDetailCard} from '../templates/profile-details-card';
@@ -37,6 +36,24 @@ const getProfileDetailsSVG = function (
 ): string {
     const svgString = createDetailCard(`${title}`, userDetails, contributionsData, ThemeMap.get(themeName)!);
     return svgString;
+};
+
+const getProfileDateJoined = function (profileDetails: ProfileDetails): string {
+    const s = (unit: number) => {
+        return unit === 1 ? '' : 's';
+    };
+
+    const now = Date.now();
+    const created = new Date(profileDetails.createdAt);
+    const diff = new Date(now - created.getTime());
+    const years = diff.getUTCFullYear() - new Date(0).getUTCFullYear();
+    const months = diff.getUTCMonth() - new Date(0).getUTCMonth();
+    const days = diff.getUTCDate() - new Date(0).getUTCDate();
+    return years
+        ? `${years} year${s(years)} ago`
+        : months
+        ? `${months} month${s(months)} ago`
+        : `${days} day${s(days)} ago`;
 };
 
 const getProfileDetailsData = async function (
@@ -83,7 +100,7 @@ const getProfileDetailsData = async function (
             index: 2,
             icon: Icon.CLOCK,
             name: 'JoinedAt',
-            value: `Joined GitHub ${moment(profileDetails.createdAt).fromNow()}`
+            value: `Joined GitHub ${getProfileDateJoined(profileDetails)}`
         }
     ];
 
