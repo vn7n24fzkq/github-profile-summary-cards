@@ -27,7 +27,7 @@
         "dotenv": "^8.2.0",
         "js-abbreviation-number": "^1.4.0",
         "jsdom": "^16.4.0",
-        "moment": "^2.27.0",
+        "moment": "^2.29.2",
         "retry-axios": "^2.6.0"
     },
     "devDependencies": {
