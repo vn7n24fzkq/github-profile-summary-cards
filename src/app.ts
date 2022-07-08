@@ -39,6 +39,8 @@ const action = async () => {
     core.info(`Username: ${username}`);
     const utcOffset = Number(core.getInput('UTC_OFFSET', {required: false}));
     core.info(`UTC offset: ${utcOffset}`);
+    const hidden = core.getInput('HIDDEN', {required: false}).split(",");
+    core.info(`Hidden languages: ${utcOffset}`);
     try {
         // Remove old output
         core.info(`Remove old cards...`);
@@ -55,7 +57,7 @@ const action = async () => {
         // ReposPerLanguageCard
         try {
             core.info(`Creating ReposPerLanguageCard...`);
-            await createReposPerLanguageCard(username);
+            await createReposPerLanguageCard(username, hidden);
         } catch (error: any) {
             core.error(`Error when creating ReposPerLanguageCard \n${error.stack}`);
         }
@@ -63,7 +65,7 @@ const action = async () => {
         // CommitsPerLanguageCard
         try {
             core.info(`Creating CommitsPerLanguageCard...`);
-            await createCommitsPerLanguageCard(username);
+            await createCommitsPerLanguageCard(username, hidden);
         } catch (error: any) {
             core.error(`Error when creating CommitsPerLanguageCard \n${error.stack}`);
         }
@@ -112,11 +114,11 @@ const action = async () => {
     }
 };
 
-const main = async (username: string, utcOffset: number) => {
+const main = async (username: string, utcOffset: number, hidden: Array<string>) => {
     try {
         await createProfileDetailsCard(username);
-        await createReposPerLanguageCard(username);
-        await createCommitsPerLanguageCard(username);
+        await createReposPerLanguageCard(username, hidden);
+        await createCommitsPerLanguageCard(username, hidden);
         await createStatsCard(username);
         await createProductiveTimeCard(username, utcOffset);
         generatePreviewMarkdown(false);
@@ -132,5 +134,6 @@ if (process.argv.length == 2) {
 } else {
     const username = process.argv[2];
     const utcOffset = Number(process.argv[3]);
-    main(username, utcOffset);
+    const hidden = process.argv[4].split(",");
+    main(username, utcOffset, hidden);
 }

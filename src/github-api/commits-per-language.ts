@@ -31,6 +31,7 @@ export class CommitLanguages {
 }
 
 const fetcher = (token: string, variables: any) => {
+    console.log(variables)
     return request(
         {
             Authorization: `bearer ${token}`
@@ -61,7 +62,7 @@ const fetcher = (token: string, variables: any) => {
 };
 
 // repos per language
-export async function getCommitLanguage(username: string): Promise<CommitLanguages> {
+export async function getCommitLanguage(username: string, hidden: Array<string>): Promise<CommitLanguages> {
     const commitLanguages = new CommitLanguages();
 
     const res = await fetcher(process.env.GITHUB_TOKEN!, {
@@ -83,7 +84,9 @@ export async function getCommitLanguage(username: string): Promise<CommitLanguag
             const langName = node.repository.primaryLanguage.name;
             const langColor = node.repository.primaryLanguage.color;
             const totalCount = node.contributions.totalCount;
-            commitLanguages.addLanguageCount(langName, langColor, totalCount);
+            if(!hidden.includes(langName)){
+                commitLanguages.addLanguageCount(langName, langColor, totalCount);
+            }
         }
     );
 
