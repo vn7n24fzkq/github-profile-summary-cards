@@ -31,7 +31,6 @@ export class CommitLanguages {
 }
 
 const fetcher = (token: string, variables: any) => {
-    console.log(variables)
     return request(
         {
             Authorization: `bearer ${token}`
@@ -84,7 +83,7 @@ export async function getCommitLanguage(username: string, hidden: Array<string>)
             const langName = node.repository.primaryLanguage.name;
             const langColor = node.repository.primaryLanguage.color;
             const totalCount = node.contributions.totalCount;
-            if(!hidden.includes(langName)){
+            if (!hidden.includes(langName)) {
                 commitLanguages.addLanguageCount(langName, langColor, totalCount);
             }
         }

@@ -12,7 +12,11 @@ export const createReposPerLanguageCard = async function (username: string, hidd
     }
 };
 
-export const getReposPerLanguageSVGWithThemeName = async function (username: string, themeName: string, hidden: Array<string>) {
+export const getReposPerLanguageSVGWithThemeName = async function (
+    username: string,
+    themeName: string,
+    hidden: Array<string>
+) {
     if (!ThemeMap.has(themeName)) throw new Error('Theme does not exist');
     const langData = await getRepoLanguageData(username, hidden);
     return getReposPerLanguageSVG(langData, themeName);

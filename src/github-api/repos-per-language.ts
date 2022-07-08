@@ -85,8 +85,7 @@ export async function getRepoLanguages(username: string, hidden: Array<string>):
         if (node.primaryLanguage) {
             const langName = node.primaryLanguage.name;
             const langColor = node.primaryLanguage.color;
-            if(!hidden.includes(langName)){
-                console.log(langName)
+            if (!hidden.includes(langName)) {
                 repoLanguages.addLanguage(langName, langColor);
             }
         }

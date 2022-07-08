@@ -134,6 +134,9 @@ if (process.argv.length == 2) {
 } else {
     const username = process.argv[2];
     const utcOffset = Number(process.argv[3]);
-    const hidden = process.argv[4].split(",");
+    let hidden: Array<string> = [];
+    if(process.argv[4]){
+        hidden = process.argv[4].split(",");
+    };
     main(username, utcOffset, hidden);
 }
