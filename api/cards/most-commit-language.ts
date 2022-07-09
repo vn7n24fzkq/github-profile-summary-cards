@@ -1,6 +1,7 @@
 import {getCommitsLanguageSVGWithThemeName} from '../../src/cards/most-commit-lauguage-card';
 import {changToNextGitHubToken} from '../utils/github-token-updater';
 import {getErrorMsgCard} from '../utils/error-card';
+import {translateLanguage} from '../../src/utils/translator'
 import type {VercelRequest, VercelResponse} from '@vercel/node';
 
 export default async (req: VercelRequest, res: VercelResponse) => {
@@ -17,13 +18,16 @@ export default async (req: VercelRequest, res: VercelResponse) => {
         res.status(400).send('hidden must be a string');
         return;
     }
-    hidden = hidden.split(",");
-    
+    let hiddenArr = <string[]>[];
+    hidden.split(",").forEach(function(val){
+        hiddenArr.push(translateLanguage(val));
+    });
+
     try {
         let tokenIndex = 0;
         while (true) {
             try {
-                const cardSVG = await getCommitsLanguageSVGWithThemeName(username, theme, hidden);
+                const cardSVG = await getCommitsLanguageSVGWithThemeName(username, theme, hiddenArr);
                 res.setHeader('Content-Type', 'image/svg+xml');
                 res.send(cardSVG);
                 return;
