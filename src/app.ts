@@ -5,6 +5,7 @@ import {createCommitsPerLanguageCard} from './cards/most-commit-lauguage-card';
 import {createStatsCard} from './cards/stats-card';
 import {createProductiveTimeCard} from './cards/productive-time-card';
 import {spawn} from 'child_process';
+import { translateLanguage } from './utils/translator';
 import {OUTPUT_PATH, generatePreviewMarkdown} from './utils/file-writer';
 
 const execCmd = (cmd: string, args: string[] = []) =>
@@ -136,7 +137,10 @@ if (process.argv.length == 2) {
     const utcOffset = Number(process.argv[3]);
     let hidden: Array<string> = [];
     if(process.argv[4]){
-        hidden = process.argv[4].split(",");
+        process.argv[4].split(",").forEach(function(val){
+            hidden.push(translateLanguage(val));
+        });
     };
+    console.log(hidden)
     main(username, utcOffset, hidden);
 }
