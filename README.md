@@ -95,6 +95,8 @@ jobs:
           USERNAME: ${{ github.repository_owner }}
           # UTC_OFFSET is optional, default to zero
           UTC_OFFSET: 8 
+          # EXCLUDE is an optional comma seperated list of languages to exclude, defaults to ""
+          EXCLUDE: ""
 ```
 
 ---
