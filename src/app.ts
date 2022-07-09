@@ -115,11 +115,11 @@ const action = async () => {
     }
 };
 
-const main = async (username: string, utcOffset: number, hidden: Array<string>) => {
+const main = async (username: string, utcOffset: number, exclude: Array<string>) => {
     try {
         await createProfileDetailsCard(username);
-        await createReposPerLanguageCard(username, hidden);
-        await createCommitsPerLanguageCard(username, hidden);
+        await createReposPerLanguageCard(username, exclude);
+        await createCommitsPerLanguageCard(username, exclude);
         await createStatsCard(username);
         await createProductiveTimeCard(username, utcOffset);
         generatePreviewMarkdown(false);
@@ -135,12 +135,12 @@ if (process.argv.length == 2) {
 } else {
     const username = process.argv[2];
     const utcOffset = Number(process.argv[3]);
-    let hidden: Array<string> = [];
+    let exclude: Array<string> = [];
     if(process.argv[4]){
         process.argv[4].split(",").forEach(function(val){
-            hidden.push(translateLanguage(val));
+            exclude.push(translateLanguage(val));
         });
     };
-    console.log(hidden)
-    main(username, utcOffset, hidden);
+    console.log(exclude)
+    main(username, utcOffset, exclude);
 }

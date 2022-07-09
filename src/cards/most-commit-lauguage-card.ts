@@ -3,8 +3,8 @@ import {getCommitLanguage, CommitLanguages} from '../github-api/commits-per-lang
 import {createDonutChartCard} from '../templates/donut-chart-card';
 import {writeSVG} from '../utils/file-writer';
 
-export const createCommitsPerLanguageCard = async function (username: string, hidden: Array<string>) {
-    const statsData = await getCommitsLanguageData(username, hidden);
+export const createCommitsPerLanguageCard = async function (username: string, exclude: Array<string>) {
+    const statsData = await getCommitsLanguageData(username, exclude);
     for (const themeName of ThemeMap.keys()) {
         const svgString = getCommitsLanguageSVG(statsData, themeName);
         // output to folder, use 2- prefix for sort in preview
@@ -15,10 +15,10 @@ export const createCommitsPerLanguageCard = async function (username: string, hi
 export const getCommitsLanguageSVGWithThemeName = async function (
     username: string,
     themeName: string,
-    hidden: Array<string>
+    exclude: Array<string>
 ): Promise<string> {
     if (!ThemeMap.has(themeName)) throw new Error('Theme does not exist');
-    const langData = await getCommitsLanguageData(username, hidden);
+    const langData = await getCommitsLanguageData(username, exclude);
     return getCommitsLanguageSVG(langData, themeName);
 };
 
@@ -49,9 +49,9 @@ const getCommitsLanguageSVG = function (
 
 const getCommitsLanguageData = async function (
     username: string,
-    hidden: Array<string>
+    exclude: Array<string>
 ): Promise<{name: string; value: number; color: string}[]> {
-    const commitLanguages: CommitLanguages = await getCommitLanguage(username, hidden);
+    const commitLanguages: CommitLanguages = await getCommitLanguage(username, exclude);
     let langData = [];
 
     // make a pie data

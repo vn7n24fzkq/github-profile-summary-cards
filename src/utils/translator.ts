@@ -269,5 +269,5 @@ export const translateLanguage = function async(lang: string) {
     if (dict[lang] !== undefined) {
         return dict[lang];
     }
-    return lang.charAt(0).toUpperCase() + lang.slice(1);;
+    return lang.charAt(0).toUpperCase() + lang.slice(1);
 };
