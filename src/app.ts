@@ -40,8 +40,8 @@ const action = async () => {
     core.info(`Username: ${username}`);
     const utcOffset = Number(core.getInput('UTC_OFFSET', {required: false}));
     core.info(`UTC offset: ${utcOffset}`);
-    const hidden = core.getInput('HIDDEN', {required: false}).split(",");
-    core.info(`Hidden languages: ${utcOffset}`);
+    const exclude = core.getInput('EXCLUE', {required: false}).split(",");
+    core.info(`Excluded languages: ${utcOffset}`);
     try {
         // Remove old output
         core.info(`Remove old cards...`);
@@ -58,7 +58,7 @@ const action = async () => {
         // ReposPerLanguageCard
         try {
             core.info(`Creating ReposPerLanguageCard...`);
-            await createReposPerLanguageCard(username, hidden);
+            await createReposPerLanguageCard(username, exclude);
         } catch (error: any) {
             core.error(`Error when creating ReposPerLanguageCard \n${error.stack}`);
         }
@@ -66,7 +66,7 @@ const action = async () => {
         // CommitsPerLanguageCard
         try {
             core.info(`Creating CommitsPerLanguageCard...`);
-            await createCommitsPerLanguageCard(username, hidden);
+            await createCommitsPerLanguageCard(username, exclude);
         } catch (error: any) {
             core.error(`Error when creating CommitsPerLanguageCard \n${error.stack}`);
         }
