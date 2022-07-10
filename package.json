@@ -29,8 +29,6 @@
         "jsdom": "^16.4.0",
         "moment": "^2.29.2",
         "retry-axios": "^2.6.0",
-        "serverless": "^3.20.0",
-        "vercel-node-server": "^2.2.1"
     },
     "devDependencies": {
         "@types/d3": "^7.1.0",
@@ -49,7 +47,6 @@
         "jest": "^27.4.7",
         "pre-commit": "^1.2.2",
         "prettier": "2.2.1",
-        "serverless-offline": "^8.8.0",
         "ts-jest": "^27.0.7",
         "typescript": "^4.4.4"
     },
