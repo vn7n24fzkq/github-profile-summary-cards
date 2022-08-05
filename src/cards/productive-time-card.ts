@@ -41,8 +41,8 @@ const getProductiveTimeData = async function (username: string, utcOffset: numbe
     chartData.fill(0);
     for (const time of productiveTime.productiveDate) {
         const hour = new Date(time).getUTCHours(); // We use UTC+0 here
-        const afterOffset = Number(hour) + Number(utcOffset); // Add offset to hour
-        // covert afterOffset to 0-23
+        const afterOffset = Number(hour) + Math.floor(Number(utcOffset)); // Add offset to hour withour decimal or fraction value
+        // convert afterOffset to 0-23
         if (afterOffset < 0) {
             // if afterOffset is negative, we need to add 24 to get the correct hour
             chartData[24 + afterOffset] += 1;
