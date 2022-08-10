@@ -17,6 +17,11 @@ jobs:
         node-version: [16.x]
 
     steps:
+    - name: Collect Workflow Telemetry
+      uses: runforesight/foresight-workflow-kit-action@v1
+      with:
+        api_key: ${{ secrets.foresight_api_key }}
+
     - uses: actions/checkout@v2
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v2
@@ -25,6 +30,14 @@ jobs:
         cache: 'npm'
     - run: npm install
     - run: npm run test
+
+    - name: Analyze Test and/or Coverage Results
+      uses: runforesight/foresight-test-kit-action@v1
+      with:
+        api_key: ${{ secrets.foresight_api_key }}
+        test_format: JUNIT
+        test_framework: JEST
+        coverage_format: JACOCO/XML
 
   lint:
     name: Lint
@@ -36,6 +49,11 @@ jobs:
         node-version: [16.x]
 
     steps:
+    - name: Collect Workflow Telemetry
+      uses: runforesight/foresight-workflow-kit-action@v1
+      with:
+        api_key: ${{ secrets.foresight_api_key }}
+
     - uses: actions/checkout@v2
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v2
@@ -44,3 +62,11 @@ jobs:
         cache: 'npm'
     - run: npm install
     - run: npm run lint
+
+    - name: Analyze Test and/or Coverage Results
+      uses: runforesight/foresight-test-kit-action@v1
+      with:
+        api_key: ${{ secrets.foresight_api_key }}
+        test_format: JUNIT
+        test_framework: JEST
+        coverage_format: JACOCO/XML
