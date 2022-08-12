@@ -57,6 +57,7 @@ const getProductiveTimeData = async function (username: string, utcOffset: numbe
     // process productiveTime
     const chartData = new Array(24);
     chartData.fill(0);
+    // eslint-disable-next-line prefer-const
     let RoundRobin = {
         offset: 0
     };
