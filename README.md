@@ -41,15 +41,15 @@
 <table width="100%">
 <tr>
 <td>
-  <img width="1000" height="0">
+  <img width="100%" height="0">
   <a href="https://www.runforesight.com/?utm_source=github-profile-summary-cards&utm_medium=sponsorship">
   <img src="https://www.thundra.io/hubfs/RunForesight/GitHub%20Sponsorship%20banners/visualize-github-actions.png"
-alt="Foresight" width="260" align="right">
+alt="Foresight" width="40%" align="right">
   </a>
 
 <h3>Foresight: Increase CI/CD Health & Test Performance</h3>
-
-  <p>
+ 
+  <p width="60%">
 Foresight provides full visibility and deep insights into the health
 and performance of your tests and CI/CD pipelines. Assess the risk of
 changes, resolve bottlenecks, reduce build times, and deliver
@@ -60,6 +60,7 @@ high-quality software at speed with Foresight.
 </td>
 </tr>
 </table>
+
 
 ---
 
