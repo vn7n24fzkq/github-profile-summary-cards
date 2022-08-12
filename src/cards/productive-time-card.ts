@@ -31,6 +31,24 @@ const getProductiveTimeSVG = function (
     return svgString;
 };
 
+const adjustOffset = function (offset: number, RoundRobin: {offset: number}): number {
+    if (offset % 1 == 0) {
+        return offset;
+        // offset % 1 should be 0.3 or 0.7 but its js and it gives 0.29999 or -0.299999 thats why this frankenstein
+    } else if ((offset % 1 > 0.29 && offset % 1 < 0.31) || (offset % 1 < -0.29 && offset % 1 > -0.31)) {
+        // toggle up and down between hour
+        RoundRobin.offset = (RoundRobin.offset + 1) % 2;
+        return RoundRobin.offset === 0 ? Math.floor(offset) : Math.ceil(offset);
+    } else if ((offset % 1 > 0.44 && offset % 1 < 0.46) || (offset % 1 < -0.44 && offset % 1 > -0.45)) {
+        // distrubute 1 : 3 ratio for 0.45 utc time
+        RoundRobin.offset = (RoundRobin.offset + 1) % 4;
+        return RoundRobin.offset === 0 ? Math.floor(offset) : Math.ceil(offset);
+    } else {
+        // flood down , if utc is given right it will never be executed
+        return Math.floor(offset);
+    }
+};
+
 const getProductiveTimeData = async function (username: string, utcOffset: number): Promise<Array<number>> {
     const until = new Date();
     const since = new Date();
@@ -39,9 +57,12 @@ const getProductiveTimeData = async function (username: string, utcOffset: numbe
     // process productiveTime
     const chartData = new Array(24);
     chartData.fill(0);
+    let RoundRobin = {
+        offset: 0
+    };
     for (const time of productiveTime.productiveDate) {
         const hour = new Date(time).getUTCHours(); // We use UTC+0 here
-        const afterOffset = Number(hour) + Math.floor(Number(utcOffset)); // Add offset to hour withour decimal or fraction value
+        const afterOffset = adjustOffset(Number(hour) + Number(utcOffset), RoundRobin); // Add offset to hour 
         // convert afterOffset to 0-23
         if (afterOffset < 0) {
             // if afterOffset is negative, we need to add 24 to get the correct hour
