@@ -37,7 +37,9 @@ jobs:
         api_key: ${{ secrets.foresight_api_key }}
         test_format: JUNIT
         test_framework: JEST
+        test_path: ./junit.xml
         coverage_format: JACOCO/XML
+        coverage_path: ./coverage
 
   lint:
     name: Lint
