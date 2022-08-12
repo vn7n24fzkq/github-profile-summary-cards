@@ -9,7 +9,7 @@
         "format-check": "prettier --check '**/*.ts'",
         "lint": "eslint src/**/*.ts",
         "package": "ncc build --source-map --license licenses.txt",
-        "test": "jest --passWithNoTests --reporters=jest-junit",
+        "test": "jest --passWithNoTests --reporters=jest-junit --coverage",
         "run": "node -r dotenv/config lib/app.js",
         "all": "npm run build && npm run format && npm run lint && npm run package && npm test"
     },
