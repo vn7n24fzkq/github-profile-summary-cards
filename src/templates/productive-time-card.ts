@@ -4,7 +4,7 @@ import * as d3 from 'd3';
 import * as d3Axis from 'd3-axis';
 
 export function createProductiveCard(chartData: number[], theme: Theme, utcOffset: number) {
-    const title = 'Commits ' + '(UTC ' + (utcOffset >= 0 ? '+' : '') + utcOffset + ')';
+    const title = 'Commits ' + '(UTC ' + (utcOffset >= 0 ? '+' : '') + utcOffset.toFixed(2) + ')';
     const card = new Card(title, 340, 200, theme);
     const svg = card.getSVG();
 
