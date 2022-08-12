@@ -28,7 +28,7 @@
         "jest-junit": "^14.0.0",
         "js-abbreviation-number": "^1.4.0",
         "jsdom": "^16.4.0",
-        "moment": "^2.29.2",
+        "moment": "^2.29.4",
         "retry-axios": "^2.6.0"
     },
     "devDependencies": {
