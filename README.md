@@ -64,9 +64,12 @@ high-quality software at speed with Foresight.
 
 ---
 
-[Get your cards now!!](https://github-profile-summary-cards.vercel.app/demo.html)
 
 <div align="center">
+<p>
+<a href="https://github-profile-summary-cards.vercel.app/demo.html">Get your own cards now!!</a>
+</p>
+
 
 ![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/0-profile-details.svg)
 ![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/1-repos-per-language.svg)
