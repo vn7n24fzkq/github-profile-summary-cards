@@ -2,22 +2,22 @@
     "github": {
         "silent": true
     },
-    "rewrites": [{ "source": "/api/(.*)", "destination": "/api" }],
+    "rewrites": [{"source": "/api/(.*)", "destination": "/api"}],
     "headers": [
         {
             "source": "/api/cards/(.*)",
             "headers": [
                 {
                     "key": "cache-control",
-                    "value": "public, max-age=0, s-maxage=14400"
+                    "value": "public, max-age=21600, s-maxage=21600, stale-while-revalidate=14400"
                 }
             ]
         },
         {
             "source": "/api/theme",
             "headers": [
-                { "key": "Access-Control-Allow-Credentials", "value": "true" },
-                { "key": "Access-Control-Allow-Origin", "value": "*" },
+                {"key": "Access-Control-Allow-Credentials", "value": "true"},
+                {"key": "Access-Control-Allow-Origin", "value": "*"},
                 {
                     "key": "Access-Control-Allow-Methods",
                     "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT"
@@ -34,6 +34,6 @@
             "source": "/",
             "destination": "/demo"
         },
-        { "source": "/demo", "destination": "/demo.html" }
+        {"source": "/demo", "destination": "/demo.html"}
     ]
 }
