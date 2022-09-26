@@ -33,3 +33,4 @@ ThemeMap.set('solarized_dark', new Theme('#268bd2', '#839496', '#073642', '#0736
 ThemeMap.set('tokyonight', new Theme('#70a5fd', '#38bdae', '#1a1b27', '#1a1b27', '#bf91f3', '#bf91f3'));
 ThemeMap.set('vue', new Theme('#41b883', '#000000', '#ffffff', '#e4e2e2', '#41b883', '#41b883'));
 ThemeMap.set('zenburn', new Theme('#f0dfaf', '#dcdccc', '#3f3f3f', '#3f3f3f', '#8cd0d3', '#7f9f7f'));
+ThemeMap.set('moonlight', new Theme('#ff757f', '#f8f8f8', '#222436', '#222436', '#599dff', '#ff757f'));
