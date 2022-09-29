@@ -17,12 +17,12 @@
       <img alt="testandlint" src="https://img.shields.io/github/workflow/status/vn7n24fzkq/github-profile-summary-cards/Test%20and%20Lint?label=Test%20and%20Lint&style=for-the-badge&color=a6da95"></a>
    </p>
    <p align="center">
-      <a href="https://foresight.docs.thundra.io">
-      <img alt="foresighttest" src="https://foresight.service.thundra.io/public/api/v1/badge/test?repoId=b84d871c-a5e4-4320-9638-00bb34c27111"/></a>
-      <a href="https://foresight.docs.thundra.io">
-      <img alt="foresightsuccess" src="https://foresight.service.thundra.io/public/api/v1/badge/success?repoId=b84d871c-a5e4-4320-9638-00bb34c27111"></a>
-      <a href="https://foresight.docs.thundra.io">
-      <img alt="foresightutilization" src="https://foresight.service.thundra.io/public/api/v1/badge/utilization?repoId=b84d871c-a5e4-4320-9638-00bb34c27111"></a>
+      <a href="https://docs.runforesight.com">
+      <img alt="foresighttest" src="https://api-public.service.runforesight.com/api/v1/badge/test?repoId=b84d871c-a5e4-4320-9638-00bb34c27111"/></a>
+      <a href="https://docs.runforesight.com">
+      <img alt="foresightsuccess" src="https://api-public.service.runforesight.com/api/v1/badge/success?repoId=b84d871c-a5e4-4320-9638-00bb34c27111"></a>
+      <a href="https://docs.runforesight.com">
+      <img alt="foresightutilization" src="https://api-public.service.runforesight.com/api/v1/badge/utilization?repoId=b84d871c-a5e4-4320-9638-00bb34c27111"></a>
    </p>
    <p align="center">
       <a href="https://foresight.docs.thundra.io">
