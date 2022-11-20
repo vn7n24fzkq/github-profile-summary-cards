@@ -28,7 +28,7 @@
         "js-abbreviation-number": "^1.4.0",
         "jsdom": "^16.4.0",
         "moment": "^2.29.2",
-        "retry-axios": "^2.6.0",
+        "retry-axios": "^2.6.0"
     },
     "devDependencies": {
         "@types/d3": "^7.1.0",
