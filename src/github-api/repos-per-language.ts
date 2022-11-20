@@ -61,7 +61,7 @@ const fetcher = (token: string, variables: any) => {
 };
 
 // repos per language
-export async function getRepoLanguages(username: string): Promise<RepoLanguages> {
+export async function getRepoLanguages(username: string, exclude: Array<string>): Promise<RepoLanguages> {
     let hasNextPage = true;
     let cursor = null;
     const repoLanguages = new RepoLanguages();
@@ -85,7 +85,9 @@ export async function getRepoLanguages(username: string): Promise<RepoLanguages>
         if (node.primaryLanguage) {
             const langName = node.primaryLanguage.name;
             const langColor = node.primaryLanguage.color;
-            repoLanguages.addLanguage(langName, langColor);
+            if (!exclude.includes(langName)) {
+                repoLanguages.addLanguage(langName, langColor);
+            }
         }
     });
 

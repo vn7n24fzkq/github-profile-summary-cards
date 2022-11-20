@@ -78,7 +78,7 @@ describe('repos per language on github', () => {
             .onPost('https://api.github.com/graphql')
             .replyOnce(200, lastData)
             .onAny();
-        const repoData = await getRepoLanguages('vn7n24fzkq');
+        const repoData = await getRepoLanguages('vn7n24fzkq', []);
         expect(repoData).toEqual({
             languageMap: new Map([
                 ['Java', {color: '#b07219', count: 2, name: 'Java'}],
@@ -90,6 +90,6 @@ describe('repos per language on github', () => {
 
     it('should throw error when api failed', async () => {
         mock.onPost('https://api.github.com/graphql').reply(200, error);
-        await expect(getRepoLanguages('vn7n24fzkq')).rejects.toThrow('GitHub api failed');
+        await expect(getRepoLanguages('vn7n24fzkq', [])).rejects.toThrow('GitHub api failed');
     });
 });

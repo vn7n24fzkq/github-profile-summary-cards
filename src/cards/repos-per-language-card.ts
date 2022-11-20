@@ -3,8 +3,8 @@ import {getRepoLanguages} from '../github-api/repos-per-language';
 import {createDonutChartCard} from '../templates/donut-chart-card';
 import {writeSVG} from '../utils/file-writer';
 
-export const createReposPerLanguageCard = async function (username: string) {
-    const langData = await getRepoLanguageData(username);
+export const createReposPerLanguageCard = async function (username: string, exclude: Array<string>) {
+    const langData = await getRepoLanguageData(username, exclude);
     for (const themeName of ThemeMap.keys()) {
         const svgString = getReposPerLanguageSVG(langData, themeName);
         // output to folder, use 1- prefix for sort in preview
@@ -12,9 +12,13 @@ export const createReposPerLanguageCard = async function (username: string) {
     }
 };
 
-export const getReposPerLanguageSVGWithThemeName = async function (username: string, themeName: string) {
+export const getReposPerLanguageSVGWithThemeName = async function (
+    username: string,
+    themeName: string,
+    exclude: Array<string>
+) {
     if (!ThemeMap.has(themeName)) throw new Error('Theme does not exist');
-    const langData = await getRepoLanguageData(username);
+    const langData = await getRepoLanguageData(username, exclude);
     return getReposPerLanguageSVG(langData, themeName);
 };
 
@@ -23,8 +27,8 @@ const getReposPerLanguageSVG = function (langData: {name: string; value: number;
     return svgString;
 };
 
-const getRepoLanguageData = async function (username: string) {
-    const repoLanguages = await getRepoLanguages(username);
+const getRepoLanguageData = async function (username: string, exclude: Array<string>) {
+    const repoLanguages = await getRepoLanguages(username, exclude);
     let langData = [];
 
     // make a pie data
