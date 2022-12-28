@@ -1,12 +1,15 @@
 import * as core from '@actions/core';
-import { mkdirSync, writeFileSync, readdirSync } from 'fs';
+import {mkdirSync, writeFileSync, readdirSync} from 'fs';
 import {ThemeMap} from '../const/theme';
 
 export const OUTPUT_PATH = './profile-summary-card-output/';
 const GITHUB_REPOSITORY = process.env.GITHUB_REPOSITORY;
 
 // If neither a branch or tag is available for the event type, the variable will not exist. https://docs.github.com/en/actions/configuring-and-managing-workflows/using-environment-variables
-const GITHUB_BRANCH = process.env.GITHUB_REF == undefined ? core.getInput('BRANCH_NAME', { required: false }) : process.env.GITHUB_REF.split('/').pop();
+const GITHUB_BRANCH =
+    process.env.GITHUB_REF == undefined
+        ? core.getInput('BRANCH_NAME', {required: false})
+        : process.env.GITHUB_REF.split('/').pop();
 
 export const writeSVG = function (folder: string, filename: string, svgString: string) {
     const targetFolder = `${OUTPUT_PATH}${folder}/`;
