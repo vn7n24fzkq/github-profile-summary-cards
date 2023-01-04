@@ -148,6 +148,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.SUMMARY_GITHUB_TOKEN }}
         with:
           USERNAME: ${{ github.repository_owner }}
+          # BRANCH_NAME is optional, default to main, branch name to push cards
+          BRANCH_NAME: "main"
           # UTC_OFFSET is optional, default to zero
           UTC_OFFSET: 8 
           # EXCLUDE is an optional comma seperated list of languages to exclude, defaults to ""
