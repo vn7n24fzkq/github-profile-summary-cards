@@ -57,13 +57,12 @@ const getProductiveTimeData = async function (username: string, utcOffset: numbe
     // process productiveTime
     const chartData = new Array(24);
     chartData.fill(0);
-    // eslint-disable-next-line prefer-const
-    let RoundRobin = {
+    const roundRobin = {
         offset: 0
     };
     for (const time of productiveTime.productiveDate) {
         const hour = new Date(time).getUTCHours(); // We use UTC+0 here
-        const afterOffset = adjustOffset(Number(hour) + Number(utcOffset), RoundRobin); // Add offset to hour 
+        const afterOffset = adjustOffset(Number(hour) + Number(utcOffset), roundRobin); // Add offset to hour
         // convert afterOffset to 0-23
         if (afterOffset < 0) {
             // if afterOffset is negative, we need to add 24 to get the correct hour
