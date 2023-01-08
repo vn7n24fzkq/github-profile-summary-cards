@@ -2,7 +2,8 @@
     "name": "github-profile-summary-cards",
     "version": "0.5.2",
     "description": "Generate github profile summary cards",
-    "main": "lib/app.js",
+    "type": "module",
+    "export": "./lib/app.js",
     "scripts": {
         "build": "tsc",
         "format": "prettier --write '**/*.ts'",
@@ -10,7 +11,7 @@
         "lint": "eslint src/**/*.ts",
         "package": "ncc build --source-map --license licenses.txt",
         "test": "jest --passWithNoTests --reporters=jest-junit --coverage",
-        "run": "node -r dotenv/config lib/app.js",
+        "run": "node -r dotenv/config ./lib/app.js",
         "all": "npm run build && npm run format && npm run lint && npm run package && npm test"
     },
     "keywords": [
