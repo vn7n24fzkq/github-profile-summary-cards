@@ -14,7 +14,7 @@ inputs:
   UTC_OFFSET:
     required: false
     description: 'The UTC offset used in the Productive Time Card.(e.g., 8, -3)'
-    default: 0
+    default: 9
   EXCLUDE:
     required: false
     description: 'A comma seperated list of languages to hide'
