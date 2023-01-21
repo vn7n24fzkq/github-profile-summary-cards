@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import {createProfileDetailsCard} from './cards/profile-details-card';
 import {createReposPerLanguageCard} from './cards/repos-per-language-card';
-import {createCommitsPerLanguageCard} from './cards/most-commit-lauguage-card';
+import {createCommitsPerLanguageCard} from './cards/most-commit-language-card';
 import {createStatsCard} from './cards/stats-card';
 import {createProductiveTimeCard} from './cards/productive-time-card';
 import {spawn} from 'child_process';

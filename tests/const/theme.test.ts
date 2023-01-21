@@ -2,7 +2,7 @@ import {ThemeMap} from '../../src/const/theme';
 
 describe('Validate all theme', () => {
     it('theme colors are match the color regex', () => {
-        const colorRegex = /^#[0-9A-Fa-f]{6}$/;
+        const colorRegex = /^#[0-9A-Fa-f]{6}$|^#0{8}$/;
         for (const theme of ThemeMap.values()) {
             expect(theme.title).toMatch(colorRegex);
             expect(theme.text).toMatch(colorRegex);

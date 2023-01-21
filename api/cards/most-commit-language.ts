@@ -1,4 +1,4 @@
-import {getCommitsLanguageSVGWithThemeName} from '../../src/cards/most-commit-lauguage-card';
+import {getCommitsLanguageSVGWithThemeName} from '../../src/cards/most-commit-language-card';
 import {changToNextGitHubToken} from '../utils/github-token-updater';
 import {getErrorMsgCard} from '../utils/error-card';
 import {translateLanguage} from '../../src/utils/translator'
@@ -6,7 +6,7 @@ import type {VercelRequest, VercelResponse} from '@vercel/node';
 
 export default async (req: VercelRequest, res: VercelResponse) => {
     let {username, theme = 'default', exclude = ""} = req.query;
-    
+
     if (typeof theme !== 'string') {
         res.status(400).send('theme must be a string');
         return;

@@ -10,8 +10,8 @@
         "format-check": "prettier --check '**/*.ts'",
         "lint": "eslint src/**/*.ts",
         "package": "ncc build --source-map --license licenses.txt",
-        "test": "jest --passWithNoTests --reporters=jest-junit --coverage",
         "run": "node --es-module-specifier-resolution=node -r dotenv/config ./lib/app.js",
+        "test": "jest --passWithNoTests --reporters=default --reporters=jest-junit --coverage",
         "all": "npm run build && npm run format && npm run lint && npm run package && npm test"
     },
     "keywords": [
@@ -24,7 +24,7 @@
         "@actions/github": "^5.0.0",
         "axios": "^0.21.3",
         "childprocess": "^2.0.2",
-        "d3": "^7.6.1",
+        "d3": "^6.7.0",
         "dotenv": "^8.2.0",
         "jest-junit": "^14.0.0",
         "js-abbreviation-number": "^1.4.0",
@@ -33,7 +33,7 @@
         "retry-axios": "^2.6.0"
     },
     "devDependencies": {
-        "@types/d3": "^7.1.0",
+        "@types/d3": "^6.7.0",
         "@types/jest": "^27.0.2",
         "@types/jsdom": "^16.2.13",
         "@types/node": "^16.11.6",
