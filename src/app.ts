@@ -5,7 +5,7 @@ import {createCommitsPerLanguageCard} from './cards/most-commit-language-card';
 import {createStatsCard} from './cards/stats-card';
 import {createProductiveTimeCard} from './cards/productive-time-card';
 import {spawn} from 'child_process';
-import { translateLanguage } from './utils/translator';
+import {translateLanguage} from './utils/translator';
 import {OUTPUT_PATH, generatePreviewMarkdown} from './utils/file-writer';
 
 const execCmd = (cmd: string, args: string[] = []) =>
@@ -40,7 +40,7 @@ const action = async () => {
     core.info(`Username: ${username}`);
     const utcOffset = Number(core.getInput('UTC_OFFSET', {required: false}));
     core.info(`UTC offset: ${utcOffset}`);
-    const exclude = core.getInput('EXCLUE', {required: false}).split(",");
+    const exclude = core.getInput('EXCLUE', {required: false}).split(',');
     core.info(`Excluded languages: ${utcOffset}`);
     try {
         // Remove old output
@@ -136,11 +136,10 @@ if (process.argv.length == 2) {
     const username = process.argv[2];
     const utcOffset = Number(process.argv[3]);
     let exclude: Array<string> = [];
-    if(process.argv[4]){
-        process.argv[4].split(",").forEach(function(val){
+    if (process.argv[4]) {
+        process.argv[4].split(',').forEach(function (val) {
             exclude.push(translateLanguage(val));
         });
-    };
-    console.log(exclude)
+    }
     main(username, utcOffset, exclude);
 }
