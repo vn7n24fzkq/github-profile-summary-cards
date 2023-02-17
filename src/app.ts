@@ -135,7 +135,7 @@ if (process.argv.length == 2) {
 } else {
     const username = process.argv[2];
     const utcOffset = Number(process.argv[3]);
-    let exclude: Array<string> = [];
+    const exclude: Array<string> = [];
     if (process.argv[4]) {
         process.argv[4].split(',').forEach(function (val) {
             exclude.push(translateLanguage(val));
