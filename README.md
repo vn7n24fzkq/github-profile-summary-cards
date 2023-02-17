@@ -142,6 +142,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     name: generate-github-profile-summary-cards
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v3
