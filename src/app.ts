@@ -41,7 +41,7 @@ const action = async () => {
     const utcOffset = Number(core.getInput('UTC_OFFSET', {required: false}));
     core.info(`UTC offset: ${utcOffset}`);
     const exclude = core.getInput('EXCLUE', {required: false}).split(',');
-    core.info(`Excluded languages: ${utcOffset}`);
+    core.info(`Excluded languages: ${exclude}`);
     try {
         // Remove old output
         core.info(`Remove old cards...`);
