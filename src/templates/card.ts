@@ -42,7 +42,7 @@ export class Card {
             .attr('stroke', `${theme.stroke}`)
             .attr('stroke-width', '1')
             .attr('fill', `${theme.background}`)
-            .attr('stroke-opacity', 1);
+            .attr('stroke-opacity', `${theme.strokeOpacity}`);
 
         const isEmptyTitle = this.title == '';
         if (!isEmptyTitle) {
