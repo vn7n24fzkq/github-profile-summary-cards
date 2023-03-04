@@ -8,7 +8,15 @@ export class Theme {
     strokeOpacity: number;
     icon: string;
     chart: string;
-    constructor(title: string, text: string, background: string, stroke: string, strokeOpacity: number; icon: string, chart: string) {
+    constructor(
+        title: string,
+        text: string,
+        background: string,
+        stroke: string,
+        strokeOpacity: number,
+        icon: string,
+        chart: string
+    ) {
         this.title = title;
         this.text = text;
         this.background = background;
