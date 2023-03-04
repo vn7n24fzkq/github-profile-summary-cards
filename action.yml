@@ -17,7 +17,7 @@ inputs:
     default: 0
   EXCLUDE:
     required: false
-    description: 'A comma seperated list of languages to hide'
+    description: 'A comma separated list of languages to exclude'
     default: ''
 
 runs:
