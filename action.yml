@@ -7,10 +7,18 @@ inputs:
     required: true
     description: 'GitHub username'
     default: ${{ github.repository_owner }}
+  BRANCH_NAME:
+    required: false
+    description: 'The branch to push cards'
+    default: 'main'
   UTC_OFFSET:
     required: false
     description: 'The UTC offset used in the Productive Time Card.(e.g., 8, -3)'
     default: 0
+  EXCLUDE:
+    required: false
+    description: 'A comma separated list of languages to exclude'
+    default: ''
 
 runs:
   using: 'node16'

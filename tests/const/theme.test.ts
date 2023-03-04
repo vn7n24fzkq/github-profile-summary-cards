@@ -2,7 +2,8 @@ import {ThemeMap} from '../../src/const/theme';
 
 describe('Validate all theme', () => {
     it('theme colors are match the color regex', () => {
-        const colorRegex = /^#[0-9A-Fa-f]{6}$/;
+        // We validate short hex color, hex color and RGBA hex
+        const colorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3}|[A-Fa-f0-9]{8})$/;
         for (const theme of ThemeMap.values()) {
             expect(theme.title).toMatch(colorRegex);
             expect(theme.text).toMatch(colorRegex);

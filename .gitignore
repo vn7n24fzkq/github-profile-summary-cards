@@ -125,3 +125,5 @@ tags.*
 lib/**/*
 tests/runner/*
 
+# Ignore jest report
+junit.xml

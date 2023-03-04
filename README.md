@@ -1,33 +1,75 @@
-# GitHub Profile Summary Cards
+<div align="center">
+   <h1>GitHub Profile Summary Cards</h1>
+   <p>
+      A tool to generate your github summary card for profile README. Inspired by <a href=https://github.com/tipsy/profile-summary-for-github>profile-summary-for-github</a>
+   </p>
+   <p>
+      :star: This repo is just for fun, feel free to contribute! :star:
+   </p>
+   <p align="center">
+      <a href="https://github.com/vn7n24fzkq/github-profile-summary-cards/stargazers">
+      <img alt="Stargazers" src="https://img.shields.io/github/stars/vn7n24fzkq/github-profile-summary-cards?style=for-the-badge&logo=github&color=f4dbd6&logoColor=D9E0EE&labelColor=302D41"></a>
+      <a href="https://github.com/vn7n24fzkq/github-profile-summary-cards/releases/latest">
+      <img alt="Releases" src="https://img.shields.io/github/release/vn7n24fzkq/github-profile-summary-cards.svg?style=for-the-badge&logo=semantic-release&color=f5bde6&logoColor=D9E0EE&labelColor=302D41"/></a>
+      <a href="https://www.conventionalcommits.org/en/v1.0.0/">
+      <img alt="conventionalcommits" src="https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?style=for-the-badge&logo=conventionalcommits&color=ee99a0&logoColor=D9E0EE&labelColor=302D41"></a>
+      <a href="https://github.com/vn7n24fzkq/github-profile-summary-cards/actions/workflows/github-action.yml">
+      <img alt="testandlint" src="https://img.shields.io/github/actions/workflow/status/vn7n24fzkq/github-profile-summary-cards/test-and-lint.yml?branch=main&label=Test%20and%20Lint&style=for-the-badge&color=a6da95"></a>
+   </p>
+   <p align="center">
+      <a href="https://docs.runforesight.com">
+      <img alt="foresighttest" src="https://api-public.service.runforesight.com/api/v1/badge/test?repoId=b84d871c-a5e4-4320-9638-00bb34c27111"/></a>
+      <a href="https://docs.runforesight.com">
+      <img alt="foresightsuccess" src="https://api-public.service.runforesight.com/api/v1/badge/success?repoId=b84d871c-a5e4-4320-9638-00bb34c27111"></a>
+      <a href="https://docs.runforesight.com">
+      <img alt="foresightutilization" src="https://api-public.service.runforesight.com/api/v1/badge/utilization?repoId=b84d871c-a5e4-4320-9638-00bb34c27111"></a>
+   </p>
+   <p align="center">
+      <a href="https://foresight.docs.thundra.io">
+      <img alt="foresight" src="https://img.shields.io/badge/Supported%20by-Foresight-%239900F0?style=for-the-badge&color=DDB6F2&labelColor=302D41"></a>
+   </p>
+   
+   [繁體中文](./docs/README.zh-tw.md)
+   
+</div>
 
-This repo is inspired by [profile-summary-for-github](https://github.com/tipsy/profile-summary-for-github)
-
-![Test and Lint](https://github.com/vn7n24fzkq/github-profile-summary-cards/workflows/Test%20and%20Lint/badge.svg)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/vn7n24fzkq/github-profile-summary-cards/blob/master/LICENSE)
-![release](https://img.shields.io/github/v/release/vn7n24fzkq/github-profile-summary-cards.svg)
-[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
-
-
-[繁體中文](./docs/README.zh-tw.md)
-
-:star: This repo is just for fun, feel free to contribute! :star:
 
 ---
 
-## Markdown Usage
+## Sponsors 
 
-[Try it now!!](https://github-profile-summary-cards.vercel.app/demo.html)
+<table width="100%">
+<tr>
+<td>
+  <img width="100%" height="0">
+  <a href="https://www.runforesight.com/?utm_source=github-profile-summary-cards&utm_medium=sponsorship">
+  <img src="https://www.thundra.io/hubfs/RunForesight/GitHub%20Sponsorship%20banners/visualize-github-actions.png"
+alt="Foresight" width="40%" align="right">
+  </a>
 
-```![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=vue)```
+<h3>Foresight: Increase CI/CD Health & Test Performance</h3>
+ 
+  <p width="60%">
+Foresight provides full visibility and deep insights into the health
+and performance of your tests and CI/CD pipelines. Assess the risk of
+changes, resolve bottlenecks, reduce build times, and deliver
+high-quality software at speed with Foresight.
+  </p>
 
-|   |   |   |
-|:---:|:---:|:---:|
-|default|solarized|monokai|
-|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=default)|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=solarized)| ![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=monokai)|
-|solarized_dark|vue|nord_bright|
-|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=solarized_dark)|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=vue)| ![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=nord_bright)|
+[Sign up now!](https://runforesight.com/?utm_source=github-profile-summary-cards&utm_medium=sponsorship)
+</td>
+</tr>
+</table>
 
-## Example
+
+---
+
+
+<div align="center">
+<p>
+<a href="https://github-profile-summary-cards.vercel.app/demo.html">Get your own cards now!!</a>
+</p>
+
 
 ![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/0-profile-details.svg)
 ![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/1-repos-per-language.svg)
@@ -35,7 +77,72 @@ This repo is inspired by [profile-summary-for-github](https://github.com/tipsy/p
 ![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/3-stats.svg)
 ![](https://raw.githubusercontent.com/vn7n24fzkq/vn7n24fzkq/master/profile-summary-card-output/solarized/4-productive-time.svg)
 
+</div>
+
+## Themes
+
+|   |   |   |   |   |
+|:---:|:---:|:---:|:---:|:---:|
+|default|2077|dracula|github|github_dark|
+|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=default)|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=2077)| ![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=dracula)|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=github)|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=github_dark)|
+|gruvbox|monokai|nord_bright|nord_dark|radical|
+|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=gruvbox)|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=monokai)| ![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=nord_bright)|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=nord_dark)  |![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=radical)|
+|solarized|solarized_dark|tokyonight|vue|zenburn|
+|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=solarized)|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=solarized_dark)| ![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=tokyonight)|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=vue)  |![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=zenburn)|
+|transparent|
+|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=transparent)|
+
 [More themes](https://github.com/vn7n24fzkq/github-profile-summary-cards-example/tree/master/profile-summary-card-output)
+
+## How to use (API)
+### Profile details card
+![](http://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=nord_bright)
+
+`http://github-profile-summary-cards.vercel.app/api/cards/profile-details?username={username}&theme={theme_name}`
+- accept url parameters
+  - theme
+  - username
+### Top languages used in repository card
+![](http://github-profile-summary-cards.vercel.app/api/cards/repos-per-language?username=vn7n24fzkq&theme=nord_bright)
+
+`http://github-profile-summary-cards.vercel.app/api/cards/repos-per-language?username={username}&theme={theme_name}&exclude={exclude}`
+- accept url parameters
+  - theme
+    - theme name
+  - username
+  - exclude: 
+    - A comma separated list of languages to exclude, e.g., exclude=java,rust
+    - You can found the supported languages in [here](https://github.com/github/linguist/blob/master/lib/linguist/languages.yml)
+
+### Top languages in commits card
+![](http://github-profile-summary-cards.vercel.app/api/cards/most-commit-language?username=vn7n24fzkq&theme=nord_bright)
+
+`http://github-profile-summary-cards.vercel.app/api/cards/most-commit-language?username={username}&theme={theme_name}&exclude={exclude}`
+- accept url parameters
+  - theme
+  - username
+  - exclude: 
+    - A comma separated list of languages to exclude, e.g., exclude=java,rust
+    - You can found the supported languages in [here](https://github.com/github/linguist/blob/master/lib/linguist/languages.yml)
+
+``
+### GitHub stats card
+![](http://github-profile-summary-cards.vercel.app/api/cards/stats?username=vn7n24fzkq&theme=nord_bright&)
+
+`http://github-profile-summary-cards.vercel.app/api/cards/stats?username={username}&theme={theme_name}`
+- accept url parameters
+  - theme
+  - username
+
+``
+### Productive time card
+![](http://github-profile-summary-cards.vercel.app/api/cards/productive-time?username=vn7n24fzkq&theme=nord_bright&utcOffset=8)
+
+`http://github-profile-summary-cards.vercel.app/api/cards/productive-time?username={username}&theme={theme_name}&utcOffset={utcOffset}`
+- accept url parameters
+  - theme
+  - username
+  - utcOffset
 
 ---
 
@@ -85,16 +192,22 @@ jobs:
   build:
     runs-on: ubuntu-latest
     name: generate-github-profile-summary-cards
+    permissions:
+      contents: write
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: vn7n24fzkq/github-profile-summary-cards@release
         env: # default use ${{ secrets.SUMMARY_GITHUB_TOKEN }}, you should replace with your personal access token
           GITHUB_TOKEN: ${{ secrets.SUMMARY_GITHUB_TOKEN }}
         with:
           USERNAME: ${{ github.repository_owner }}
+          # BRANCH_NAME is optional, default to main, branch name to push cards
+          BRANCH_NAME: "main"
           # UTC_OFFSET is optional, default to zero
-          UTC_OFFSET: 8
+          UTC_OFFSET: 8 
+          # EXCLUDE is an optional comma seperated list of languages to exclude, defaults to ""
+          EXCLUDE: ""
 ```
 
 ---
@@ -114,3 +227,14 @@ Example
 ```sh
 npm run run vn7n24fzkq 8
 ```
+
+- To locally run the API you can use the vercel dev package
+
+```sh
+vercel dev
+```
+
+## Deploy your own API on Vercel
+Quickly deploy your own version!
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvn7n24fzkq%2Fgithub-profile-summary-cards&env=GITHUB_TOKEN&envDescription=https%3A%2F%2Fgithub.com%2Fvn7n24fzkq%2Fgithub-profile-summary-cards%23first-step&project-name=my-github-profile-summary-cards)

@@ -1,10 +1,11 @@
 import * as core from '@actions/core';
 import {createProfileDetailsCard} from './cards/profile-details-card';
 import {createReposPerLanguageCard} from './cards/repos-per-language-card';
-import {createCommitsPerLanguageCard} from './cards/most-commit-lauguage-card';
+import {createCommitsPerLanguageCard} from './cards/most-commit-language-card';
 import {createStatsCard} from './cards/stats-card';
 import {createProductiveTimeCard} from './cards/productive-time-card';
 import {spawn} from 'child_process';
+import {translateLanguage} from './utils/translator';
 import {OUTPUT_PATH, generatePreviewMarkdown} from './utils/file-writer';
 
 const execCmd = (cmd: string, args: string[] = []) =>
@@ -39,6 +40,8 @@ const action = async () => {
     core.info(`Username: ${username}`);
     const utcOffset = Number(core.getInput('UTC_OFFSET', {required: false}));
     core.info(`UTC offset: ${utcOffset}`);
+    const exclude = core.getInput('EXCLUE', {required: false}).split(',');
+    core.info(`Excluded languages: ${exclude}`);
     try {
         // Remove old output
         core.info(`Remove old cards...`);
@@ -55,7 +58,7 @@ const action = async () => {
         // ReposPerLanguageCard
         try {
             core.info(`Creating ReposPerLanguageCard...`);
-            await createReposPerLanguageCard(username);
+            await createReposPerLanguageCard(username, exclude);
         } catch (error: any) {
             core.error(`Error when creating ReposPerLanguageCard \n${error.stack}`);
         }
@@ -63,7 +66,7 @@ const action = async () => {
         // CommitsPerLanguageCard
         try {
             core.info(`Creating CommitsPerLanguageCard...`);
-            await createCommitsPerLanguageCard(username);
+            await createCommitsPerLanguageCard(username, exclude);
         } catch (error: any) {
             core.error(`Error when creating CommitsPerLanguageCard \n${error.stack}`);
         }
@@ -112,11 +115,11 @@ const action = async () => {
     }
 };
 
-const main = async (username: string, utcOffset: number) => {
+const main = async (username: string, utcOffset: number, exclude: Array<string>) => {
     try {
         await createProfileDetailsCard(username);
-        await createReposPerLanguageCard(username);
-        await createCommitsPerLanguageCard(username);
+        await createReposPerLanguageCard(username, exclude);
+        await createCommitsPerLanguageCard(username, exclude);
         await createStatsCard(username);
         await createProductiveTimeCard(username, utcOffset);
         generatePreviewMarkdown(false);
@@ -132,5 +135,11 @@ if (process.argv.length == 2) {
 } else {
     const username = process.argv[2];
     const utcOffset = Number(process.argv[3]);
-    main(username, utcOffset);
+    const exclude: Array<string> = [];
+    if (process.argv[4]) {
+        process.argv[4].split(',').forEach(function (val) {
+            exclude.push(translateLanguage(val));
+        });
+    }
+    main(username, utcOffset, exclude);
 }

@@ -37,12 +37,12 @@ export class Card {
             .attr('y', 1.5)
             .attr('rx', 5)
             .attr('ry', 5)
-            .attr('height', '98%')
-            .attr('width', '98%')
+            .attr('height', '100%')
+            .attr('width', '100%')
             .attr('stroke', `${theme.stroke}`)
             .attr('stroke-width', '1')
             .attr('fill', `${theme.background}`)
-            .attr('stroke-opacity', 1);
+            .attr('stroke-opacity', `${theme.strokeOpacity}`);
 
         const isEmptyTitle = this.title == '';
         if (!isEmptyTitle) {
