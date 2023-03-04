@@ -125,7 +125,6 @@ high-quality software at speed with Foresight.
     - A comma separated list of languages to exclude, e.g., exclude=java,rust
     - You can found the supported languages in [here](https://github.com/github/linguist/blob/master/lib/linguist/languages.yml)
 
-``
 ### GitHub stats card
 ![](http://github-profile-summary-cards.vercel.app/api/cards/stats?username=vn7n24fzkq&theme=nord_bright&)
 
@@ -134,7 +133,6 @@ high-quality software at speed with Foresight.
   - theme
   - username
 
-``
 ### Productive time card
 ![](http://github-profile-summary-cards.vercel.app/api/cards/productive-time?username=vn7n24fzkq&theme=nord_bright&utcOffset=8)
 
