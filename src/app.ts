@@ -40,7 +40,7 @@ const action = async () => {
     core.info(`Username: ${username}`);
     const utcOffset = Number(core.getInput('UTC_OFFSET', {required: false}));
     core.info(`UTC offset: ${utcOffset}`);
-    const exclude = core.getInput('EXCLUE', {required: false}).split(',');
+    const exclude = core.getInput('EXCLUDE', {required: false}).split(',');
     core.info(`Excluded languages: ${exclude}`);
     try {
         // Remove old output
