@@ -99,17 +99,20 @@ high-quality software at speed with Foresight.
 ![](http://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=nord_bright)
 
 `http://github-profile-summary-cards.vercel.app/api/cards/profile-details?username={username}&theme={theme_name}`
-- accept url parameters
+- Accept url parameters
   - theme
+    - Theme name
   - username
+    - Username
 ### Top languages used in repository card
 ![](http://github-profile-summary-cards.vercel.app/api/cards/repos-per-language?username=vn7n24fzkq&theme=nord_bright)
 
 `http://github-profile-summary-cards.vercel.app/api/cards/repos-per-language?username={username}&theme={theme_name}&exclude={exclude}`
-- accept url parameters
+- Accept url parameters
   - theme
-    - theme name
+    - Theme name
   - username
+    - Username
   - exclude: 
     - A comma separated list of languages to exclude, e.g., exclude=java,rust
     - You can found the supported languages in [here](https://github.com/github/linguist/blob/master/lib/linguist/languages.yml)
@@ -118,9 +121,11 @@ high-quality software at speed with Foresight.
 ![](http://github-profile-summary-cards.vercel.app/api/cards/most-commit-language?username=vn7n24fzkq&theme=nord_bright)
 
 `http://github-profile-summary-cards.vercel.app/api/cards/most-commit-language?username={username}&theme={theme_name}&exclude={exclude}`
-- accept url parameters
+- Accept url parameters
   - theme
+    - Theme name
   - username
+    - Username
   - exclude: 
     - A comma separated list of languages to exclude, e.g., exclude=java,rust
     - You can found the supported languages in [here](https://github.com/github/linguist/blob/master/lib/linguist/languages.yml)
@@ -129,9 +134,11 @@ high-quality software at speed with Foresight.
 ![](http://github-profile-summary-cards.vercel.app/api/cards/stats?username=vn7n24fzkq&theme=nord_bright&)
 
 `http://github-profile-summary-cards.vercel.app/api/cards/stats?username={username}&theme={theme_name}`
-- accept url parameters
+- Accept url parameters
   - theme
+    - Theme name
   - username
+    - Username
 
 ### Productive time card
 ![](http://github-profile-summary-cards.vercel.app/api/cards/productive-time?username=vn7n24fzkq&theme=nord_bright&utcOffset=8)
