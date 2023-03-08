@@ -39,9 +39,9 @@ export class Card {
             .attr('rx', 5)
             .attr('ry', 5)
             // 100% - 2px to show borderline
-            .attr('height', `${(height - 2 * strokeWidth) / height}%`)
+            .attr('height', `${((height - 2 * strokeWidth) / height) * 100}%`)
             // 100% - 2px to show borderline
-            .attr('width', `${(width - 2 * strokeWidth) / width}%`)
+            .attr('width', `${((width - 2 * strokeWidth) / width) * 100}%`)
             .attr('stroke', `${theme.stroke}`)
             .attr('stroke-width', strokeWidth)
             .attr('fill', `${theme.background}`)
