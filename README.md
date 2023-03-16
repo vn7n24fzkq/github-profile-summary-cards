@@ -19,19 +19,6 @@
       <a href="https://github.com/vn7n24fzkq/github-profile-summary-cards/actions/workflows/github-action.yml">
       <img alt="testandlint" src="https://img.shields.io/github/actions/workflow/status/vn7n24fzkq/github-profile-summary-cards/test-and-lint.yml?branch=main&label=Test%20and%20Lint&style=for-the-badge&color=a6da95"></a>
    </p>
-   <p align="center">
-      <a href="https://docs.runforesight.com">
-      <img alt="foresighttest" src="https://api-public.service.runforesight.com/api/v1/badge/test?repoId=b84d871c-a5e4-4320-9638-00bb34c27111"/></a>
-      <a href="https://docs.runforesight.com">
-      <img alt="foresightsuccess" src="https://api-public.service.runforesight.com/api/v1/badge/success?repoId=b84d871c-a5e4-4320-9638-00bb34c27111"></a>
-      <a href="https://docs.runforesight.com">
-      <img alt="foresightutilization" src="https://api-public.service.runforesight.com/api/v1/badge/utilization?repoId=b84d871c-a5e4-4320-9638-00bb34c27111"></a>
-   </p>
-   <p align="center">
-      <a href="https://foresight.docs.thundra.io">
-      <img alt="foresight" src="https://img.shields.io/badge/Supported%20by-Foresight-%239900F0?style=for-the-badge&color=DDB6F2&labelColor=302D41"></a>
-   </p>
-   
 </div>
 
 <div align="center">
