@@ -42,8 +42,8 @@ const action = async () => {
     core.info(`UTC offset: ${utcOffset}`);
     const exclude = core.getInput('EXCLUDE', {required: false}).split(',');
     core.info(`Excluded languages: ${exclude}`);
-    const isAutoPush = core.getInput('IS_AUTOPUSH', {required: false});
-    core.info(`[isAutoPush:${isAutoPush}] You ${isAutoPush ? 'have' : "haven't"} set automatically push`);
+    const isAutoPush = core.getInput('AUTO_PUSH', {required: false});
+    core.info(`You ${isAutoPush ? 'have' : "haven't"} set automatically push commits`);
 
     try {
         // Remove old output

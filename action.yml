@@ -19,10 +19,10 @@ inputs:
     required: false
     description: 'A comma separated list of languages to exclude'
     default: ''
-  IS_AUTOPUSH:
+  AUTO_PUSH:
     required: false
-    description: 'Whether auto push generated files to desired branch'
-    default: false
+    description: 'Whether automatically push generated files to desired branch'
+    default: true
 
 runs:
   using: 'node16'
