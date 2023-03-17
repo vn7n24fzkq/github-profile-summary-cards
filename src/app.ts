@@ -42,8 +42,8 @@ const action = async () => {
     core.info(`UTC offset: ${utcOffset}`);
     const exclude = core.getInput('EXCLUDE', {required: false}).split(',');
     core.info(`Excluded languages: ${exclude}`);
-    const isAutoPush = core.getInput('AUTO_PUSH', {required: false});
-    core.info(`You ${isAutoPush ? 'have' : "haven't"} set automatically push commits`);
+    const autoPush = core.getBooleanInput('AUTO_PUSH', {required: false});
+    core.info(`You ${autoPush ? 'have' : "haven't"} set automatically push commits`);
 
     try {
         // Remove old output
@@ -98,7 +98,7 @@ const action = async () => {
         }
 
         // Commit changes
-        if (isAutoPush) {
+        if (autoPush) {
             core.info(`Commit file...`);
             let retry = 0;
             const maxRetry = 3;
