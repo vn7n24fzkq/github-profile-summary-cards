@@ -169,7 +169,8 @@ jobs:
           UTC_OFFSET: 8 
           # EXCLUDE is an optional comma seperated list of languages to exclude, defaults to ""
           EXCLUDE: ""
-```
+          # AUTO_PUSH is optional, a boolean variable default to true, whether automatically push generated files to desired branch 
+          AUTO_PUSH: true
 
 ---
 
