@@ -1,5 +1,8 @@
 <div align="center">
    <h1>GitHub Profile Summary Cards</h1>
+   
+   
+   [繁體中文](./docs/README.zh-tw.md)
    <p>
       A tool to generate your github summary card for profile README. Inspired by <a href=https://github.com/tipsy/profile-summary-for-github>profile-summary-for-github</a>
    </p>
@@ -16,54 +19,7 @@
       <a href="https://github.com/vn7n24fzkq/github-profile-summary-cards/actions/workflows/github-action.yml">
       <img alt="testandlint" src="https://img.shields.io/github/actions/workflow/status/vn7n24fzkq/github-profile-summary-cards/test-and-lint.yml?branch=main&label=Test%20and%20Lint&style=for-the-badge&color=a6da95"></a>
    </p>
-   <p align="center">
-      <a href="https://docs.runforesight.com">
-      <img alt="foresighttest" src="https://api-public.service.runforesight.com/api/v1/badge/test?repoId=b84d871c-a5e4-4320-9638-00bb34c27111"/></a>
-      <a href="https://docs.runforesight.com">
-      <img alt="foresightsuccess" src="https://api-public.service.runforesight.com/api/v1/badge/success?repoId=b84d871c-a5e4-4320-9638-00bb34c27111"></a>
-      <a href="https://docs.runforesight.com">
-      <img alt="foresightutilization" src="https://api-public.service.runforesight.com/api/v1/badge/utilization?repoId=b84d871c-a5e4-4320-9638-00bb34c27111"></a>
-   </p>
-   <p align="center">
-      <a href="https://foresight.docs.thundra.io">
-      <img alt="foresight" src="https://img.shields.io/badge/Supported%20by-Foresight-%239900F0?style=for-the-badge&color=DDB6F2&labelColor=302D41"></a>
-   </p>
-   
-   [繁體中文](./docs/README.zh-tw.md)
-   
 </div>
-
-
----
-
-## Sponsors 
-
-<table width="100%">
-<tr>
-<td>
-  <img width="100%" height="0">
-  <a href="https://www.runforesight.com/?utm_source=github-profile-summary-cards&utm_medium=sponsorship">
-  <img src="https://www.thundra.io/hubfs/RunForesight/GitHub%20Sponsorship%20banners/visualize-github-actions.png"
-alt="Foresight" width="40%" align="right">
-  </a>
-
-<h3>Foresight: Increase CI/CD Health & Test Performance</h3>
- 
-  <p width="60%">
-Foresight provides full visibility and deep insights into the health
-and performance of your tests and CI/CD pipelines. Assess the risk of
-changes, resolve bottlenecks, reduce build times, and deliver
-high-quality software at speed with Foresight.
-  </p>
-
-[Sign up now!](https://runforesight.com/?utm_source=github-profile-summary-cards&utm_medium=sponsorship)
-</td>
-</tr>
-</table>
-
-
----
-
 
 <div align="center">
 <p>
@@ -213,7 +169,8 @@ jobs:
           UTC_OFFSET: 8 
           # EXCLUDE is an optional comma seperated list of languages to exclude, defaults to ""
           EXCLUDE: ""
-```
+          # AUTO_PUSH is optional, a boolean variable default to true, whether automatically push generated files to desired branch 
+          AUTO_PUSH: true
 
 ---
 

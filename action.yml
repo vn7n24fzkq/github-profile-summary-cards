@@ -4,21 +4,30 @@ author: vn7n24fzkq
 
 inputs:
   USERNAME:
+    type: string
     required: true
     description: 'GitHub username'
     default: ${{ github.repository_owner }}
   BRANCH_NAME:
+    type: string
     required: false
     description: 'The branch to push cards'
     default: 'main'
   UTC_OFFSET:
+    type: string
     required: false
     description: 'The UTC offset used in the Productive Time Card.(e.g., 8, -3)'
     default: 0
   EXCLUDE:
+    type: string
     required: false
     description: 'A comma separated list of languages to exclude'
     default: ''
+  AUTO_PUSH:
+    type: boolean
+    required: false
+    description: 'Whether automatically push generated files to desired branch'
+    default: true
 
 runs:
   using: 'node16'

@@ -42,6 +42,9 @@ const action = async () => {
     core.info(`UTC offset: ${utcOffset}`);
     const exclude = core.getInput('EXCLUDE', {required: false}).split(',');
     core.info(`Excluded languages: ${exclude}`);
+    const autoPush = core.getBooleanInput('AUTO_PUSH', {required: false});
+    core.info(`You ${autoPush ? 'have' : "haven't"} set automatically push commits`);
+
     try {
         // Remove old output
         core.info(`Remove old cards...`);
@@ -95,18 +98,20 @@ const action = async () => {
         }
 
         // Commit changes
-        core.info(`Commit file...`);
-        let retry = 0;
-        const maxRetry = 3;
-        while (retry < maxRetry) {
-            retry += 1;
-            try {
-                await commitFile();
-            } catch (error) {
-                if (retry == maxRetry) {
-                    throw error;
+        if (autoPush) {
+            core.info(`Commit file...`);
+            let retry = 0;
+            const maxRetry = 3;
+            while (retry < maxRetry) {
+                retry += 1;
+                try {
+                    await commitFile();
+                } catch (error) {
+                    if (retry == maxRetry) {
+                        throw error;
+                    }
+                    core.warning(`Commit failed. Retry...`);
                 }
-                core.warning(`Commit failed. Retry...`);
             }
         }
     } catch (error: any) {
