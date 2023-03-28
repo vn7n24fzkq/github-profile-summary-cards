@@ -2,6 +2,7 @@
     "github": {
         "silent": true
     },
+    "outputDirectory": "api/pages",
     "rewrites": [{"source": "/api/(.*)", "destination": "/api"}],
     "headers": [
         {
