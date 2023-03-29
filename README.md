@@ -171,6 +171,7 @@ jobs:
           EXCLUDE: ""
           # AUTO_PUSH is optional, a boolean variable default to true, whether automatically push generated files to desired branch 
           AUTO_PUSH: true
+```
 
 ---
 
