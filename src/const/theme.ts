@@ -55,7 +55,7 @@ ThemeMap.set('dracula', new Theme('#ff79c6', '#ffb86c', '#282a36', '#282a36', 1,
 ThemeMap.set('flag_india', new Theme('#ff8f1c', '#509e2f', '#ffffff', '#000000', 0, '#250e62', '#ff8f1c'));
 ThemeMap.set('github_dark', new Theme('#0366d6', '#77909c', '#0d1117', '#2e343b', 1, '#8b949e', '#40c463'));
 ThemeMap.set('github', new Theme('#0366d6', '#586069', '#ffffff', '#e4e2e2', 1, '#586069', '#40c463'));
-ThemeMap.set('gotham', new Theme('#2aa889', '#99d1ce', '#0c1014', '#000000', 0, '#599cab', '#2aa889'));
+ThemeMap.set('gotham', new Theme('#2aa889', '#99d1ce', '#0c1014', '#000000', 1, '#599cab', '#2aa889'));
 ThemeMap.set('graywhite', new Theme('#24292e', '#24292e', '#ffffff', '#000000', 0, '#24292e', '#24292e'));
 ThemeMap.set('great_gatsby', new Theme('#ffa726', '#ffd95b', '#000000', '#000000', 0, '#ffb74d', '#ffa726'));
 ThemeMap.set('gruvbox', new Theme('#fabd2f', '#8ec07c', '#282828', '#282828', 1, '#fe8019', '#fe8019'));
