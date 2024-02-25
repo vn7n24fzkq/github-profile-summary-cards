@@ -1,7 +1,8 @@
 name: Publish wiki
 
 on:
-  push: branches-ignore: [ master ]
+  push: 
+    branches: [ master ]
     paths:
       - wiki/**
       - .github/workflows/publish-wiki.yml
