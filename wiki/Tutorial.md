@@ -87,10 +87,10 @@ Code snippet:
   ```name: GitHub-Profile-Summary-Cards
 
 on:
-  create:
-  schedule: # execute every 24 hours
-    - cron: "* */24 * * *"
-  workflow_dispatch:
+   create:
+   schedule: # execute every 24 hours
+     - cron: "* */24 * * *"
+   workflow_dispatch:
 
 jobs:
   build:
