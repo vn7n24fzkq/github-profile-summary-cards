@@ -84,13 +84,14 @@ Now we will add a workflow to automatically update the summary cards.
  4. **Commit changes!**
 
 Code snippet:
-  ```name: GitHub-Profile-Summary-Cards
+  ```
+name: GitHub-Profile-Summary-Cards
 
 on:
-  create:
-  schedule: # execute every 24 hours
-    - cron: "* */24 * * *"
-  workflow_dispatch:
+    create:
+    schedule: # execute every 24 hours
+      - cron: "* */24 * * *"
+    workflow_dispatch:
 
 jobs:
   build:
