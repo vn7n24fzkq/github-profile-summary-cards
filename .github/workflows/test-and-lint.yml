@@ -8,14 +8,7 @@ on:
 
 jobs:
   tests:
-    name: Tests
-
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [20.x]
-
     steps:
     - name: Collect Workflow Telemetry
       uses: runforesight/foresight-workflow-kit-action@v1
@@ -24,10 +17,10 @@ jobs:
         api_key: ${{ secrets.foresight_api_key }}
 
     - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Use Node.js 20
       uses: actions/setup-node@v4
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version-file: '.node-version'
         cache: 'npm'
     - run: npm install
     - run: npm run test
@@ -44,20 +37,13 @@ jobs:
         coverage_path: ./coverage
 
   lint:
-    name: Lint
-
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [20.x]
-
     steps:
     - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Use Node.js 20
       uses: actions/setup-node@v4
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version-file: '.node-version'
         cache: 'npm'
     - run: npm install
     - run: npm run lint
