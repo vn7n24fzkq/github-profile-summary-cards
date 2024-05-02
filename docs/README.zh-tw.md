@@ -86,7 +86,7 @@ jobs:
     name: generate-github-profile-summary-cards
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: vn7n24fzkq/github-profile-summary-cards@release
         env: # default use ${{ secrets.SUMMARY_GITHUB_TOKEN }}, you should replace with your personal access token
           GITHUB_TOKEN: ${{ secrets.SUMMARY_GITHUB_TOKEN }}
@@ -95,7 +95,7 @@ jobs:
           # BRANCH_NAME is optional, default to main, branch name to push cards
           BRANCH_NAME: "main"
           # UTC_OFFSET is optional, default to zero
-          UTC_OFFSET: 8 
+          UTC_OFFSET: 8
 ```
 
 ---

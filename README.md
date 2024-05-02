@@ -1,7 +1,7 @@
 <div align="center">
    <h1>GitHub Profile Summary Cards</h1>
-   
-   
+
+
    [繁體中文](./docs/README.zh-tw.md)
    <p>
       A tool to generate your github summary card for profile README. Inspired by <a href=https://github.com/tipsy/profile-summary-for-github>profile-summary-for-github</a>
@@ -69,7 +69,7 @@
     - Theme name
   - username
     - Username
-  - exclude: 
+  - exclude:
     - A comma separated list of languages to exclude, e.g., exclude=java,rust
     - You can found the supported languages in [here](https://github.com/github/linguist/blob/master/lib/linguist/languages.yml)
 
@@ -82,7 +82,7 @@
     - Theme name
   - username
     - Username
-  - exclude: 
+  - exclude:
     - A comma separated list of languages to exclude, e.g., exclude=java,rust
     - You can found the supported languages in [here](https://github.com/github/linguist/blob/master/lib/linguist/languages.yml)
 
@@ -157,7 +157,7 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: vn7n24fzkq/github-profile-summary-cards@release
         env: # default use ${{ secrets.SUMMARY_GITHUB_TOKEN }}, you should replace with your personal access token
           GITHUB_TOKEN: ${{ secrets.SUMMARY_GITHUB_TOKEN }}
@@ -166,10 +166,10 @@ jobs:
           # BRANCH_NAME is optional, default to main, branch name to push cards
           BRANCH_NAME: "main"
           # UTC_OFFSET is optional, default to zero
-          UTC_OFFSET: 8 
+          UTC_OFFSET: 8
           # EXCLUDE is an optional comma seperated list of languages to exclude, defaults to ""
           EXCLUDE: ""
-          # AUTO_PUSH is optional, a boolean variable default to true, whether automatically push generated files to desired branch 
+          # AUTO_PUSH is optional, a boolean variable default to true, whether automatically push generated files to desired branch
           AUTO_PUSH: true
 ```
 
