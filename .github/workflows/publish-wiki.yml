@@ -1,7 +1,7 @@
 name: Publish wiki
 
 on:
-  push: 
+  push:
     branches: [ main ]
     paths:
       - wiki/**
@@ -18,9 +18,7 @@ jobs:
   publish-wiki:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: Andrew-Chen-Wang/github-wiki-action@v4
         with:
          token: ${{ secrets.REPO_WIKI_WRITE_TOKEN }}
-
-
