@@ -1,6 +1,6 @@
 {
     "name": "github-profile-summary-cards",
-    "version": "0.6.1",
+    "version": "0.7.0",
     "description": "Generate github profile summary cards",
     "main": "lib/app.js",
     "scripts": {
@@ -21,7 +21,7 @@
     "dependencies": {
         "@actions/core": "^1.9.1",
         "@actions/github": "^5.0.0",
-        "axios": "^0.21.3",
+        "axios": "^0.28.0",
         "childprocess": "^2.0.2",
         "d3": "^6.7.0",
         "dotenv": "^8.2.0",
@@ -35,9 +35,9 @@
         "@types/d3": "^6.7.0",
         "@types/jest": "^27.0.2",
         "@types/jsdom": "^16.2.13",
-        "@types/node": "^16.11.6",
+        "@types/node": "^20.12.7",
         "@typescript-eslint/parser": "^5.2.0",
-        "@vercel/ncc": "^0.27.0",
+        "@vercel/ncc": "^0.38.1",
         "@vercel/node": "^1.12.1",
         "axios-mock-adapter": "^1.18.2",
         "eslint": "^7.22.0",
