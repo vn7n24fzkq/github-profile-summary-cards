@@ -25,6 +25,7 @@ const execCmd = (cmd: string, args: string[] = []) =>
         app.on('error', reject);
     });
 
+//ProfileSummaryCardsTemplate
 const commitFile = async () => {
     await execCmd('git', ['config', '--global', 'user.email', 'profile-summary-cards-bot@example.com']);
     await execCmd('git', ['config', '--global', 'user.name', 'profile-summary-cards[bot]']);
