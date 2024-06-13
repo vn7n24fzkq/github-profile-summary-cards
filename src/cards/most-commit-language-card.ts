@@ -1,4 +1,4 @@
-import {ThemeMap} from '../const/theme';
+import {ThemeMap, Theme} from '../const/theme';
 import {getCommitLanguage, CommitLanguages} from '../github-api/commits-per-language';
 import {createDonutChartCard} from '../templates/donut-chart-card';
 import {writeSVG} from '../utils/file-writer';
@@ -6,7 +6,7 @@ import {writeSVG} from '../utils/file-writer';
 export const createCommitsPerLanguageCard = async function (username: string, exclude: Array<string>) {
     const statsData = await getCommitsLanguageData(username, exclude);
     for (const themeName of ThemeMap.keys()) {
-        const svgString = getCommitsLanguageSVG(statsData, themeName);
+        const svgString = getCommitsLanguageSVG(statsData, themeName, undefined);
         // output to folder, use 2- prefix for sort in preview
         writeSVG(themeName, '2-most-commit-language', svgString);
     }
@@ -15,16 +15,18 @@ export const createCommitsPerLanguageCard = async function (username: string, ex
 export const getCommitsLanguageSVGWithThemeName = async function (
     username: string,
     themeName: string,
+    customTheme: Theme,
     exclude: Array<string>
 ): Promise<string> {
     if (!ThemeMap.has(themeName)) throw new Error('Theme does not exist');
     const langData = await getCommitsLanguageData(username, exclude);
-    return getCommitsLanguageSVG(langData, themeName);
+    return getCommitsLanguageSVG(langData, themeName, customTheme);
 };
 
 const getCommitsLanguageSVG = function (
     langData: {name: string; value: number; color: string}[],
-    themeName: string
+    themeName: string,
+    customTheme: Theme | undefined
 ): string {
     if (langData.length == 0) {
         langData.push({
@@ -43,7 +45,16 @@ const getCommitsLanguageSVG = function (
             color: '#586e75'
         });
     }
-    const svgString = createDonutChartCard('Top Languages by Commit', langData, ThemeMap.get(themeName)!);
+    let theme = { ...ThemeMap.get(themeName)! };
+    if (customTheme !== undefined) {
+        if (customTheme.title) theme.title = "#" + customTheme.title;
+        if (customTheme.text) theme.text = "#" + customTheme.text;
+        if (customTheme.background) theme.background = "#" + customTheme.background;
+        if (customTheme.stroke) { theme.stroke = "#" + customTheme.stroke; theme.strokeOpacity = 1; }
+        if (customTheme.icon) theme.icon = "#" + customTheme.icon;
+        if (customTheme.chart) theme.chart = "#" + customTheme.chart;
+    }
+    const svgString = createDonutChartCard('Top Languages by Commit', langData, theme);
     return svgString;
 };
 
