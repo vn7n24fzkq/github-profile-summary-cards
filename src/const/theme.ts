@@ -30,6 +30,7 @@ export class Theme {
 // Set up themes
 // We support short hex color, hex color and RGBA hex
 // ThemeMap.set(name, new Theme('title', 'text', 'background', 'stroke', 'strokeOpacity', 'icon', 'chart'));
+ThemeMap.set('holi', new Theme('#5ea9eb', '#d6e7ff', '#030314', '#d6e7ff', 1, '#5090cb', '#5090cb'));
 ThemeMap.set('2077', new Theme('#ff0055', '#03d8f3', '#141321', '#141321', 1, '#fcee0c', '#00ffc8'));
 ThemeMap.set('algolia', new Theme('#00aeff', '#ffffff', '#050f2c', '#000000', 0, '#2dde98', '#00aeff'));
 ThemeMap.set('apprentice', new Theme('#ffffff', '#bcbcbc', '#262626', '#000000', 0, '#ffffaf', '#ffffff'));
