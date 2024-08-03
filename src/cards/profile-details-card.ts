@@ -1,4 +1,4 @@
-import {ThemeMap} from '../const/theme';
+import {ThemeMap, Theme} from '../const/theme';
 import {Icon} from '../const/icon';
 import {abbreviateNumber} from 'js-abbreviation-number';
 import {getProfileDetails, ProfileDetails, ProfileContribution} from '../github-api/profile-details';
@@ -15,26 +15,41 @@ export const createProfileDetailsCard = async function (username: string) {
             title,
             profileDetailsData[0].contributions,
             profileDetailsData[1],
-            themeName
+            themeName,
+            undefined
         );
         // output to folder, use 0- prefix for sort in preview
         writeSVG(themeName, '0-profile-details', svgString);
     }
 };
-export const getProfileDetailsSVGWithThemeName = async function (username: string, themeName: string): Promise<string> {
+export const getProfileDetailsSVGWithThemeName = async function (
+    username: string,
+    themeName: string,
+    customTheme: Theme
+): Promise<string> {
     if (!ThemeMap.has(themeName)) throw new Error('Theme does not exist');
     const profileDetailsData = await getProfileDetailsData(username);
     const title = profileDetailsData[0].name == null ? `${username}` : `${username} (${profileDetailsData[0].name})`;
-    return getProfileDetailsSVG(title, profileDetailsData[0].contributions, profileDetailsData[1], themeName);
+    return getProfileDetailsSVG(title, profileDetailsData[0].contributions, profileDetailsData[1], themeName, customTheme);
 };
 
 const getProfileDetailsSVG = function (
     title: string,
     contributionsData: ProfileContribution[],
     userDetails: {index: number; icon: string; name: string; value: string}[],
-    themeName: string
+    themeName: string,
+    customTheme: Theme | undefined
 ): string {
-    const svgString = createDetailCard(`${title}`, userDetails, contributionsData, ThemeMap.get(themeName)!);
+    let theme = { ...ThemeMap.get(themeName)! };
+    if (customTheme !== undefined) {
+        if (customTheme.title) theme.title = "#" + customTheme.title;
+        if (customTheme.text) theme.text = "#" + customTheme.text;
+        if (customTheme.background) theme.background = "#" + customTheme.background;
+        if (customTheme.stroke) { theme.stroke = "#" + customTheme.stroke; theme.strokeOpacity = 1; }
+        if (customTheme.icon) theme.icon = "#" + customTheme.icon;
+        if (customTheme.chart) theme.chart = "#" + customTheme.chart;
+    }
+    const svgString = createDetailCard(`${title}`, userDetails, contributionsData, theme);
     return svgString;
 };
 
