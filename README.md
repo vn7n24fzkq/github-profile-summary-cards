@@ -70,7 +70,8 @@
   - username
     - Username
   - exclude:
-    - A comma separated list of languages to exclude, e.g., exclude=java,rust
+    - A comma separated list of languages to exclude, e.g., exclude=java,rust,jupyter%20notebook
+      - You can represent a space in the language list by using '%20' when you want to include a space.
     - You can found the supported languages in [here](https://github.com/github/linguist/blob/master/lib/linguist/languages.yml)
 
 ### Top languages in commits card
@@ -83,7 +84,8 @@
   - username
     - Username
   - exclude:
-    - A comma separated list of languages to exclude, e.g., exclude=java,rust
+    - A comma separated list of languages to exclude, e.g., exclude=java,rust,jupyter%20notebook
+      - You can represent a space in the language list by using '%20' when you want to include a space.
     - You can found the supported languages in [here](https://github.com/github/linguist/blob/master/lib/linguist/languages.yml)
 
 ### GitHub stats card
