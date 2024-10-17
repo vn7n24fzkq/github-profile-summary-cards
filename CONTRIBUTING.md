@@ -166,7 +166,3 @@ Added a new theme called 'sunset' with warm colors.
 ## Join The Project Team
 
 If you are interested in becoming a collaborator or maintainer, please reach out! Open an [issue](https://github.com/vn7n24fzkq/github-profile-summary-cards/issues/new) expressing your interest and we can discuss further.
-
-<!-- omit in toc -->
-## Attribution
-This guide is based on the **contributing-gen**. [Make your own](https://github.com/bttger/contributing-gen)!
