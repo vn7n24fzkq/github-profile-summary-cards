@@ -54,5 +54,8 @@
     "pre-commit": [
         "test",
         "lint"
-    ]
+    ],
+    "engines": {
+        "node": "20.x"
+    }
 }
