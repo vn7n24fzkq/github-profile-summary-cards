@@ -1,4 +1,4 @@
-import {ThemeMap} from '../const/theme';
+import {ThemeMap, Theme} from '../const/theme';
 import {getProductiveTime} from '../github-api/productive-time';
 import {createProductiveCard as productiveTimeCard} from '../templates/productive-time-card';
 import {writeSVG} from '../utils/file-writer';
@@ -6,7 +6,7 @@ import {writeSVG} from '../utils/file-writer';
 export const createProductiveTimeCard = async function (username: string, utcOffset: number) {
     const productiveTimeData = await getProductiveTimeData(username, utcOffset);
     for (const themeName of ThemeMap.keys()) {
-        const svgString = getProductiveTimeSVG(productiveTimeData, themeName, utcOffset);
+        const svgString = getProductiveTimeSVG(productiveTimeData, themeName, undefined, utcOffset);
         // output to folder, use 4- prefix for sort in preview
         writeSVG(themeName, '4-productive-time', svgString);
     }
@@ -15,19 +15,30 @@ export const createProductiveTimeCard = async function (username: string, utcOff
 export const getProductiveTimeSVGWithThemeName = async function (
     username: string,
     themeName: string,
+    customTheme: Theme,
     utcOffset: number
 ) {
     if (!ThemeMap.has(themeName)) throw new Error('Theme does not exist');
     const productiveTimeData = await getProductiveTimeData(username, utcOffset);
-    return getProductiveTimeSVG(productiveTimeData, themeName, utcOffset);
+    return getProductiveTimeSVG(productiveTimeData, themeName, customTheme, utcOffset);
 };
 
 const getProductiveTimeSVG = function (
     productiveTimeData: Array<number>,
     themeName: string,
+    customTheme: Theme | undefined,
     utcOffset: number
 ): string {
-    const svgString = productiveTimeCard(productiveTimeData, ThemeMap.get(themeName)!, utcOffset);
+    let theme = { ...ThemeMap.get(themeName)! };
+    if (customTheme !== undefined) {
+        if (customTheme.title) theme.title = "#" + customTheme.title;
+        if (customTheme.text) theme.text = "#" + customTheme.text;
+        if (customTheme.background) theme.background = "#" + customTheme.background;
+        if (customTheme.stroke) { theme.stroke = "#" + customTheme.stroke; theme.strokeOpacity = 1; }
+        if (customTheme.icon) theme.icon = "#" + customTheme.icon;
+        if (customTheme.chart) theme.chart = "#" + customTheme.chart;
+    }
+    const svgString = productiveTimeCard(productiveTimeData, theme, utcOffset);
     return svgString;
 };
 
