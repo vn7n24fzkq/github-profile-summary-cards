@@ -21,7 +21,8 @@ export default async (req: VercelRequest, res: VercelResponse) => {
     }
     let excludeArr = <string[]>[];
     exclude.split(',').forEach(function (val) {
-        excludeArr.push(translateLanguage(val));
+        const translatedLanguage = translateLanguage(val);
+        excludeArr.push(translatedLanguage.toLowerCase());
     });
 
     try {

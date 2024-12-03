@@ -25,7 +25,7 @@ const execCmd = (cmd: string, args: string[] = []) =>
         app.on('error', reject);
     });
 
-//ProfileSummaryCardsTemplate
+// ProfileSummaryCardsTemplate
 const commitFile = async () => {
     await execCmd('git', ['config', '--global', 'user.email', 'profile-summary-cards-bot@example.com']);
     await execCmd('git', ['config', '--global', 'user.name', 'profile-summary-cards[bot]']);
@@ -144,7 +144,8 @@ if (process.argv.length == 2) {
     const exclude: Array<string> = [];
     if (process.argv[4]) {
         process.argv[4].split(',').forEach(function (val) {
-            exclude.push(translateLanguage(val));
+            const translatedLanguage = translateLanguage(val);
+            exclude.push(translatedLanguage.toLowerCase());
         });
     }
     main(username, utcOffset, exclude);
