@@ -28,18 +28,24 @@ This tutorial will help you deploy Github-profile-summary-cards with ease. </br>
 
 <p align="center"> <img src="./assets_new/gen_user_pac.gif" alt="animated"> </p>
 
+**Make sure these boxes are checked!** *not shown in the gif*
+
+```
+Repo
+ -  repo:status
+ -  repo_deployment
+ -  public_repo
+
+User
+ -  read:user
+ -  user:email
+```
+
+
+
 3. And copy your token (**and don't lose it! You'd have to generate a new token**)
 
 
-<!--
-repo
--  repo:status
--  repo_deployment
--  public_repo
-user
--  read:user
--  user:email
--->
 
 # Select a repo
 
