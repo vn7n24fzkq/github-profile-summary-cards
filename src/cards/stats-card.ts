@@ -1,4 +1,4 @@
-import {ThemeMap} from '../const/theme';
+import {ThemeMap, Theme} from '../const/theme';
 import {Icon} from '../const/icon';
 import {abbreviateNumber} from 'js-abbreviation-number';
 import {getProfileDetails} from '../github-api/profile-details';
@@ -9,24 +9,38 @@ import {writeSVG} from '../utils/file-writer';
 export const createStatsCard = async function (username: string) {
     const statsData = await getStatsData(username);
     for (const themeName of ThemeMap.keys()) {
-        const svgString = getStatsSVG(statsData, themeName);
+        const svgString = getStatsSVG(statsData, themeName, undefined);
         // output to folder, use 3- prefix for sort in preview
         writeSVG(themeName, '3-stats', svgString);
     }
 };
 
-export const getStatsSVGWithThemeName = async function (username: string, themeName: string) {
+export const getStatsSVGWithThemeName = async function (
+    username: string,
+    themeName: string,
+    customTheme: Theme
+) {
     if (!ThemeMap.has(themeName)) throw new Error('Theme does not exist');
     const statsData = await getStatsData(username);
-    return getStatsSVG(statsData, themeName);
+    return getStatsSVG(statsData, themeName, customTheme);
 };
 
 const getStatsSVG = function (
     StatsData: {index: number; icon: string; name: string; value: string}[],
-    themeName: string
+    themeName: string,
+    customTheme: Theme | undefined
 ) {
     const title = 'Stats';
-    const svgString = statsCard(`${title}`, StatsData, ThemeMap.get(themeName)!);
+    let theme = { ...ThemeMap.get(themeName)! };
+    if (customTheme !== undefined) {
+        if (customTheme.title) theme.title = "#" + customTheme.title;
+        if (customTheme.text) theme.text = "#" + customTheme.text;
+        if (customTheme.background) theme.background = "#" + customTheme.background;
+        if (customTheme.stroke) { theme.stroke = "#" + customTheme.stroke; theme.strokeOpacity = 1; }
+        if (customTheme.icon) theme.icon = "#" + customTheme.icon;
+        if (customTheme.chart) theme.chart = "#" + customTheme.chart;
+    }
+    const svgString = statsCard(`${title}`, StatsData, theme);
     return svgString;
 };
 
