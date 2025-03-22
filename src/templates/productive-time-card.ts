@@ -4,7 +4,24 @@ import * as d3 from 'd3';
 import * as d3Axis from 'd3-axis';
 
 export function createProductiveCard(chartData: number[], theme: Theme, utcOffset: number) {
-    const title = 'Commits ' + '(UTC ' + (utcOffset >= 0 ? '+' : '') + utcOffset.toFixed(2) + ')';
+    const formatUTCOffset = (offset: number): string => {
+        if (offset >= 14) return 'UTC+14:00';
+        if (offset <= -12) return 'UTC-12:00';
+
+        const sign = offset >= 0 ? '+' : '-';
+        const absOffset = Math.abs(offset);
+
+        const hours = Math.floor(absOffset);
+        const minutes = Math.round((absOffset - hours) * 60);
+
+        if (minutes >= 60) {
+            return `${sign}${hours + 1}:00`;
+        }
+
+        return `UTC${sign}${hours}:${minutes.toString().padStart(2, '0')}`;
+    };
+
+    const title = `Commits ${formatUTCOffset(utcOffset)}`;
     const card = new Card(title, 340, 200, theme);
     const svg = card.getSVG();
 
