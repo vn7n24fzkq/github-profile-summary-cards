@@ -15,7 +15,7 @@ export function createProductiveCard(chartData: number[], theme: Theme, utcOffse
         const minutes = Math.round((absOffset - hours) * 60);
 
         if (minutes >= 60) {
-            return `${sign}${hours + 1}:00`;
+            return `UTC${sign}${hours + 1}:00`;
         }
 
         return `UTC${sign}${hours}:${minutes.toString().padStart(2, '0')}`;
