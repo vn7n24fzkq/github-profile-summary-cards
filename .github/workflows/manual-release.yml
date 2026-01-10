@@ -32,3 +32,38 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git push -f origin HEAD:web-release
+
+  release-action:
+    if: github.event.inputs.target == 'all' || github.event.inputs.target == 'release'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.node-version'
+          
+      - run: npm ci
+      - run: npm run build
+      - run: npm run package
+      
+      - name: Git Config
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+      - name: Commit and Push if changed
+        run: |
+          git add dist/index.js
+          git commit -m "chore: build distribution" || echo "No changes to commit"
+          git push origin HEAD:main
+          
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        if: github.event.inputs.tag_name != ''
+        with:
+          tag_name: ${{ github.event.inputs.tag_name }}
+          target_commitish: main
+          generate_release_notes: true

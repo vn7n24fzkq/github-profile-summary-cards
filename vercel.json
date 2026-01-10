@@ -3,7 +3,18 @@
         "silent": true
     },
     "outputDirectory": "api/pages",
-    "rewrites": [{"source": "/api/(.*)", "destination": "/api"}],
+    "rewrites": [
+        {
+            "source": "/api/(.*)",
+            "destination": "/api"
+        }
+    ],
+    "functions": {
+        "api/**/*.ts": {
+            "memory": 128,
+            "maxDuration": 10
+        }
+    },
     "headers": [
         {
             "source": "/api/cards/(.*)",
@@ -17,8 +28,14 @@
         {
             "source": "/api/theme",
             "headers": [
-                {"key": "Access-Control-Allow-Credentials", "value": "true"},
-                {"key": "Access-Control-Allow-Origin", "value": "*"},
+                {
+                    "key": "Access-Control-Allow-Credentials",
+                    "value": "true"
+                },
+                {
+                    "key": "Access-Control-Allow-Origin",
+                    "value": "*"
+                },
                 {
                     "key": "Access-Control-Allow-Methods",
                     "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT"
@@ -35,6 +52,9 @@
             "source": "/",
             "destination": "/demo"
         },
-        {"source": "/demo", "destination": "/demo.html"}
+        {
+            "source": "/demo",
+            "destination": "/demo.html"
+        }
     ]
 }

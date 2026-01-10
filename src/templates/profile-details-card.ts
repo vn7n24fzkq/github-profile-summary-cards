@@ -1,6 +1,5 @@
 import {Card} from './card';
 import * as d3 from 'd3';
-import moment from 'moment';
 import {Theme} from '../const/theme';
 
 export function createDetailCard(
@@ -50,8 +49,9 @@ export function createDetailCard(
 
     // process chart data
     const lineChartData: {contributionCount: number; date: Date}[] = [];
+    const formatter = d3.timeFormat('%Y-%m');
     for (const data of contributionsData) {
-        const formatDate = moment(data.date).format('YYYY-MM');
+        const formatDate = formatter(data.date);
         data.date = new Date(formatDate);
         const lastIndex = lineChartData.length - 1;
         if (lineChartData.length == 0 || lineChartData[lastIndex].date.getTime() !== data.date.getTime()) {

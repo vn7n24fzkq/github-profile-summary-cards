@@ -3,8 +3,8 @@ import {getProductiveTime} from '../github-api/productive-time';
 import {createProductiveCard as productiveTimeCard} from '../templates/productive-time-card';
 import {writeSVG} from '../utils/file-writer';
 
-export const createProductiveTimeCard = async function (username: string, utcOffset: number) {
-    const productiveTimeData = await getProductiveTimeData(username, utcOffset);
+export const createProductiveTimeCard = async function (username: string, utcOffset: number, token: string) {
+    const productiveTimeData = await getProductiveTimeData(username, utcOffset, token);
     for (const themeName of ThemeMap.keys()) {
         const svgString = getProductiveTimeSVG(productiveTimeData, themeName, utcOffset);
         // output to folder, use 4- prefix for sort in preview
@@ -15,10 +15,11 @@ export const createProductiveTimeCard = async function (username: string, utcOff
 export const getProductiveTimeSVGWithThemeName = async function (
     username: string,
     themeName: string,
-    utcOffset: number
+    utcOffset: number,
+    token: string
 ) {
     if (!ThemeMap.has(themeName)) throw new Error('Theme does not exist');
-    const productiveTimeData = await getProductiveTimeData(username, utcOffset);
+    const productiveTimeData = await getProductiveTimeData(username, utcOffset, token);
     return getProductiveTimeSVG(productiveTimeData, themeName, utcOffset);
 };
 
@@ -49,11 +50,15 @@ const adjustOffset = function (offset: number, RoundRobin: {offset: number}): nu
     }
 };
 
-const getProductiveTimeData = async function (username: string, utcOffset: number): Promise<Array<number>> {
+const getProductiveTimeData = async function (
+    username: string,
+    utcOffset: number,
+    token: string
+): Promise<Array<number>> {
     const until = new Date();
     const since = new Date();
     since.setFullYear(since.getFullYear() - 1);
-    const productiveTime = await getProductiveTime(username, until.toISOString(), since.toISOString());
+    const productiveTime = await getProductiveTime(username, until.toISOString(), since.toISOString(), token);
     // process productiveTime
     const chartData = new Array(24);
     chartData.fill(0);

@@ -1,11 +1,13 @@
 import {getCommitsLanguageSVGWithThemeName} from '../../src/cards/most-commit-language-card';
-import {changToNextGitHubToken} from '../utils/github-token-updater';
+import {getGitHubToken} from '../utils/github-token-updater';
 import {getErrorMsgCard} from '../utils/error-card';
+import {sendAnalytics} from '../../src/utils/analytics';
+import {CONST_CACHE_CONTROL} from '../../src/const/cache';
 import {translateLanguage} from '../../src/utils/translator';
 import type {VercelRequest, VercelResponse} from '@vercel/node';
 
 export default async (req: VercelRequest, res: VercelResponse) => {
-    let {username, theme = 'default', exclude = ''} = req.query;
+    const {username, theme = 'default', exclude = ''} = req.query;
 
     if (typeof theme !== 'string') {
         res.status(400).send('theme must be a string');
@@ -19,27 +21,29 @@ export default async (req: VercelRequest, res: VercelResponse) => {
         res.status(400).send('exclude must be a string');
         return;
     }
-    let excludeArr = <string[]>[];
+    const excludeArr = <string[]>[];
     exclude.split(',').forEach(function (val) {
         const translatedLanguage = translateLanguage(val);
         excludeArr.push(translatedLanguage.toLowerCase());
     });
 
     try {
+        let token = process.env.GITHUB_TOKEN!;
         let tokenIndex = 0;
         while (true) {
             try {
-                const cardSVG = await getCommitsLanguageSVGWithThemeName(username, theme, excludeArr);
+                const cardSVG = await getCommitsLanguageSVGWithThemeName(username, theme, excludeArr, token);
+                await sendAnalytics('most-commit-language-card', {username, theme});
                 res.setHeader('Content-Type', 'image/svg+xml');
-                res.setHeader('Cache-Control', 'public, max-age=14400, s-maxage=86400');
+                res.setHeader('Cache-Control', CONST_CACHE_CONTROL);
                 res.send(cardSVG);
                 return;
             } catch (err: any) {
                 console.log(err.message);
                 // We update github token and try again, until getNextGitHubToken throw an Error
                 if (err.response && (err.response.status === 403 || err.response.status === 401)) {
-                    changToNextGitHubToken(tokenIndex);
                     tokenIndex += 1;
+                    token = getGitHubToken(tokenIndex);
                 } else {
                     throw err;
                 }

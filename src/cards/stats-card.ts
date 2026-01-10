@@ -6,8 +6,8 @@ import {getContributionByYear} from '../github-api/contributions-by-year';
 import {createStatsCard as statsCard} from '../templates/stats-card';
 import {writeSVG} from '../utils/file-writer';
 
-export const createStatsCard = async function (username: string) {
-    const statsData = await getStatsData(username);
+export const createStatsCard = async function (username: string, token: string) {
+    const statsData = await getStatsData(username, token);
     for (const themeName of ThemeMap.keys()) {
         const svgString = getStatsSVG(statsData, themeName);
         // output to folder, use 3- prefix for sort in preview
@@ -15,9 +15,9 @@ export const createStatsCard = async function (username: string) {
     }
 };
 
-export const getStatsSVGWithThemeName = async function (username: string, themeName: string) {
+export const getStatsSVGWithThemeName = async function (username: string, themeName: string, token: string) {
     if (!ThemeMap.has(themeName)) throw new Error('Theme does not exist');
-    const statsData = await getStatsData(username);
+    const statsData = await getStatsData(username, token);
     return getStatsSVG(statsData, themeName);
 };
 
@@ -31,9 +31,10 @@ const getStatsSVG = function (
 };
 
 const getStatsData = async function (
-    username: string
+    username: string,
+    token: string
 ): Promise<{index: number; icon: string; name: string; value: string}[]> {
-    const profileDetails = await getProfileDetails(username);
+    const profileDetails = await getProfileDetails(username, token);
     const totalStars = profileDetails.totalStars;
     let totalCommitContributions = 0;
     const totalPullRequestContributions = profileDetails.totalPullRequestContributions;
@@ -44,12 +45,12 @@ const getStatsData = async function (
         // If running on vercel, we only calculate for last 1 year to avoid Vercel timeout limit
         profileDetails.contributionYears = profileDetails.contributionYears.slice(0, 1);
         for (const year of profileDetails.contributionYears) {
-            const contributions = await getContributionByYear(username, year);
+            const contributions = await getContributionByYear(username, year, token);
             totalCommitContributions += contributions.totalCommitContributions;
         }
     } else {
         for (const year of profileDetails.contributionYears) {
-            const contributions = await getContributionByYear(username, year);
+            const contributions = await getContributionByYear(username, year, token);
             totalCommitContributions += contributions.totalCommitContributions;
         }
     }

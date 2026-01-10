@@ -69,8 +69,13 @@ const fetcher = (token: string, variables: any) => {
 };
 
 // get productive time
-export async function getProductiveTime(username: string, until: string, since: string): Promise<ProfuctiveTime> {
-    const userIdResponse = await userIdFetcher(process.env.GITHUB_TOKEN!, {
+export async function getProductiveTime(
+    username: string,
+    until: string,
+    since: string,
+    token: string
+): Promise<ProfuctiveTime> {
+    const userIdResponse = await userIdFetcher(token, {
         login: username
     });
 
@@ -79,7 +84,7 @@ export async function getProductiveTime(username: string, until: string, since: 
     }
 
     const userId = userIdResponse.data.data.user.id;
-    const res = await fetcher(process.env.GITHUB_TOKEN!, {
+    const res = await fetcher(token, {
         login: username,
         userId: userId,
         until: until,

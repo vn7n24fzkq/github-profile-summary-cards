@@ -1,0 +1,19 @@
+{
+    "packages": [
+        "nodejs@22",
+        "python@3",
+        "git",
+        "pre-commit"
+    ],
+    "shell": {
+        "init_hook": [
+            "echo 'Welcome to github-profile-summary-cards dev environment'",
+            "npm install"
+        ],
+        "scripts": {
+            "test": "npm test",
+            "build": "npm run build",
+            "package": "npm run package"
+        }
+    }
+}

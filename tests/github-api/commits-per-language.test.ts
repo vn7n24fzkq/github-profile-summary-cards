@@ -84,7 +84,7 @@ afterEach(() => {
 describe('commit contributions on github', () => {
     it('should get correct commit contributions', async () => {
         mock.onPost('https://api.github.com/graphql').reply(200, data);
-        const totalContributions = await getCommitLanguage('vn7n24fzkq', []);
+        const totalContributions = await getCommitLanguage('vn7n24fzkq', [], 'token');
         expect(totalContributions).toEqual({
             languageMap: new Map([
                 ['Rust', {color: '#dea584', count: 199, name: 'Rust'}],
@@ -96,12 +96,12 @@ describe('commit contributions on github', () => {
 
     it('should throw error when api failed', async () => {
         mock.onPost('https://api.github.com/graphql').reply(200, error);
-        await expect(getCommitLanguage('vn7n24fzkq', [])).rejects.toThrow('GitHub api failed');
+        await expect(getCommitLanguage('vn7n24fzkq', [], 'token')).rejects.toThrow('GitHub api failed');
     });
 
     it('should do a case-insensitive comparison for language exclusion', async () => {
         mock.onPost('https://api.github.com/graphql').reply(200, data);
-        const repoData = await getCommitLanguage('vn7n24fzkq', ['jupyter notebook']);
+        const repoData = await getCommitLanguage('vn7n24fzkq', ['jupyter notebook'], 'token');
         expect(repoData).toEqual({
             languageMap: new Map([
                 ['Rust', {color: '#dea584', count: 199, name: 'Rust'}],

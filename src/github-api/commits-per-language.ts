@@ -61,10 +61,14 @@ const fetcher = (token: string, variables: any) => {
 };
 
 // repos per language
-export async function getCommitLanguage(username: string, exclude: Array<string>): Promise<CommitLanguages> {
+export async function getCommitLanguage(
+    username: string,
+    exclude: Array<string>,
+    token: string
+): Promise<CommitLanguages> {
     const commitLanguages = new CommitLanguages();
 
-    const res = await fetcher(process.env.GITHUB_TOKEN!, {
+    const res = await fetcher(token, {
         login: username
     });
 

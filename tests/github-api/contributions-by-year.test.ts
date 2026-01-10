@@ -34,7 +34,7 @@ afterEach(() => {
 describe('contributions count on github', () => {
     it('should get correct contributions', async () => {
         mock.onPost('https://api.github.com/graphql').reply(200, data);
-        const totalContributions = await getContributionByYear('vn7n24fzkq', 2020);
+        const totalContributions = await getContributionByYear('vn7n24fzkq', 2020, 'token');
         expect(totalContributions).toEqual({
             totalCommitContributions: 30,
             totalContributions: 10,
@@ -44,6 +44,6 @@ describe('contributions count on github', () => {
 
     it('should throw error when api failed', async () => {
         mock.onPost('https://api.github.com/graphql').reply(200, error);
-        await expect(getContributionByYear('vn7n24fzkq', 2020)).rejects.toThrow('GitHub api failed');
+        await expect(getContributionByYear('vn7n24fzkq', 2020, 'token')).rejects.toThrow('GitHub api failed');
     });
 });

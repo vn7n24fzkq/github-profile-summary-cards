@@ -177,25 +177,35 @@ jobs:
 
 ---
 
-## Local Run
+## Development (Devbox)
 
-- Require `node 16`, lower versions should get some problems.
-- Add personal access token to `.env` file. ex: `GITHUB_TOKEN=abcda69ddf66ae95538c5b1666591b59b4abc73a`
-- Remember `npm run build` after modifying any code
+This project uses [devbox](https://www.jetify.com/devbox) to ensure a reproducible development environment (Node.js 22, Python 3).
 
+### 1. Setup
 ```sh
-npm run run [username] [UTC offset]
+# Install devbox
+curl -fsSL https://get.jetpack.io/devbox | bash
+
+# Enter shell (installs all dependencies automatically)
+devbox shell
 ```
 
-Example
+### 2. Local Testing
+We provide a script to generate cards locally for visual verification.
+**Prerequisite**: You must have a `GITHUB_TOKEN`.
 
 ```sh
-npm run run vn7n24fzkq 8
+# Set token (or add to .env)
+export GITHUB_TOKEN=your_token_here
+
+# Run local test generator
+npm run test:local
 ```
+Outputs will be saved to `debug_output/` folder.
 
-- To locally run the API you can use the vercel dev package
-
+### 3. Run Vercel API Locally
 ```sh
+npm i -g vercel
 vercel dev
 ```
 

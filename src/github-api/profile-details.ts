@@ -89,8 +89,8 @@ const fetcher = (token: string, variables: any) => {
     );
 };
 
-export async function getProfileDetails(username: string): Promise<ProfileDetails> {
-    const res = await fetcher(process.env.GITHUB_TOKEN!, {
+export async function getProfileDetails(username: string, token: string): Promise<ProfileDetails> {
+    const res = await fetcher(token, {
         login: username
     });
 

@@ -5,13 +5,15 @@ module.exports = {
     clearMocks: true,
     moduleFileExtensions: ['js', 'ts'],
     transform: {
-        '^.+\\.ts$': 'ts-jest',
+        '^.+\\.ts$': ['ts-jest', {
+            tsconfig: 'tsconfig.test.json'
+        }],
         '^.+\\.js$': 'babel-jest' // Ensure JS files in node_modules can be transformed
     },
     setupFilesAfterEnv: [],
     testMatch: ['**/*.test.ts'],
     verbose: true,
-    collectCoverageFrom: ['**/*.{ts,jx}', '!**/node_modules/**', '!**/dist/**', '!**/lib/**'],
+    collectCoverageFrom: ['**/*.{ts,jx}', '!**/node_modules/**', '!**/dist/**', '!**/lib/**', '!scripts/**'],
     moduleNameMapper: {
         '^axios$': path.join(__dirname, 'node_modules/axios/dist/node/axios.cjs')
     },

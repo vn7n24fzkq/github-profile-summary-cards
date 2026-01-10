@@ -38,9 +38,13 @@ const fetcher = (token: string, variables: any, year: number) => {
     );
 };
 
-export async function getContributionByYear(username: string, year: number): Promise<ConrtibutionByYear> {
+export async function getContributionByYear(
+    username: string,
+    year: number,
+    token: string
+): Promise<ConrtibutionByYear> {
     const res = await fetcher(
-        process.env.GITHUB_TOKEN!,
+        token,
         {
             login: username
         },

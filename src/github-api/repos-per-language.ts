@@ -61,14 +61,18 @@ const fetcher = (token: string, variables: any) => {
 };
 
 // repos per language
-export async function getRepoLanguages(username: string, exclude: Array<string>): Promise<RepoLanguages> {
+export async function getRepoLanguages(
+    username: string,
+    exclude: Array<string>,
+    token: string
+): Promise<RepoLanguages> {
     let hasNextPage = true;
     let cursor = null;
     const repoLanguages = new RepoLanguages();
     const nodes = [];
 
     while (hasNextPage) {
-        const res: any = await fetcher(process.env.GITHUB_TOKEN!, {
+        const res: any = await fetcher(token, {
             login: username,
             endCursor: cursor
         });

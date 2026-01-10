@@ -70,7 +70,7 @@ afterEach(() => {
 describe('github api for profile details', () => {
     it('should get correct profile data', async () => {
         mock.onPost('https://api.github.com/graphql').reply(200, data);
-        const profileDetails = await getProfileDetails('vn7n24fzkq');
+        const profileDetails = await getProfileDetails('vn7n24fzkq', 'token');
         expect(profileDetails).toEqual({
             id: 'userID',
             name: 'vn7',
@@ -105,6 +105,6 @@ describe('github api for profile details', () => {
 
     it('should throw error when api failed', async () => {
         mock.onPost('https://api.github.com/graphql').reply(200, error);
-        await expect(getProfileDetails('vn7n24fzkq')).rejects.toThrow('GitHub api failed');
+        await expect(getProfileDetails('vn7n24fzkq', 'token')).rejects.toThrow('GitHub api failed');
     });
 });
