@@ -38,6 +38,10 @@ const commitFile = async () => {
 // main
 const action = async () => {
     core.info(`Start...`);
+    if (!process.env.GITHUB_TOKEN) {
+        core.setFailed('GITHUB_TOKEN is missing. Please check your workflow configuration.');
+        return;
+    }
     const username = core.getInput('USERNAME', {required: true});
     core.info(`Username: ${username}`);
     const utcOffset = Number(core.getInput('UTC_OFFSET', {required: false}));

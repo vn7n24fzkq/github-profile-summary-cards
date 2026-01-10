@@ -16,12 +16,12 @@ export default async (req: VercelRequest, res: VercelResponse) => {
         return;
     }
     try {
-        let token = process.env.GITHUB_TOKEN!;
+        let token = getGitHubToken(0);
         let tokenIndex = 0;
         while (true) {
             try {
                 const cardSVG = await getStatsSVGWithThemeName(username, theme, token);
-                await sendAnalytics('stats-card', {username, theme});
+                await sendAnalytics('stats-card', {username, theme}, req.headers);
                 res.setHeader('Content-Type', 'image/svg+xml');
                 res.setHeader('Cache-Control', CONST_CACHE_CONTROL);
                 res.send(cardSVG);

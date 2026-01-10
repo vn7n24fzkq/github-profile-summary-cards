@@ -6,6 +6,16 @@ export const getGitHubToken = function (index: number): string {
     if (!token) {
         throw new Error(`No more GITHUB_TOKEN can be used (Index: ${index})`);
     }
-    console.log(`Using ${tokenName}`);
+    if (isNaN(index)) {
+        throw new Error('Token index must be a number');
+    }
+
+    // Explicitly determine which token source is used for logging
+    const source = process.env[tokenName]
+        ? tokenName
+        : index === 0 && process.env.GITHUB_TOKEN
+          ? 'GITHUB_TOKEN'
+          : 'Unknown';
+    console.log(`Using token source: ${source}`);
     return token;
 };

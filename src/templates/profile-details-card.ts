@@ -52,7 +52,8 @@ export function createDetailCard(
     const formatter = d3.timeFormat('%Y-%m');
     for (const data of contributionsData) {
         const formatDate = formatter(data.date);
-        data.date = new Date(formatDate);
+        // Fix: Append day to ensure valid ISO 8601 date (YYYY-MM-DD) for reliable parsing
+        data.date = new Date(`${formatDate}-01`);
         const lastIndex = lineChartData.length - 1;
         if (lineChartData.length == 0 || lineChartData[lastIndex].date.getTime() !== data.date.getTime()) {
             lineChartData.push({

@@ -28,12 +28,12 @@ export default async (req: VercelRequest, res: VercelResponse) => {
     });
 
     try {
-        let token = process.env.GITHUB_TOKEN!;
+        let token = getGitHubToken(0);
         let tokenIndex = 0;
         while (true) {
             try {
                 const cardSVG = await getCommitsLanguageSVGWithThemeName(username, theme, excludeArr, token);
-                await sendAnalytics('most-commit-language-card', {username, theme});
+                await sendAnalytics('most-commit-language-card', {username, theme}, req.headers);
                 res.setHeader('Content-Type', 'image/svg+xml');
                 res.setHeader('Cache-Control', CONST_CACHE_CONTROL);
                 res.send(cardSVG);
