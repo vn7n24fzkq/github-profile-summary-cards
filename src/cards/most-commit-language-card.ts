@@ -28,18 +28,16 @@ const getCommitsLanguageSVG = function (
     themeName: string
 ): string {
     if (langData.length == 0) {
+        // Generic placeholder that fits inside the donut chart's legend space (~18 chars
+        // per line at 14-px font); avoids "in the last year"/"for this organization"
+        // overflows into the pie graphic for accounts with no recent commits.
         langData.push({
             name: 'There are no',
             value: 1,
             color: '#586e75'
         });
         langData.push({
-            name: 'any commits',
-            value: 1,
-            color: '#586e75'
-        });
-        langData.push({
-            name: 'in the last year',
+            name: 'commits to show',
             value: 1,
             color: '#586e75'
         });
