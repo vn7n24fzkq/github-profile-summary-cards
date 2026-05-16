@@ -1,5 +1,5 @@
 import {Card} from '../../src/templates/card';
-import {Theme, ThemeMap} from '../../src/const/theme';
+import {Theme, ThemeMap, resolveThemeName} from '../../src/const/theme';
 
 const MAX_CHARS_PER_LINE = 40;
 const LINE_HEIGHT = 18;
@@ -39,7 +39,8 @@ function wrapMessage(msg: string, maxChars: number): string[] {
 }
 
 export const getErrorMsgCard = function (msg: string, themeName: string) {
-    const theme: Theme = ThemeMap.get(themeName)!;
+    // Defensive: an invalid theme name would otherwise blow up the error card itself.
+    const theme: Theme = ThemeMap.get(resolveThemeName(themeName))!;
     theme.title = 'red';
 
     const card = new Card('ERROR!!!', 340, 200, theme);
