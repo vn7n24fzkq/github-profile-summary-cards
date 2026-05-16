@@ -142,12 +142,14 @@ export function createDetailCard(
         .attr('transform', `translate(${chartWidth - chartRightMargin},0)`)
         .call(d3.axisRight(y).ticks(8));
 
-    // hard code this coordinate becuz I'm too lazy
+    // Caption goes above the chart for short titles, below the chart for tall/long titles
+    // (multi-line titles push the chart down and the caption would otherwise overlap them).
+    const titleIsTall = title.includes('\n') || title.length > 30;
     chartPanel
         .append('g')
         .append('text')
         .text('contributions in the last year')
-        .attr('y', title.length > 30 ? 140 : -15) // if the title is too long, then put text to the bottom
+        .attr('y', titleIsTall ? 140 : -15)
         .attr('x', 230)
         .style('fill', theme.text)
         .style('font-size', `10px`);
