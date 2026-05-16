@@ -50,6 +50,7 @@ export default async (req: VercelRequest, res: VercelResponse) => {
             }
         }
     } catch (err: any) {
+        res.setHeader('Content-Type', 'image/svg+xml');
         res.send(getErrorMsgCard(err.message, theme));
     }
 };
