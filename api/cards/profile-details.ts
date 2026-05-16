@@ -3,11 +3,12 @@ import {getGitHubToken} from '../utils/github-token-updater';
 import {getErrorMsgCard} from '../utils/error-card';
 import {sendAnalytics} from '../../src/utils/analytics';
 import {CONST_CACHE_CONTROL} from '../../src/const/cache';
+import {resolveThemeName} from '../../src/const/theme';
 import type {VercelRequest, VercelResponse} from '@vercel/node';
 
 export default async (req: VercelRequest, res: VercelResponse) => {
-    const {username, theme = 'default'} = req.query;
-    if (typeof theme !== 'string') {
+    const {username, theme: rawTheme = 'default'} = req.query;
+    if (typeof rawTheme !== 'string') {
         res.status(400).send('theme must be a string');
         return;
     }
@@ -15,6 +16,7 @@ export default async (req: VercelRequest, res: VercelResponse) => {
         res.status(400).send('username must be a string');
         return;
     }
+    const theme = resolveThemeName(rawTheme);
     try {
         let token = getGitHubToken(0);
         let tokenIndex = 0;
