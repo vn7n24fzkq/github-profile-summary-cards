@@ -9,13 +9,27 @@ function wrapMessage(msg: string, maxChars: number): string[] {
     const lines: string[] = [];
     let current = '';
     for (const word of words) {
+        // Pre-slice any token longer than maxChars (e.g. unbroken usernames in
+        // GitHub error messages) so the panel never overflows. Whole-chunk
+        // slices flush as their own lines; the trailing remainder falls back
+        // to the normal whitespace-greedy logic below.
+        let remaining = word;
+        while (remaining.length > maxChars) {
+            if (current.length > 0) {
+                lines.push(current);
+                current = '';
+            }
+            lines.push(remaining.slice(0, maxChars));
+            remaining = remaining.slice(maxChars);
+        }
+        if (remaining.length === 0) continue;
         if (current.length === 0) {
-            current = word;
-        } else if (current.length + 1 + word.length <= maxChars) {
-            current += ' ' + word;
+            current = remaining;
+        } else if (current.length + 1 + remaining.length <= maxChars) {
+            current += ' ' + remaining;
         } else {
             lines.push(current);
-            current = word;
+            current = remaining;
         }
     }
     if (current.length > 0) {

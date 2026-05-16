@@ -31,4 +31,18 @@ describe('error card', () => {
             expect(line.length).toBeLessThanOrEqual(40);
         }
     });
+
+    it('should split a single token that exceeds the wrap width', () => {
+        const longToken = 'a'.repeat(95); // 95 > 2 * MAX_CHARS_PER_LINE (40)
+        const msg = `prefix ${longToken} suffix`;
+        const svg = getErrorMsgCard(msg, 'default');
+        const lines = extractMessageLines(svg);
+        // Every emitted line must respect the wrap width even when a single token is too long.
+        for (const line of lines) {
+            expect(line.length).toBeLessThanOrEqual(40);
+        }
+        // The full token characters survive, in order, when the lines are concatenated.
+        const flattened = lines.join('').replace(/\s+/g, '');
+        expect(flattened).toBe(`prefix${longToken}suffix`);
+    });
 });
