@@ -114,7 +114,10 @@ GITHUB_TOKEN=your_github_token_here
 
 Workflow yaml 用 `${{ secrets.SUMMARY_GITHUB_TOKEN }}` 引用這個 secret。**永遠不要**把原始 token 貼到 yaml 裡。
 
-如果你想讓 bot 把產生的卡片 push 回 repo,secret 必須是你的 PAT,**不是** GitHub 自動提供的 `GITHUB_TOKEN` — 內建的 token 在 schedule cron 觸發時無法 push。
+如果你想讓 bot 把產生的卡片 push 回 repo,有兩種做法:
+
+- **內建的 `GITHUB_TOKEN`** 配合在 workflow 裡加上 `permissions: contents: write`(下面範例 workflow 的 `jobs.build` 區塊已經包含這一行)。GitHub 自動提供的 token 預設權限會依 repo 設定而不同,顯式加上 `permissions` 才能保證 schedule cron 觸發時也能 push。
+- **你自己的 PAT** 存放在自訂名稱的 secret(例如 `SUMMARY_GITHUB_TOKEN`)。適合不想改 workflow `permissions`、或預設 workflow 權限被設為 read-only 的情況。
 
 #### Vercel(部署你自己的 API)
 
@@ -129,7 +132,7 @@ Workflow yaml 用 `${{ secrets.SUMMARY_GITHUB_TOKEN }}` 引用這個 secret。**
 ### 常見錯誤
 
 - **不小心 commit token**。如果 `.env` 出現在 `git status` 裡,先停下來 — 確認 `.gitignore` 有正確忽略它。如果已經 push 含有 token 的 commit,馬上到 https://github.com/settings/tokens 撤銷它,然後產生新的。
-- **在 Action 裡使用 `${{ secrets.GITHUB_TOKEN }}`(內建 token)**。Schedule cron 觸發時內建 token 沒辦法 push。要用你自己的 PAT,放在自訂名稱的 secret 下。
+- **在 Action 裡使用 `${{ secrets.GITHUB_TOKEN }}`(內建 token)而未設定 workflow 權限**。內建的 `GITHUB_TOKEN` 預設可能是 read-only。若要讓它能 push,必須在 workflow 裡顯式加上 `permissions: contents: write`;否則改用你自己的 PAT(放在 `SUMMARY_GITHUB_TOKEN` 等自訂名稱的 secret 下)。
 - **想在組織帳號下產生 token**。沒有這種選項 — GitHub 不發 PAT 給組織。永遠是從個人帳號的 `Settings → Developer settings` 產生。
 - **缺少 `read:org` scope** 但又想讀取私有組織的成員數。組織的 `membersWithRole.totalCount` 會回傳 0 或報錯,加上 scope 後重新產生 token。
 

@@ -185,7 +185,10 @@ Go to **the repo where the workflow will run** — typically `https://github.com
 
 The workflow file references the secret as `${{ secrets.SUMMARY_GITHUB_TOKEN }}`. Never paste the raw token into the YAML.
 
-If you also want the bot to push generated cards back to the repo, the secret must be a PAT, not the auto-provided `GITHUB_TOKEN` — GitHub's built-in token can't push when triggered by a schedule cron.
+If you want the bot to push generated cards back to the repo, two options work:
+
+- **Built-in `GITHUB_TOKEN`** plus `permissions: contents: write` in the workflow (the `jobs.build` block in the example workflow below already includes this line). GitHub's auto-provided token has read-only permissions by default on many repos, so this `permissions:` line is what actually grants it push access for scheduled cron runs.
+- **Your own PAT** stored under a custom secret name such as `SUMMARY_GITHUB_TOKEN`. Useful if you'd rather not adjust workflow permissions, or if your repo's default workflow permissions are locked to read-only.
 
 #### Vercel (your own deployment of the API)
 
@@ -200,7 +203,7 @@ Redeploy after saving so the new env var takes effect.
 ### Common mistakes
 
 - **Committing the token.** If `.env` shows up in `git status`, stop — confirm it matches the entry in `.gitignore` before continuing. If you've already pushed a commit containing a token, revoke it at https://github.com/settings/tokens and create a new one.
-- **Using `${{ secrets.GITHUB_TOKEN }}` (the built-in token) in the Action.** Scheduled cron triggers can't push with the built-in token. Use your own PAT under a custom secret name.
+- **Using `${{ secrets.GITHUB_TOKEN }}` (the built-in token) without setting workflow permissions.** The auto-provided `GITHUB_TOKEN` is often read-only by default. If you want to use it for pushing, add `permissions: contents: write` to the workflow; otherwise switch to your own PAT under a custom secret name (e.g. `SUMMARY_GITHUB_TOKEN`).
 - **Token created under an org account.** Not a thing — GitHub doesn't issue PATs to orgs. Always create from your user `Settings → Developer settings`.
 - **Token missing `read:org`** when reading members of a private org. The org's `membersWithRole.totalCount` will come back as 0 or error out; add the scope and regenerate.
 
