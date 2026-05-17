@@ -11,7 +11,8 @@ export function createDetailCard(
         value: string;
     }[],
     contributionsData: {contributionCount: number; date: Date}[],
-    theme: Theme
+    theme: Theme,
+    chartCaption: string = 'contributions in the last year'
 ) {
     const card = new Card(title, 700, 200, theme);
     const svg = card.getSVG();
@@ -148,7 +149,7 @@ export function createDetailCard(
     chartPanel
         .append('g')
         .append('text')
-        .text('contributions in the last year')
+        .text(chartCaption)
         .attr('y', titleIsTall ? 140 : -15)
         .attr('x', 230)
         .style('fill', theme.text)
