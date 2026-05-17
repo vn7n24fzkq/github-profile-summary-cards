@@ -109,6 +109,128 @@
 
 ---
 
+## Organization cards
+
+All endpoints above accept either a user login or an organization login as `username`. The owner type is auto-detected; no extra parameter is needed.
+
+The same URLs return organization-flavored cards when the login resolves to an organization:
+- `profile-details` swaps the contributions overlay for a "repos created over time" chart and shows Members / Public Repos / Created at / Email|Location|Website.
+- `repos-per-language` and `most-commit-language` aggregate across the organization's public repos (top 50 for the commit card to stay within API rate limits).
+- `stats` shows Total Stars / Total Repos / Total Forks / Members / Open Issues.
+- `productive-time` is **not supported** for organizations (it relies on per-user contribution data); the endpoint returns a small error card explaining this.
+
+The same GitHub Action setup also works for organizations — set `USERNAME` to the org login. The generated `profile-summary-card-output/` will contain 4 cards per theme instead of 5.
+
+---
+
+## Setting up your GitHub token
+
+Every way of running this project — locally, in a GitHub Action, on Vercel — needs a GitHub personal access token (PAT). If you've never created one, read this section first.
+
+### Who owns the token?
+
+**A PAT always belongs to a user account, not to an organization.** Even when you point this tool at an organization (e.g. `microsoft`), the token comes from a *user* — typically you. The token only grants whatever access *that user* already has. For public data (which is what the cards display), any logged-in GitHub user can read it, so a token from any account works.
+
+If you want cards for a private organization where you're a member, your token still needs to be created under *your* user account; just give it permission to read that org (see scopes below).
+
+### Step 1: pick a token type
+
+GitHub offers two PAT styles. Either works for this project.
+
+- **Fine-grained PAT** (recommended). Newer, scoped to specific repos or orgs, mandatory expiration.
+  Create one at https://github.com/settings/personal-access-tokens/new.
+- **Classic PAT**. Older, broad scopes, optional expiration.
+  Create one at https://github.com/settings/tokens/new.
+
+### Step 2: grant the right permissions
+
+For **public** users and orgs (the typical case), you need very little:
+
+| Token type | What to enable |
+|---|---|
+| Fine-grained PAT | **Repository access**: "Public repositories (read-only)". **Account permissions**: leave defaults — public-profile data is read without explicit grants. If targeting an org, also set "Resource owner" to that org so the read:org-equivalent applies. |
+| Classic PAT | Check `public_repo` and `read:user`. Add `read:org` if you need member counts on a *private* organization. |
+
+For **private** repos or private org members, escalate:
+
+| Token type | What to enable |
+|---|---|
+| Fine-grained PAT | "Repository access": "All repositories" or pick specific private repos. Read-only is enough. |
+| Classic PAT | Add `repo` (full repo access) and `read:org`. |
+
+Always set an expiration (90 days is a good default) and copy the token immediately — GitHub only shows it once.
+
+### Step 3: put the token where it needs to go
+
+Where the token lives depends on how you're running the tool. Same token, different home.
+
+#### Local development (`npm run test:local` or `vercel dev`)
+
+Copy `.env.example` to `.env` in the repo root and paste the token in:
+
+```
+GITHUB_TOKEN=ghp_xxxxxxxxxxxx
+```
+
+`.env` is already in [.gitignore](.gitignore) — do not commit it. Both `npm run test:local` and `vercel dev` auto-load this file.
+
+#### GitHub Actions (production card refresh on your profile repo)
+
+Go to **the repo where the workflow will run** — typically `https://github.com/<your-username>/<your-username>` — and:
+
+1. Click **Settings** → **Secrets and variables** → **Actions**.
+2. Click **New repository secret**.
+3. Name it `SUMMARY_GITHUB_TOKEN` (this is the name the example workflow below references).
+4. Paste the token as the value and save.
+
+The workflow file references the secret as `${{ secrets.SUMMARY_GITHUB_TOKEN }}`. Never paste the raw token into the YAML.
+
+If you also want the bot to push generated cards back to the repo, the secret must be a PAT, not the auto-provided `GITHUB_TOKEN` — GitHub's built-in token can't push when triggered by a schedule cron.
+
+#### Vercel (your own deployment of the API)
+
+In your Vercel project: **Settings** → **Environment Variables** → **Add**.
+
+- **Key**: `GITHUB_TOKEN`
+- **Value**: paste the token
+- **Environments**: check Production, Preview, and Development.
+
+Redeploy after saving so the new env var takes effect.
+
+### Common mistakes
+
+- **Committing the token.** If `.env` shows up in `git status`, stop — confirm it matches the entry in `.gitignore` before continuing. If you've already pushed a commit containing a token, revoke it at https://github.com/settings/tokens and create a new one.
+- **Using `${{ secrets.GITHUB_TOKEN }}` (the built-in token) in the Action.** Scheduled cron triggers can't push with the built-in token. Use your own PAT under a custom secret name.
+- **Token created under an org account.** Not a thing — GitHub doesn't issue PATs to orgs. Always create from your user `Settings → Developer settings`.
+- **Token missing `read:org`** when reading members of a private org. The org's `membersWithRole.totalCount` will come back as 0 or error out; add the scope and regenerate.
+
+### Including private-repo activity without exposing repo names
+
+The cards never render private repo names, titles, commit messages, or per-repo star counts — they only show aggregate numbers and language labels. So you can safely have your *totals* reflect private-repo activity without leaking which repos exist. To enable this you need **both** a PAT with private read scope *and* a GitHub profile setting:
+
+1. **Scope the token to read private repos.**
+
+   | Token type | What to enable |
+   |---|---|
+   | Fine-grained PAT (recommended) | **Repository access**: pick the specific private repos you want counted (or "All repositories"). **Permissions**: `Contents: read`, `Issues: read`, `Pull requests: read`, `Metadata: read`. Whitelisting specific repos keeps the blast radius small if the token leaks. |
+   | Classic PAT | `repo` + `read:user`. Add `read:org` if the private repos belong to an organization. Note that `repo` is broad — it grants read **and write** to every private repo your account can see; prefer Fine-grained whenever possible. |
+
+2. **Opt in to private contributions on your profile.** Visit https://github.com/settings/profile, scroll to **Contribution settings**, and check **"Include private contributions on my profile."** Without this toggle, `contributionsCollection` returns zero for private activity even with a fully-scoped token.
+
+After both settings are in place, the following counts will include private-repo activity:
+
+- ✅ Stats: Total Commits, Total PRs, Total Issues
+- ✅ Profile Details: contribution chart (daily contribution counts in the area chart)
+- ✅ Repos Per Language donut
+- ✅ Most Commit Language donut
+- ✅ Productive Time heatmap
+
+Two counters in the Stats / Profile Details cards stay **public-only by design** in the current code — `Total Stars` and `Contributed to`. Their GraphQL queries hard-code `privacy: PUBLIC` (see [src/github-api/profile-details.ts:55](src/github-api/profile-details.ts:55) and [:74](src/github-api/profile-details.ts:74)). If you want private-repo stars to roll up into the Stats card too, remove those filters or set up an opt-in env var — file an issue and we can scope a change.
+
+**What the cards still don't expose.** Even with everything above enabled, the SVGs never include: repo names, repo descriptions or topics, per-repo star counts, commit messages, author emails, commit SHAs, or issue/PR titles. The worst-case inference from the public cards is something like "this account made N commits last year across mostly-TypeScript repos" — no specific private repo is identifiable.
+
+---
+
 ## How to use (GitHub Actions)
 
 This action generate your github profile summary cards and make a commit to your repo.
@@ -118,10 +240,8 @@ You can also trigger action by yourself after add this action.
 
 #### First step
 
-- You need create a [Personal access token](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) with correct permissions.
-  [Personal token](https://github.com/vn7n24fzkq/github-profile-summary-cards/wiki/Tutorial#generate-token)
-
-- Add personal access token to repo secret.
+- Create a Personal access token and add it as a repo secret named `SUMMARY_GITHUB_TOKEN`. If you've never done this, see [Setting up your GitHub token](#setting-up-your-github-token) above for a step-by-step walkthrough including required scopes and where the secret goes.
+- For additional context, the project's [wiki tutorial](https://github.com/vn7n24fzkq/github-profile-summary-cards/wiki/Tutorial#generate-token) covers the same ground with screenshots.
 
 #### Use template ( create a repository )
 
@@ -192,18 +312,30 @@ devbox shell
 
 ### 2. Local Testing
 We provide a script to generate cards locally for visual verification.
-**Prerequisite**: You must have a `GITHUB_TOKEN`.
+**Prerequisite**: A `GITHUB_TOKEN`. If you've never created one, follow [Setting up your GitHub token](#setting-up-your-github-token) above — for local use, copy `.env.example` to `.env` and paste your token in.
 
 ```sh
-# Set token (or add to .env)
-export GITHUB_TOKEN=your_token_here
+# Generate cards for a user (defaults to vn7n24fzkq when no login is given)
+npm run test:local -- vn7n24fzkq 8
 
-# Run local test generator
-npm run test:local
+# Generate cards for an organization (auto-detected)
+npm run test:local -- microsoft 0
+
+# Optional third arg: comma-separated languages to exclude
+npm run test:local -- microsoft 0 java,jupyter%20notebook
 ```
-Outputs will be saved to `debug_output/` folder.
 
-### 3. Run Vercel API Locally
+Outputs are written to `profile-summary-card-output/<theme>/`. Open `profile-summary-card-output/default/README.md` to preview every card in the default theme. When you point this at an organization, the productive-time slot is replaced by `4-productive-time-unsupported.svg` so you can verify the explanatory error card the Vercel route would return.
+
+### 3. Run the API Locally
+A lightweight local dev server is bundled — no Vercel CLI required:
+```sh
+npm run dev
+# then open http://localhost:3000/
+```
+The dev server mounts the same route handlers used in production (`api/cards/*`), so requests like `http://localhost:3000/api/cards/profile-details?username=<login>&theme=<theme>` exercise the exact code path Vercel runs. The index page at `/` includes a form that renders every card for a given login + theme.
+
+If you'd rather use the real Vercel runtime (closer match to production behaviour but requires linking the repo to a Vercel project):
 ```sh
 npm i -g vercel
 vercel dev
