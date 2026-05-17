@@ -97,8 +97,8 @@ Token 放在哪取決於你怎麼執行這個工具。同一組 token,不同的�
 
 把 `.env.example` 複製成專案根目錄下的 `.env`,然後貼上你的 token:
 
-```
-GITHUB_TOKEN=ghp_xxxxxxxxxxxx
+```env
+GITHUB_TOKEN=your_github_token_here
 ```
 
 `.env` 已經寫在 [.gitignore](../.gitignore) 裡 — 千萬不要 commit 它。`npm run test:local` 和 `vercel dev` 都會自動載入這個檔案。

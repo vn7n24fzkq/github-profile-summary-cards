@@ -168,8 +168,8 @@ Where the token lives depends on how you're running the tool. Same token, differ
 
 Copy `.env.example` to `.env` in the repo root and paste the token in:
 
-```
-GITHUB_TOKEN=ghp_xxxxxxxxxxxx
+```env
+GITHUB_TOKEN=your_github_token_here
 ```
 
 `.env` is already in [.gitignore](.gitignore) — do not commit it. Both `npm run test:local` and `vercel dev` auto-load this file.
