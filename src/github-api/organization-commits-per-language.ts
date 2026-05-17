@@ -58,7 +58,12 @@ export async function getOrganizationCommitLanguage(
         throw Error(res.data.errors[0].message || 'GetOrganizationCommitLanguage failed');
     }
 
-    res.data.data.organization.repositories.nodes.forEach(
+    const org = res.data.data.organization;
+    if (!org) {
+        throw Error(`Organization not found: ${login}`);
+    }
+
+    org.repositories.nodes.forEach(
         (node: {
             primaryLanguage: {name: string; color: string} | null;
             defaultBranchRef: {target: {history: {totalCount: number}}} | null;

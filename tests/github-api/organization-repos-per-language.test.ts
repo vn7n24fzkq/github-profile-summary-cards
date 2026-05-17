@@ -68,6 +68,12 @@ const error = {
     ]
 };
 
+const notFound = {
+    data: {
+        organization: null
+    }
+};
+
 afterEach(() => {
     mock.reset();
 });
@@ -100,5 +106,12 @@ describe('organization repos per language on github', () => {
         expect(repoData).toEqual({
             languageMap: new Map([['Kotlin', {color: '#f18e33', count: 1, name: 'Kotlin'}]])
         });
+    });
+
+    it('should throw a clear error when the organization is not found', async () => {
+        mock.onPost('https://api.github.com/graphql').reply(200, notFound);
+        await expect(getOrganizationRepoLanguages('not-an-org', [], 'token')).rejects.toThrow(
+            'Organization not found: not-an-org'
+        );
     });
 });

@@ -51,9 +51,13 @@ export async function getOrganizationRepoLanguages(
         if (res.data.errors) {
             throw Error(res.data.errors[0].message || 'GetOrganizationRepoLanguage fail');
         }
-        cursor = res.data.data.organization.repositories.pageInfo.endCursor;
-        hasNextPage = res.data.data.organization.repositories.pageInfo.hasNextPage;
-        nodes.push(...res.data.data.organization.repositories.nodes);
+        const org = res.data.data.organization;
+        if (!org) {
+            throw Error(`Organization not found: ${login}`);
+        }
+        cursor = org.repositories.pageInfo.endCursor;
+        hasNextPage = org.repositories.pageInfo.hasNextPage;
+        nodes.push(...org.repositories.nodes);
     }
 
     nodes.forEach(node => {

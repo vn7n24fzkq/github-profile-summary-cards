@@ -94,6 +94,12 @@ const error = {
     ]
 };
 
+const notFound = {
+    data: {
+        organization: null
+    }
+};
+
 afterEach(() => {
     mock.reset();
 });
@@ -125,5 +131,12 @@ describe('organization commit contributions on github', () => {
                 ['JavaScript', {color: '#f1e05a', count: 84, name: 'JavaScript'}]
             ])
         });
+    });
+
+    it('should throw a clear error when the organization is not found', async () => {
+        mock.onPost('https://api.github.com/graphql').reply(200, notFound);
+        await expect(getOrganizationCommitLanguage('not-an-org', [], 'token')).rejects.toThrow(
+            'Organization not found: not-an-org'
+        );
     });
 });

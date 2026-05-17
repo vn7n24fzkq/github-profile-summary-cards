@@ -190,22 +190,31 @@ const action = async () => {
 };
 
 const main = async (username: string, utcOffset: number, exclude: Array<string>) => {
+    // Fail fast if no token is present rather than letting an undefined value
+    // propagate as a bearer header and surface as a confusing 401.
+    const token = process.env.GITHUB_TOKEN;
+    if (!token) {
+        console.error(
+            'GITHUB_TOKEN is not set. Add it to a .env file at the repo root or export it before running.'
+        );
+        process.exit(1);
+    }
     try {
-        const ownerType = await getOwnerType(username, process.env.GITHUB_TOKEN!);
+        const ownerType = await getOwnerType(username, token);
         if (ownerType === 'Organization') {
-            await createOrganizationProfileDetailsCard(username, process.env.GITHUB_TOKEN!);
-            await createOrganizationReposPerLanguageCard(username, exclude, process.env.GITHUB_TOKEN!);
-            await createOrganizationCommitsPerLanguageCard(username, exclude, process.env.GITHUB_TOKEN!);
-            await createOrganizationStatsCard(username, process.env.GITHUB_TOKEN!);
+            await createOrganizationProfileDetailsCard(username, token);
+            await createOrganizationReposPerLanguageCard(username, exclude, token);
+            await createOrganizationCommitsPerLanguageCard(username, exclude, token);
+            await createOrganizationStatsCard(username, token);
             console.info(
                 'Skipping ProductiveTimeCard: this card is not available for organization accounts. It relies on per-user contribution data that GitHub does not expose at the organization level.'
             );
         } else {
-            await createProfileDetailsCard(username, process.env.GITHUB_TOKEN!);
-            await createReposPerLanguageCard(username, exclude, process.env.GITHUB_TOKEN!);
-            await createCommitsPerLanguageCard(username, exclude, process.env.GITHUB_TOKEN!);
-            await createStatsCard(username, process.env.GITHUB_TOKEN!);
-            await createProductiveTimeCard(username, utcOffset, process.env.GITHUB_TOKEN!);
+            await createProfileDetailsCard(username, token);
+            await createReposPerLanguageCard(username, exclude, token);
+            await createCommitsPerLanguageCard(username, exclude, token);
+            await createStatsCard(username, token);
+            await createProductiveTimeCard(username, utcOffset, token);
         }
         generatePreviewMarkdown(false, ownerType);
     } catch (error: any) {
