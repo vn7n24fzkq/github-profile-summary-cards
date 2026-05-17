@@ -1,4 +1,4 @@
-import {getStatsSVGWithThemeName} from '../../src/cards/stats-card';
+import {dispatchStatsSVG} from '../../src/utils/owner-dispatch';
 import {getGitHubToken} from '../utils/github-token-updater';
 import {getErrorMsgCard} from '../utils/error-card';
 import {sendAnalytics} from '../../src/utils/analytics';
@@ -22,7 +22,7 @@ export default async (req: VercelRequest, res: VercelResponse) => {
         let tokenIndex = 0;
         while (true) {
             try {
-                const cardSVG = await getStatsSVGWithThemeName(username, theme, token);
+                const cardSVG = await dispatchStatsSVG(username, theme, token);
                 await sendAnalytics('stats-card', {username, theme}, req.headers);
                 res.setHeader('Content-Type', 'image/svg+xml');
                 res.setHeader('Cache-Control', CONST_CACHE_CONTROL);

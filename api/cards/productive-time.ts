@@ -1,4 +1,5 @@
 import {getProductiveTimeSVGWithThemeName} from '../../src/cards/productive-time-card';
+import {getOwnerType} from '../../src/github-api/owner-type';
 import {getGitHubToken} from '../utils/github-token-updater';
 import {getErrorMsgCard} from '../utils/error-card';
 import {sendAnalytics} from '../../src/utils/analytics';
@@ -26,6 +27,18 @@ export default async (req: VercelRequest, res: VercelResponse) => {
         let tokenIndex = 0;
         while (true) {
             try {
+                const ownerType = await getOwnerType(username, token);
+                if (ownerType === 'Organization') {
+                    res.setHeader('Content-Type', 'image/svg+xml');
+                    res.setHeader('Cache-Control', CONST_CACHE_CONTROL);
+                    res.send(
+                        getErrorMsgCard(
+                            'The Productive Time card is not available for organization accounts. This card relies on per-user contribution data that GitHub does not expose at the organization level.',
+                            theme
+                        )
+                    );
+                    return;
+                }
                 const cardSVG = await getProductiveTimeSVGWithThemeName(username, theme, Number(utcOffset), token);
                 await sendAnalytics('productive-time-card', {username, theme, utcOffset}, req.headers);
                 res.setHeader('Content-Type', 'image/svg+xml');

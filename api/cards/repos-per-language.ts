@@ -1,4 +1,4 @@
-import {getReposPerLanguageSVGWithThemeName} from '../../src/cards/repos-per-language-card';
+import {dispatchReposPerLanguageSVG} from '../../src/utils/owner-dispatch';
 import {getGitHubToken} from '../utils/github-token-updater';
 import {getErrorMsgCard} from '../utils/error-card';
 import {sendAnalytics} from '../../src/utils/analytics';
@@ -34,7 +34,7 @@ export default async (req: VercelRequest, res: VercelResponse) => {
         let tokenIndex = 0;
         while (true) {
             try {
-                const cardSVG = await getReposPerLanguageSVGWithThemeName(username, theme, excludeArr, token);
+                const cardSVG = await dispatchReposPerLanguageSVG(username, theme, excludeArr, token);
                 await sendAnalytics('repos-per-language-card', {username, theme}, req.headers);
                 res.setHeader('Content-Type', 'image/svg+xml');
                 res.setHeader('Cache-Control', CONST_CACHE_CONTROL);
