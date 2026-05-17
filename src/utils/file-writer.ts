@@ -1,6 +1,7 @@
 import * as core from '@actions/core';
 import {mkdirSync, writeFileSync, readdirSync} from 'fs';
 import {ThemeMap} from '../const/theme';
+import {OwnerType} from '../github-api/owner-type';
 
 export const OUTPUT_PATH = './profile-summary-card-output/';
 const GITHUB_REPOSITORY = process.env.GITHUB_REPOSITORY;
@@ -25,7 +26,7 @@ function getAllFileInFolder(folder: string): string[] {
     return files;
 }
 
-export const generatePreviewMarkdown = function (isInGithubAction: boolean) {
+export const generatePreviewMarkdown = function (isInGithubAction: boolean, ownerType: OwnerType = 'User') {
     const targetFolder = `${OUTPUT_PATH}`;
     let readmeContent = '';
     const urlPrefix = isInGithubAction
@@ -34,7 +35,7 @@ export const generatePreviewMarkdown = function (isInGithubAction: boolean) {
 
     // First, we generate preview readme for each theme
     for (const themeName of ThemeMap.keys()) {
-        generateThemePreviewReadme(urlPrefix, themeName);
+        generateThemePreviewReadme(urlPrefix, themeName, ownerType);
     }
     readmeContent += `
 # Theme Preview
@@ -47,21 +48,21 @@ Here are all cards with themes.
 
     for (const themeName of ThemeMap.keys()) {
         readmeContent += `## [${themeName}](./${themeName}/README.md)`;
-        readmeContent += getThemeMarkdown(`${urlPrefix}/${themeName}`);
+        readmeContent += getThemeMarkdown(`${urlPrefix}/${themeName}`, ownerType);
     }
 
     writeFileSync(`${targetFolder}README.md`, readmeContent);
 };
 
-function generateThemePreviewReadme(urlPrefix: string, themeName: string) {
+function generateThemePreviewReadme(urlPrefix: string, themeName: string, ownerType: OwnerType = 'User') {
     let themePreviewMarkdown = '';
     themePreviewMarkdown += `## ${themeName}`;
     themePreviewMarkdown += `\n`;
-    themePreviewMarkdown += getThemeMarkdown('.');
+    themePreviewMarkdown += getThemeMarkdown('.', ownerType);
     themePreviewMarkdown += '### Now you can add this to your markdown';
     themePreviewMarkdown += `
 \`\`\`
-${getThemeMarkdown(`${urlPrefix}/${themeName}`)}
+${getThemeMarkdown(`${urlPrefix}/${themeName}`, ownerType)}
 \`\`\`
 `;
     themePreviewMarkdown += `\n`;
@@ -83,12 +84,20 @@ ${getThemeMarkdown(`${urlPrefix}/${themeName}`)}
     writeFileSync(`${OUTPUT_PATH}${themeName}/README.md`, themePreviewMarkdown);
 }
 
-function getThemeMarkdown(urlPrefix: string): string {
+function getThemeMarkdown(urlPrefix: string, ownerType: OwnerType = 'User'): string {
     let result = '';
-    result += `
+    if (ownerType === 'Organization') {
+        result += `
+[![](${urlPrefix}/0-profile-details.svg)](https://github.com/vn7n24fzkq/github-profile-summary-cards)
+[![](${urlPrefix}/1-repos-per-language.svg)](https://github.com/vn7n24fzkq/github-profile-summary-cards) [![](${urlPrefix}/2-most-commit-language.svg)](https://github.com/vn7n24fzkq/github-profile-summary-cards)
+[![](${urlPrefix}/3-stats.svg)](https://github.com/vn7n24fzkq/github-profile-summary-cards)
+`;
+    } else {
+        result += `
 [![](${urlPrefix}/0-profile-details.svg)](https://github.com/vn7n24fzkq/github-profile-summary-cards)
 [![](${urlPrefix}/1-repos-per-language.svg)](https://github.com/vn7n24fzkq/github-profile-summary-cards) [![](${urlPrefix}/2-most-commit-language.svg)](https://github.com/vn7n24fzkq/github-profile-summary-cards)
 [![](${urlPrefix}/3-stats.svg)](https://github.com/vn7n24fzkq/github-profile-summary-cards) [![](${urlPrefix}/4-productive-time.svg)](https://github.com/vn7n24fzkq/github-profile-summary-cards)
 `;
+    }
     return result;
 }

@@ -5,6 +5,11 @@ import {createReposPerLanguageCard} from './cards/repos-per-language-card';
 import {createCommitsPerLanguageCard} from './cards/most-commit-language-card';
 import {createStatsCard} from './cards/stats-card';
 import {createProductiveTimeCard} from './cards/productive-time-card';
+import {createOrganizationProfileDetailsCard} from './cards/organization-profile-details-card';
+import {createOrganizationReposPerLanguageCard} from './cards/organization-repos-per-language-card';
+import {createOrganizationCommitsPerLanguageCard} from './cards/organization-most-commit-language-card';
+import {createOrganizationStatsCard} from './cards/organization-stats-card';
+import {getOwnerType, OwnerType} from './github-api/owner-type';
 import {spawn} from 'child_process';
 import {translateLanguage} from './utils/translator';
 import {OUTPUT_PATH, generatePreviewMarkdown} from './utils/file-writer';
@@ -35,6 +40,88 @@ const commitFile = async () => {
     await execCmd('git', ['push']);
 };
 
+const generateUserCards = async (username: string, utcOffset: number, exclude: Array<string>, token: string) => {
+    // ProfileDetailsCard
+    try {
+        core.info(`Creating ProfileDetailsCard...`);
+        await createProfileDetailsCard(username, token);
+        await sendAnalytics('action-profile-details-card', {username});
+    } catch (error: any) {
+        core.error(`Error when creating ProfileDetailsCard \n${error.stack}`);
+    }
+
+    // ReposPerLanguageCard
+    try {
+        core.info(`Creating ReposPerLanguageCard...`);
+        await createReposPerLanguageCard(username, exclude, token);
+    } catch (error: any) {
+        core.error(`Error when creating ReposPerLanguageCard \n${error.stack}`);
+    }
+
+    // CommitsPerLanguageCard
+    try {
+        core.info(`Creating CommitsPerLanguageCard...`);
+        await createCommitsPerLanguageCard(username, exclude, token);
+    } catch (error: any) {
+        core.error(`Error when creating CommitsPerLanguageCard \n${error.stack}`);
+    }
+
+    // StatsCard
+    try {
+        core.info(`Creating StatsCard...`);
+        await createStatsCard(username, token);
+    } catch (error: any) {
+        core.error(`Error when creating StatsCard \n${error.stack}`);
+    }
+
+    // ProductiveTimeCard
+    try {
+        core.info(`Creating ProductiveTimeCard...`);
+        await createProductiveTimeCard(username, utcOffset, token);
+    } catch (error: any) {
+        core.error(`Error when creating ProductiveTimeCard \n${error.stack}`);
+    }
+};
+
+const generateOrganizationCards = async (login: string, exclude: Array<string>, token: string) => {
+    // ProfileDetailsCard
+    try {
+        core.info(`Creating Organization ProfileDetailsCard...`);
+        await createOrganizationProfileDetailsCard(login, token);
+        await sendAnalytics('action-organization-profile-details-card', {username: login});
+    } catch (error: any) {
+        core.error(`Error when creating Organization ProfileDetailsCard \n${error.stack}`);
+    }
+
+    // ReposPerLanguageCard
+    try {
+        core.info(`Creating Organization ReposPerLanguageCard...`);
+        await createOrganizationReposPerLanguageCard(login, exclude, token);
+    } catch (error: any) {
+        core.error(`Error when creating Organization ReposPerLanguageCard \n${error.stack}`);
+    }
+
+    // CommitsPerLanguageCard
+    try {
+        core.info(`Creating Organization CommitsPerLanguageCard...`);
+        await createOrganizationCommitsPerLanguageCard(login, exclude, token);
+    } catch (error: any) {
+        core.error(`Error when creating Organization CommitsPerLanguageCard \n${error.stack}`);
+    }
+
+    // StatsCard
+    try {
+        core.info(`Creating Organization StatsCard...`);
+        await createOrganizationStatsCard(login, token);
+    } catch (error: any) {
+        core.error(`Error when creating Organization StatsCard \n${error.stack}`);
+    }
+
+    core.info(
+        'Skipping ProductiveTimeCard: this card is not available for organization accounts. It relies on per-user contribution data that GitHub does not expose at the organization level.'
+    );
+};
+
 // main
 const action = async () => {
     core.info(`Start...`);
@@ -56,50 +143,25 @@ const action = async () => {
         core.info(`Remove old cards...`);
         await execCmd('sudo', ['rm', '-rf', OUTPUT_PATH]);
 
-        // ProfileDetailsCard
+        let ownerType: OwnerType;
         try {
-            core.info(`Creating ProfileDetailsCard...`);
-            await createProfileDetailsCard(username, process.env.GITHUB_TOKEN!);
-            await sendAnalytics('action-profile-details-card', {username});
+            ownerType = await getOwnerType(username, process.env.GITHUB_TOKEN!);
+            core.info(`Detected owner type: ${ownerType}`);
         } catch (error: any) {
-            core.error(`Error when creating ProfileDetailsCard \n${error.stack}`);
+            core.error(`Error when detecting owner type \n${error.stack}`);
+            throw error;
         }
 
-        // ReposPerLanguageCard
-        try {
-            core.info(`Creating ReposPerLanguageCard...`);
-            await createReposPerLanguageCard(username, exclude, process.env.GITHUB_TOKEN!);
-        } catch (error: any) {
-            core.error(`Error when creating ReposPerLanguageCard \n${error.stack}`);
-        }
-
-        // CommitsPerLanguageCard
-        try {
-            core.info(`Creating CommitsPerLanguageCard...`);
-            await createCommitsPerLanguageCard(username, exclude, process.env.GITHUB_TOKEN!);
-        } catch (error: any) {
-            core.error(`Error when creating CommitsPerLanguageCard \n${error.stack}`);
-        }
-
-        // StatsCard
-        try {
-            core.info(`Creating StatsCard...`);
-            await createStatsCard(username, process.env.GITHUB_TOKEN!);
-        } catch (error: any) {
-            core.error(`Error when creating StatsCard \n${error.stack}`);
-        }
-        // ProductiveTimeCard
-        try {
-            core.info(`Creating ProductiveTimeCard...`);
-            await createProductiveTimeCard(username, utcOffset, process.env.GITHUB_TOKEN!);
-        } catch (error: any) {
-            core.error(`Error when creating ProductiveTimeCard \n${error.stack}`);
+        if (ownerType === 'Organization') {
+            await generateOrganizationCards(username, exclude, process.env.GITHUB_TOKEN!);
+        } else {
+            await generateUserCards(username, utcOffset, exclude, process.env.GITHUB_TOKEN!);
         }
 
         // generate markdown
         try {
             core.info(`Creating preview markdown...`);
-            generatePreviewMarkdown(true);
+            generatePreviewMarkdown(true, ownerType);
         } catch (error: any) {
             core.error(`Error when creating preview markdown \n${error.stack}`);
         }
@@ -129,12 +191,23 @@ const action = async () => {
 
 const main = async (username: string, utcOffset: number, exclude: Array<string>) => {
     try {
-        await createProfileDetailsCard(username, process.env.GITHUB_TOKEN!);
-        await createReposPerLanguageCard(username, exclude, process.env.GITHUB_TOKEN!);
-        await createCommitsPerLanguageCard(username, exclude, process.env.GITHUB_TOKEN!);
-        await createStatsCard(username, process.env.GITHUB_TOKEN!);
-        await createProductiveTimeCard(username, utcOffset, process.env.GITHUB_TOKEN!);
-        generatePreviewMarkdown(false);
+        const ownerType = await getOwnerType(username, process.env.GITHUB_TOKEN!);
+        if (ownerType === 'Organization') {
+            await createOrganizationProfileDetailsCard(username, process.env.GITHUB_TOKEN!);
+            await createOrganizationReposPerLanguageCard(username, exclude, process.env.GITHUB_TOKEN!);
+            await createOrganizationCommitsPerLanguageCard(username, exclude, process.env.GITHUB_TOKEN!);
+            await createOrganizationStatsCard(username, process.env.GITHUB_TOKEN!);
+            console.info(
+                'Skipping ProductiveTimeCard: this card is not available for organization accounts. It relies on per-user contribution data that GitHub does not expose at the organization level.'
+            );
+        } else {
+            await createProfileDetailsCard(username, process.env.GITHUB_TOKEN!);
+            await createReposPerLanguageCard(username, exclude, process.env.GITHUB_TOKEN!);
+            await createCommitsPerLanguageCard(username, exclude, process.env.GITHUB_TOKEN!);
+            await createStatsCard(username, process.env.GITHUB_TOKEN!);
+            await createProductiveTimeCard(username, utcOffset, process.env.GITHUB_TOKEN!);
+        }
+        generatePreviewMarkdown(false, ownerType);
     } catch (error: any) {
         console.error(error);
     }
