@@ -194,9 +194,7 @@ const main = async (username: string, utcOffset: number, exclude: Array<string>)
     // propagate as a bearer header and surface as a confusing 401.
     const token = process.env.GITHUB_TOKEN;
     if (!token) {
-        console.error(
-            'GITHUB_TOKEN is not set. Add it to a .env file at the repo root or export it before running.'
-        );
+        console.error('GITHUB_TOKEN is not set. Add it to a .env file at the repo root or export it before running.');
         process.exit(1);
     }
     try {
