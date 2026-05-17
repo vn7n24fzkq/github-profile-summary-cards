@@ -73,4 +73,13 @@ describe('error card', () => {
         expect(svg).toContain('<svg');
         expect(extractMessageLines(svg)).toEqual(['Boom']);
     });
+
+    it('should not mutate the shared ThemeMap entry when overriding the title', () => {
+        // Regression: previously the function did `const theme = ThemeMap.get(...)!`
+        // followed by `theme.title = 'red'`, which permanently turned the title
+        // colour of that theme red for every subsequent render in the same process.
+        const originalTitle = ThemeMap.get('default')!.title;
+        getErrorMsgCard('Boom', 'default');
+        expect(ThemeMap.get('default')!.title).toBe(originalTitle);
+    });
 });

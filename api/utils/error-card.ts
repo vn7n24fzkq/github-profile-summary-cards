@@ -40,10 +40,13 @@ function wrapMessage(msg: string, maxChars: number): string[] {
 
 export const getErrorMsgCard = function (msg: string, themeName: string) {
     // Defensive: an invalid theme name would otherwise blow up the error card itself.
-    const theme: Theme = ThemeMap.get(resolveThemeName(themeName))!;
-    theme.title = 'red';
+    const baseTheme: Theme = ThemeMap.get(resolveThemeName(themeName))!;
+    // Clone before overriding the title — `ThemeMap.get` returns the shared instance,
+    // so mutating it would leak the red error-title colour into every subsequent
+    // render of that theme for the lifetime of the process.
+    const renderTheme: Theme = {...baseTheme, title: 'red'};
 
-    const card = new Card('ERROR!!!', 340, 200, theme);
+    const card = new Card('ERROR!!!', 340, 200, renderTheme);
     const svg = card.getSVG();
     const panel = svg.append('g').attr('transform', `translate(30,20)`);
     const lines = wrapMessage(msg, MAX_CHARS_PER_LINE);
