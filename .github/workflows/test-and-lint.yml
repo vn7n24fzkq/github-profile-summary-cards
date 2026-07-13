@@ -22,7 +22,7 @@ jobs:
       with:
         node-version-file: '.node-version'
         cache: 'npm'
-    - run: npm install
+    - run: npm ci
     - run: npm run test
 
     - name: Analyze Test and/or Coverage Results
@@ -45,5 +45,5 @@ jobs:
       with:
         node-version-file: '.node-version'
         cache: 'npm'
-    - run: npm install
+    - run: npm ci
     - run: npm run lint
