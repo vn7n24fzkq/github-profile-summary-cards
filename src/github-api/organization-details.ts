@@ -36,7 +36,7 @@ const fetcher = (token: string, variables: any) => {
         },
         {
             query: `
-      query OrganizationDetails($login: String!) {
+      query OrganizationDetails($login: String!, $endCursor: String) {
         repositoryOwner(login: $login) {
             __typename
             ... on Organization {
@@ -50,8 +50,12 @@ const fetcher = (token: string, variables: any) => {
                 twitterUsername
                 createdAt
                 isVerified
-                repositories(first: 100, privacy: PUBLIC, isFork: false, ownerAffiliations: OWNER, orderBy: {direction: DESC, field: STARGAZERS}) {
+                repositories(first: 100, after: $endCursor, privacy: PUBLIC, isFork: false, ownerAffiliations: OWNER, orderBy: {direction: DESC, field: STARGAZERS}) {
                     totalCount
+                    pageInfo {
+                        endCursor
+                        hasNextPage
+                    }
                     nodes {
                         createdAt
                         forkCount
@@ -73,37 +77,47 @@ const fetcher = (token: string, variables: any) => {
 };
 
 export async function getOrganizationDetails(login: string, token: string): Promise<OrganizationDetails> {
-    // Single top-100 (by stars) query instead of paginating every repo: unbounded
-    // pagination let large orgs exceed the Vercel timeout and burn the shared rate
-    // limit. totalPublicRepos stays accurate (via totalCount); the star/fork/issue
-    // sums reflect the top 100 repos, which is plenty for a summary card.
-    const res: any = await fetcher(token, {login: login});
+    // On Vercel (shared token + 10s timeout) fetch only the top 100 repos by stars
+    // in one query. Run as a GitHub Action / CLI (own token, no timeout) paginate
+    // every repo for accurate totals. totalPublicRepos is always exact (totalCount).
+    let organizationDetails: OrganizationDetails | null = null;
+    let cursor: string | null = null;
+    let hasNextPage = true;
 
-    if (res.data.errors) {
-        throw Error(res.data.errors[0].message || 'GetOrganizationDetails failed');
+    while (hasNextPage) {
+        const res: any = await fetcher(token, {login: login, endCursor: cursor});
+
+        if (res.data.errors) {
+            throw Error(res.data.errors[0].message || 'GetOrganizationDetails failed');
+        }
+
+        const owner = res.data.data.repositoryOwner;
+        if (!owner || owner.__typename !== 'Organization') {
+            throw Error(`Organization not found: ${login}`);
+        }
+        const org = owner;
+
+        if (organizationDetails === null) {
+            organizationDetails = new OrganizationDetails(org.id, org.login, org.name, org.createdAt);
+            organizationDetails.description = org.description;
+            organizationDetails.email = org.email || null;
+            organizationDetails.location = org.location;
+            organizationDetails.websiteUrl = org.websiteUrl;
+            organizationDetails.twitterUsername = org.twitterUsername;
+            organizationDetails.isVerified = !!org.isVerified;
+            organizationDetails.totalPublicRepos = org.repositories.totalCount;
+        }
+
+        for (const node of org.repositories.nodes) {
+            organizationDetails.totalStars += node.stargazers.totalCount;
+            organizationDetails.totalForks += node.forkCount;
+            organizationDetails.totalOpenIssues += node.issues.totalCount;
+            organizationDetails.repoCreatedAt.push(new Date(node.createdAt));
+        }
+
+        cursor = org.repositories.pageInfo?.endCursor ?? null;
+        hasNextPage = !process.env.VERCEL && !!org.repositories.pageInfo?.hasNextPage;
     }
 
-    const owner = res.data.data.repositoryOwner;
-    if (!owner || owner.__typename !== 'Organization') {
-        throw Error(`Organization not found: ${login}`);
-    }
-    const org = owner;
-
-    const organizationDetails = new OrganizationDetails(org.id, org.login, org.name, org.createdAt);
-    organizationDetails.description = org.description;
-    organizationDetails.email = org.email || null;
-    organizationDetails.location = org.location;
-    organizationDetails.websiteUrl = org.websiteUrl;
-    organizationDetails.twitterUsername = org.twitterUsername;
-    organizationDetails.isVerified = !!org.isVerified;
-    organizationDetails.totalPublicRepos = org.repositories.totalCount;
-
-    for (const node of org.repositories.nodes) {
-        organizationDetails.totalStars += node.stargazers.totalCount;
-        organizationDetails.totalForks += node.forkCount;
-        organizationDetails.totalOpenIssues += node.issues.totalCount;
-        organizationDetails.repoCreatedAt.push(new Date(node.createdAt));
-    }
-
-    return organizationDetails;
+    return organizationDetails!;
 }

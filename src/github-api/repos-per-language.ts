@@ -38,14 +38,18 @@ const fetcher = (token: string, variables: any) => {
         },
         {
             query: `
-      query ReposPerLanguage($login: String!) {
+      query ReposPerLanguage($login: String!, $endCursor: String) {
         user(login: $login) {
-          repositories(isFork: false, first: 100, ownerAffiliations: OWNER, orderBy: {direction: DESC, field: STARGAZERS}) {
+          repositories(isFork: false, first: 100, after: $endCursor, ownerAffiliations: OWNER, orderBy: {direction: DESC, field: STARGAZERS}) {
             nodes {
               primaryLanguage {
                 name
                 color
               }
+            }
+            pageInfo {
+              endCursor
+              hasNextPage
             }
           }
         }
@@ -62,16 +66,24 @@ export async function getRepoLanguages(
     exclude: Array<string>,
     token: string
 ): Promise<RepoLanguages> {
-    // Cap at the top 100 repos (by stars) in a single query instead of paginating
-    // through every repo: unbounded pagination let large accounts blow past the
-    // Vercel function timeout and burn the shared GitHub rate limit for everyone.
+    // On Vercel (shared token + 10s function timeout) take only the top 100 repos
+    // by stars in a single query. Run as a GitHub Action / CLI (the user's own
+    // token, no timeout) paginate through every repo for a complete count.
     const repoLanguages = new RepoLanguages();
+    const nodes: {primaryLanguage: {name: string; color: string} | null}[] = [];
+    let cursor: string | null = null;
+    let hasNextPage = true;
 
-    const res: any = await fetcher(token, {login: username});
-    if (res.data.errors) {
-        throw Error(res.data.errors[0].message || 'GetRepoLanguage fail');
+    while (hasNextPage) {
+        const res: any = await fetcher(token, {login: username, endCursor: cursor});
+        if (res.data.errors) {
+            throw Error(res.data.errors[0].message || 'GetRepoLanguage fail');
+        }
+        const repos = res.data.data.user.repositories;
+        nodes.push(...repos.nodes);
+        cursor = repos.pageInfo?.endCursor ?? null;
+        hasNextPage = !process.env.VERCEL && !!repos.pageInfo?.hasNextPage;
     }
-    const nodes = res.data.data.user.repositories.nodes;
 
     nodes.forEach((node: {primaryLanguage: {name: string; color: string} | null}) => {
         if (node.primaryLanguage) {
