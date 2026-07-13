@@ -13,11 +13,23 @@ import {writeSVG} from '../utils/file-writer';
  * @param {string} token - The GitHub API token.
  * @return {Promise<void>}
  */
+// Returns the title to render on the profile-details card. When the combined
+// `${login} (${name})` would visually run into the chart area, breaks between
+// the login and the (name) so they render on two stacked lines. Never splits
+// within the login or within the name itself.
+const TITLE_SOFT_WRAP_THRESHOLD = 25;
+const buildProfileDetailsTitle = function (username: string, name: string | null): string {
+    if (name == null) {
+        return username;
+    }
+    const oneLine = `${username} (${name})`;
+    return oneLine.length > TITLE_SOFT_WRAP_THRESHOLD ? `${username}\n(${name})` : oneLine;
+};
+
 export const createProfileDetailsCard = async function (username: string, token: string) {
     const profileDetailsData = await getProfileDetailsData(username, token);
     for (const themeName of ThemeMap.keys()) {
-        const title =
-            profileDetailsData[0].name == null ? `${username}` : `${username} (${profileDetailsData[0].name})`;
+        const title = buildProfileDetailsTitle(username, profileDetailsData[0].name);
         const svgString = getProfileDetailsSVG(
             title,
             profileDetailsData[0].contributions,
@@ -43,7 +55,7 @@ export const getProfileDetailsSVGWithThemeName = async function (
 ): Promise<string> {
     if (!ThemeMap.has(themeName)) throw new Error('Theme does not exist');
     const profileDetailsData = await getProfileDetailsData(username, token);
-    const title = profileDetailsData[0].name == null ? `${username}` : `${username} (${profileDetailsData[0].name})`;
+    const title = buildProfileDetailsTitle(username, profileDetailsData[0].name);
     return getProfileDetailsSVG(title, profileDetailsData[0].contributions, profileDetailsData[1], themeName);
 };
 

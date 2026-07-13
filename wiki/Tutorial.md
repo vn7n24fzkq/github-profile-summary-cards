@@ -3,17 +3,19 @@ This tutorial will help you deploy Github-profile-summary-cards with ease. </br>
  If you have any issues regarding the gifs, you can find high res video verions [Here.](https://github.com/vn7n24fzkq/github-profile-summary-cards/wiki/Videos)
 
 ### Table of Contents
-1. [Generate token](#generate-token)
-2. [Select a repo](#select-a-repo)
-
-   - [Create a new repo](#new-repo)
-    - [Add to existing repo (Recommended ⭐)](#existing-repo)
-3. [Create a workflow](#create-a-workflow)
-    - [Additional information](#additional-information)
-4. [Edit workflow file](#edit-workflow-file)
-5. [Run the workflow](#run-the-workflow)
-6. [Final Step](#final-step)
-7. [The end](#the-end)
+- [Let's get started!](#lets-get-started)
+    - [Table of Contents](#table-of-contents)
+- [Generate token](#generate-token)
+- [Select a repo](#select-a-repo)
+    - [New repo](#new-repo)
+    - [Existing repo](#existing-repo)
+- [Create a workflow](#create-a-workflow)
+  - [Additional information](#additional-information)
+- [Create a Secret for Token](#create-a-secret-for-token)
+- [Edit workflow file](#edit-workflow-file)
+- [Run the workflow](#run-the-workflow)
+- [Final step](#final-step)
+- [The end](#the-end)
 
 
 # Generate token 

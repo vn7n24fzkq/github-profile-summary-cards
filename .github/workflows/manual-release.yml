@@ -1,69 +1,63 @@
 name: Manual Release
 
+# Single dispatch that releases BOTH products from one `release` branch:
+#   - Vercel: production branch is set to `release`, so pushing here deploys the web API.
+#   - GitHub Action: the freshly built `dist/` is committed to `release` and a tag /
+#     GitHub Release is cut from it for action consumers to pin.
+# `main` stays the development branch (CI + Vercel preview only, no auto production deploy).
+
 on:
   workflow_dispatch:
     inputs:
-      target:
-        description: 'Release Target'
-        required: true
-        default: 'all'
-        type: choice
-        options:
-          - all
-          - web-release
-          - release
       tag_name:
-        description: 'Tag Name (e.g. v1.0.0). Required for action release.'
-        required: false
+        description: 'Tag name for this release (e.g. v0.8.0)'
+        required: true
+
+concurrency:
+  group: manual-release
+  cancel-in-progress: false
 
 jobs:
-  release-web:
-    if: github.event.inputs.target == 'all' || github.event.inputs.target == 'web-release'
+  release:
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
 
-      - name: Sync main to web-release
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git push -f origin HEAD:web-release
-
-  release-action:
-    if: github.event.inputs.target == 'all' || github.event.inputs.target == 'release'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-      
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.node-version'
-          
+          cache: 'npm'
+
       - run: npm ci
       - run: npm run build
       - run: npm run package
-      
-      - name: Git Config
+
+      - name: Git config
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
-      - name: Commit and Push if changed
+
+      - name: Publish release branch (Vercel production + action dist)
+        env:
+          # Pass through an env var so the value is never expanded into the
+          # shell script (prevents command injection via a crafted tag name).
+          TAG_NAME: ${{ github.event.inputs.tag_name }}
         run: |
-          git add dist/index.js
-          git commit -m "chore: build distribution" || echo "No changes to commit"
-          git push origin HEAD:main
-          
-      - name: Create Release
+          # Recreate `release` from current main, carrying the freshly built dist/
+          git checkout -B release
+          git add dist
+          git commit -m "release: ${TAG_NAME}" || echo "No dist changes to commit"
+          # Pushing to `release` triggers the Vercel production deployment
+          git push -f origin release
+
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
-        if: github.event.inputs.tag_name != ''
         with:
           tag_name: ${{ github.event.inputs.tag_name }}
-          target_commitish: main
+          target_commitish: release
           generate_release_notes: true

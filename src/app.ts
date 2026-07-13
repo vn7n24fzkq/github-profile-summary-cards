@@ -60,7 +60,7 @@ const action = async () => {
         try {
             core.info(`Creating ProfileDetailsCard...`);
             await createProfileDetailsCard(username, process.env.GITHUB_TOKEN!);
-            await sendAnalytics('action-profile-details-card', {username});
+            await sendAnalytics('action_profile_details_card', {username});
         } catch (error: any) {
             core.error(`Error when creating ProfileDetailsCard \n${error.stack}`);
         }

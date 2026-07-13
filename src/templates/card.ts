@@ -47,17 +47,25 @@ export class Card {
             .attr('fill', `${theme.background}`)
             .attr('stroke-opacity', `${theme.strokeOpacity}`);
 
-        const isEmptyTitle = this.title == '';
-        if (!isEmptyTitle) {
+        // Multi-line titles: callers pass `\n` to break the title (e.g. when login + name
+        // would otherwise overflow into the chart area in profile-details). Each line is
+        // rendered as its own <text> stacked at TITLE_LINE_HEIGHT.
+        const TITLE_LINE_HEIGHT = 24;
+        const titleLines = this.title === '' ? [] : this.title.split('\n');
+        titleLines.forEach((line, i) => {
             this.svg
                 .append('text')
                 .attr('x', this.xPadding)
-                .attr('y', this.yPadding)
+                .attr('y', this.yPadding + i * TITLE_LINE_HEIGHT)
                 .style('font-size', `22px`)
                 .style('fill', `${theme.title}`)
-                .text(this.title);
-        }
-        this.svg = this.svg.append<SVGSVGElement>('g').attr('transform', 'translate(0,40)');
+                .text(line);
+        });
+        // Push the body group down to clear the rendered title block.
+        // Empty/single-line titles preserve the historic 40-px translate so all existing
+        // single-line cards render byte-identically.
+        const bodyOffset = titleLines.length <= 1 ? 40 : 40 + (titleLines.length - 1) * TITLE_LINE_HEIGHT;
+        this.svg = this.svg.append<SVGSVGElement>('g').attr('transform', `translate(0,${bodyOffset})`);
     }
 
     getSVG() {

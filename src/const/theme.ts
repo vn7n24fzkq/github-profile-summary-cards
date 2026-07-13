@@ -95,3 +95,11 @@ ThemeMap.set('vision_friendly_dark', new Theme('#ffb000', '#ffffff', '#000000', 
 ThemeMap.set('vue', new Theme('#41b883', '#000000', '#ffffff', '#e4e2e2', 1, '#41b883', '#41b883'));
 ThemeMap.set('yeblu', new Theme('#ffff00', '#ffffff', '#002046', '#000000', 0, '#ffff00', '#ffff00'));
 ThemeMap.set('zenburn', new Theme('#f0dfaf', '#dcdccc', '#3f3f3f', '#3f3f3f', 1, '#8cd0d3', '#7f9f7f'));
+
+// Resolves an arbitrary user-supplied theme name to one that's guaranteed to
+// exist in ThemeMap. Falls back to 'default' for unknown values so downstream
+// helpers (template rendering, error-card construction) never crash on a typo.
+export const FALLBACK_THEME_NAME = 'default';
+export function resolveThemeName(themeName: string): string {
+    return ThemeMap.has(themeName) ? themeName : FALLBACK_THEME_NAME;
+}
