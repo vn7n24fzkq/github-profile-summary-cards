@@ -114,9 +114,9 @@
 All endpoints above accept either a user login or an organization login as `username`. The owner type is auto-detected; no extra parameter is needed.
 
 The same URLs return organization-flavored cards when the login resolves to an organization:
-- `profile-details` swaps the contributions overlay for a "repos created over time" chart and shows Members / Public Repos / Created at / Email|Location|Website.
+- `profile-details` swaps the contributions overlay for a "repos created over time" chart and shows Public Repos / Created at / Email|Location|Website.
 - `repos-per-language` and `most-commit-language` aggregate across the organization's public repos (top 50 for the commit card to stay within API rate limits).
-- `stats` shows Total Stars / Total Repos / Total Forks / Members / Open Issues.
+- `stats` shows Total Stars / Total Repos / Total Forks / Open Issues.
 - `productive-time` is **not supported** for organizations (it relies on per-user contribution data); the endpoint returns a small error card explaining this.
 
 The same GitHub Action setup also works for organizations — set `USERNAME` to the org login. The generated `profile-summary-card-output/` will contain 4 cards per theme instead of 5.
@@ -131,7 +131,7 @@ Every way of running this project — locally, in a GitHub Action, on Vercel —
 
 **A PAT always belongs to a user account, not to an organization.** Even when you point this tool at an organization (e.g. `microsoft`), the token comes from a *user* — typically you. The token only grants whatever access *that user* already has. For public data (which is what the cards display), any logged-in GitHub user can read it, so a token from any account works.
 
-If you want cards for a private organization where you're a member, your token still needs to be created under *your* user account; just give it permission to read that org (see scopes below).
+The cards only ever display **public** data, so a token from any user account can render any user or organization — you don't need to be a member of the org or grant any org-specific scope.
 
 ### Step 1: pick a token type
 
@@ -148,15 +148,15 @@ For **public** users and orgs (the typical case), you need very little:
 
 | Token type | What to enable |
 |---|---|
-| Fine-grained PAT | **Repository access**: "Public repositories (read-only)". **Account permissions**: leave defaults — public-profile data is read without explicit grants. If targeting an org, also set "Resource owner" to that org so the read:org-equivalent applies. |
-| Classic PAT | Check `public_repo` and `read:user`. Add `read:org` if you need member counts on a *private* organization. |
+| Fine-grained PAT | **Repository access**: "Public repositories (read-only)". **Account permissions**: leave defaults — public profile and organization data are read without any explicit grant. |
+| Classic PAT | Check `public_repo` and `read:user`. |
 
-For **private** repos or private org members, escalate:
+For **private** repos (to include private activity in your totals — see below), escalate:
 
 | Token type | What to enable |
 |---|---|
 | Fine-grained PAT | "Repository access": "All repositories" or pick specific private repos. Read-only is enough. |
-| Classic PAT | Add `repo` (full repo access) and `read:org`. |
+| Classic PAT | Add `repo` (full repo access). |
 
 Always set an expiration (90 days is a good default) and copy the token immediately — GitHub only shows it once.
 
@@ -205,7 +205,6 @@ Redeploy after saving so the new env var takes effect.
 - **Committing the token.** If `.env` shows up in `git status`, stop — confirm it matches the entry in `.gitignore` before continuing. If you've already pushed a commit containing a token, revoke it at https://github.com/settings/tokens and create a new one.
 - **Using `${{ secrets.GITHUB_TOKEN }}` (the built-in token) without setting workflow permissions.** The auto-provided `GITHUB_TOKEN` is often read-only by default. If you want to use it for pushing, add `permissions: contents: write` to the workflow; otherwise switch to your own PAT under a custom secret name (e.g. `SUMMARY_GITHUB_TOKEN`).
 - **Token created under an org account.** Not a thing — GitHub doesn't issue PATs to orgs. Always create from your user `Settings → Developer settings`.
-- **Token missing `read:org`** when reading members of a private org. The org's `membersWithRole.totalCount` will come back as 0 or error out; add the scope and regenerate.
 
 ### Including private-repo activity without exposing repo names
 

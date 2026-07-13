@@ -43,9 +43,9 @@
 所有 API 端點和 GitHub Action 都會自動偵測 `username` 是個人帳號還是組織帳號,不需要額外的參數。
 
 當 login 對應到一個組織時,同樣的 URL 會回傳組織版本的卡片:
-- `profile-details` 會把 contributions 圖表替換成 "repos created over time",並顯示 Members / Public Repos / Created at / Email|Location|Website。
+- `profile-details` 會把 contributions 圖表替換成 "repos created over time",並顯示 Public Repos / Created at / Email|Location|Website。
 - `repos-per-language` 和 `most-commit-language` 會聚合整個組織的公開 repos(commit 卡片限制在前 50 個 repos 以避免超過 API rate limit)。
-- `stats` 顯示 Total Stars / Total Repos / Total Forks / Members / Open Issues。
+- `stats` 顯示 Total Stars / Total Repos / Total Forks / Open Issues。
 - `productive-time` **不支援組織**(因為它依賴個人的 contribution 資料);此端點會回傳一張說明用的錯誤卡片。
 
 組織模式下,`profile-summary-card-output/` 每個主題會產生 4 張卡片(沒有 productive-time)。
@@ -60,7 +60,7 @@
 
 **PAT 永遠屬於使用者帳號,而非組織帳號。** 即使你用這個工具來生成某個組織(例如 `microsoft`)的卡片,token 仍然是從一個*使用者*產生的 — 通常就是你。Token 只擁有*那位使用者*本身擁有的存取權。卡片顯示的都是公開資料,所以任何登入過 GitHub 的使用者帳號產生的 token 都可以使用。
 
-如果你想為你身為成員的私有組織產生卡片,token 還是要在你的*個人帳號*下產生,只需要授權它讀取那個組織(請看下面的 scope 設定)。
+卡片只會顯示**公開**資料,所以任何使用者帳號的 token 都能生成任何個人或組織的卡片 — 你不需要是該組織的成員,也不需要授予任何組織專屬的 scope。
 
 ### 步驟 1:選擇 token 類型
 
@@ -77,15 +77,15 @@ GitHub 提供兩種 PAT 樣式,兩種都可以用在這個專案。
 
 | Token 類型 | 需要勾選 |
 |---|---|
-| Fine-grained PAT | **Repository access**:選 "Public repositories (read-only)"。**Account permissions**:保留預設值 — 公開個人資料不需要明確授權。若目標是組織,把 "Resource owner" 設為該組織。 |
-| Classic PAT | 勾選 `public_repo` 和 `read:user`。如果要讀取*私有*組織的成員數,加上 `read:org`。 |
+| Fine-grained PAT | **Repository access**:選 "Public repositories (read-only)"。**Account permissions**:保留預設值 — 公開的個人與組織資料都不需要明確授權。 |
+| Classic PAT | 勾選 `public_repo` 和 `read:user`。 |
 
-針對**私有** repo 或私有組織成員,權限需要再增加:
+針對**私有** repo(讓私有活動計入你的總計 — 見下方),權限需要再增加:
 
 | Token 類型 | 需要勾選 |
 |---|---|
 | Fine-grained PAT | "Repository access":選 "All repositories" 或指定特定的私有 repo。Read-only 已足夠。 |
-| Classic PAT | 加上 `repo`(完整 repo 存取)和 `read:org`。 |
+| Classic PAT | 加上 `repo`(完整 repo 存取)。 |
 
 請務必設定到期日(90 天是合理的預設值)並馬上複製 token — GitHub 只會顯示一次。
 
@@ -134,7 +134,6 @@ Workflow yaml 用 `${{ secrets.SUMMARY_GITHUB_TOKEN }}` 引用這個 secret。**
 - **不小心 commit token**。如果 `.env` 出現在 `git status` 裡,先停下來 — 確認 `.gitignore` 有正確忽略它。如果已經 push 含有 token 的 commit,馬上到 https://github.com/settings/tokens 撤銷它,然後產生新的。
 - **在 Action 裡使用 `${{ secrets.GITHUB_TOKEN }}`(內建 token)而未設定 workflow 權限**。內建的 `GITHUB_TOKEN` 預設可能是 read-only。若要讓它能 push,必須在 workflow 裡顯式加上 `permissions: contents: write`;否則改用你自己的 PAT(放在 `SUMMARY_GITHUB_TOKEN` 等自訂名稱的 secret 下)。
 - **想在組織帳號下產生 token**。沒有這種選項 — GitHub 不發 PAT 給組織。永遠是從個人帳號的 `Settings → Developer settings` 產生。
-- **缺少 `read:org` scope** 但又想讀取私有組織的成員數。組織的 `membersWithRole.totalCount` 會回傳 0 或報錯,加上 scope 後重新產生 token。
 
 ---
 
