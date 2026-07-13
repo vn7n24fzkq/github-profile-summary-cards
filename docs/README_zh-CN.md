@@ -2,7 +2,7 @@
    <h1>GitHub Profile Summary Cards</h1>
 
 
-   [English](/README.md) | [简体中文](/docs/README_zh.md) | [繁體中文](/docs/README_zh-tw.md)
+   [English](/README.md) | [简体中文](/docs/README_zh-CN.md) | [繁體中文](/docs/README_zh-tw.md)
    <p>
       一个用来生成github个人简介摘要的工具. 受到 <a href=https://github.com/tipsy/profile-summary-for-github>profile-summary-for-github</a>的启发
    </p>
