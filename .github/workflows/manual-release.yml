@@ -43,11 +43,15 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Publish release branch (Vercel production + action dist)
+        env:
+          # Pass through an env var so the value is never expanded into the
+          # shell script (prevents command injection via a crafted tag name).
+          TAG_NAME: ${{ github.event.inputs.tag_name }}
         run: |
           # Recreate `release` from current main, carrying the freshly built dist/
           git checkout -B release
           git add dist
-          git commit -m "release: ${{ github.event.inputs.tag_name }}" || echo "No dist changes to commit"
+          git commit -m "release: ${TAG_NAME}" || echo "No dist changes to commit"
           # Pushing to `release` triggers the Vercel production deployment
           git push -f origin release
 
