@@ -84,6 +84,6 @@ export async function sendAnalytics(
         }
     } catch (e) {
         // Log error but do not throw to prevent breaking the main application flow
-        console.error('Analytics error (ignored):', e instanceof Error ? e.message : e);
+        console.error(`Analytics error (ignored) [${eventName}]:`, e instanceof Error ? e.message : e);
     }
 }
