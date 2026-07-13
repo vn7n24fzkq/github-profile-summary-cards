@@ -102,11 +102,11 @@ on:
     workflow_dispatch:
 
 jobs:
-    build:
-      runs-on: ubuntu-latest
-      name: generate-github-cards
-      permissions:
-        contents: write
+  build:
+    runs-on: ubuntu-latest
+    name: generate-github-cards
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v2
