@@ -121,6 +121,8 @@ The same URLs return organization-flavored cards when the login resolves to an o
 
 The same GitHub Action setup also works for organizations — set `USERNAME` to the org login. The generated `profile-summary-card-output/` will contain 4 cards per theme instead of 5.
 
+> **Hosted API vs GitHub Action.** On the hosted API (`*.vercel.app`), the language and stats cards aggregate your **top 100 repositories by stars** — this keeps each request within the serverless time limit and light on the shared rate limit. The **GitHub Action** runs with your own token and no time limit, so it includes **all** of your repositories. (The total-repo count is exact either way.)
+
 ---
 
 ## Setting up your GitHub token

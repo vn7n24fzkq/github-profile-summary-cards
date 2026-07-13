@@ -50,6 +50,8 @@
 
 組織模式下,`profile-summary-card-output/` 每個主題會產生 4 張卡片(沒有 productive-time)。
 
+> **Hosted API 與 GitHub Action 的差異。** 在 hosted API(`*.vercel.app`)上,語言與 stats 卡片會彙整你**依 star 排序的前 100 個 repo** —— 這是為了讓每次請求不超過 serverless 時間限制、也減輕共用額度的負擔。**GitHub Action** 用你自己的 token、沒有時間限制,所以會涵蓋**全部** repo。(repo 總數兩種方式都是準確的。)
+
 ---
 
 ## 設定 GitHub Token
