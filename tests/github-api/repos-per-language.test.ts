@@ -3,54 +3,16 @@ import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 const mock = new MockAdapter(axios);
 
-const firstData = {
+const singlePageData = {
     data: {
         user: {
             repositories: {
                 nodes: [
-                    {
-                        primaryLanguage: {
-                            color: '#b07219',
-                            name: 'Java'
-                        }
-                    },
-                    {
-                        primaryLanguage: {
-                            color: '#dea584',
-                            name: 'Rust'
-                        }
-                    }
-                ],
-                pageInfo: {
-                    endCursor: 'ABCD29yOnYyOpHOBslODA==',
-                    hasNextPage: true
-                }
-            }
-        }
-    }
-};
-const lastData = {
-    data: {
-        user: {
-            repositories: {
-                nodes: [
-                    {
-                        primaryLanguage: {
-                            color: '#b07219',
-                            name: 'Java'
-                        }
-                    },
-                    {
-                        primaryLanguage: {
-                            color: '#f18e33',
-                            name: 'Kotlin'
-                        }
-                    }
-                ],
-                pageInfo: {
-                    endCursor: null,
-                    hasNextPage: false
-                }
+                    {primaryLanguage: {color: '#b07219', name: 'Java'}},
+                    {primaryLanguage: {color: '#dea584', name: 'Rust'}},
+                    {primaryLanguage: {color: '#b07219', name: 'Java'}},
+                    {primaryLanguage: {color: '#f18e33', name: 'Kotlin'}}
+                ]
             }
         }
     }
@@ -112,11 +74,7 @@ afterEach(() => {
 
 describe('repos per language on github', () => {
     it('should get correct data', async () => {
-        mock.onPost('https://api.github.com/graphql')
-            .replyOnce(200, firstData)
-            .onPost('https://api.github.com/graphql')
-            .replyOnce(200, lastData)
-            .onAny();
+        mock.onPost('https://api.github.com/graphql').reply(200, singlePageData);
         const repoData = await getRepoLanguages('vn7n24fzkq', [], 'token');
         expect(repoData).toEqual({
             languageMap: new Map([

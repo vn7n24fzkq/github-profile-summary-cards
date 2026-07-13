@@ -9,20 +9,16 @@ const fetcher = (token: string, variables: any) => {
         },
         {
             query: `
-      query OrganizationReposPerLanguage($login: String!, $endCursor: String) {
+      query OrganizationReposPerLanguage($login: String!) {
         repositoryOwner(login: $login) {
           __typename
           ... on Organization {
-            repositories(isFork: false, first: 100, after: $endCursor, privacy: PUBLIC, ownerAffiliations: OWNER) {
+            repositories(isFork: false, first: 100, privacy: PUBLIC, ownerAffiliations: OWNER, orderBy: {direction: DESC, field: STARGAZERS}) {
               nodes {
                 primaryLanguage {
                   name
                   color
                 }
-              }
-              pageInfo{
-                  endCursor
-                  hasNextPage
               }
             }
           }
@@ -40,31 +36,21 @@ export async function getOrganizationRepoLanguages(
     exclude: Array<string>,
     token: string
 ): Promise<RepoLanguages> {
-    let hasNextPage = true;
-    let cursor = null;
+    // Single top-100 (by stars) query instead of paginating every repo — see the
+    // note in the user repos-per-language module.
     const repoLanguages = new RepoLanguages();
-    const nodes = [];
 
-    while (hasNextPage) {
-        const res: any = await fetcher(token, {
-            login: login,
-            endCursor: cursor
-        });
-
-        if (res.data.errors) {
-            throw Error(res.data.errors[0].message || 'GetOrganizationRepoLanguage fail');
-        }
-        const owner = res.data.data.repositoryOwner;
-        if (!owner || owner.__typename !== 'Organization') {
-            throw Error(`Organization not found: ${login}`);
-        }
-        const org = owner;
-        cursor = org.repositories.pageInfo.endCursor;
-        hasNextPage = org.repositories.pageInfo.hasNextPage;
-        nodes.push(...org.repositories.nodes);
+    const res: any = await fetcher(token, {login: login});
+    if (res.data.errors) {
+        throw Error(res.data.errors[0].message || 'GetOrganizationRepoLanguage fail');
     }
+    const owner = res.data.data.repositoryOwner;
+    if (!owner || owner.__typename !== 'Organization') {
+        throw Error(`Organization not found: ${login}`);
+    }
+    const nodes = owner.repositories.nodes;
 
-    nodes.forEach(node => {
+    nodes.forEach((node: {primaryLanguage: {name: string; color: string} | null}) => {
         if (node.primaryLanguage) {
             const langName = node.primaryLanguage.name;
             const langColor = node.primaryLanguage.color;

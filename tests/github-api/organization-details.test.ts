@@ -19,10 +19,6 @@ const firstPage = {
             isVerified: true,
             repositories: {
                 totalCount: 3,
-                pageInfo: {
-                    endCursor: 'CURSOR1',
-                    hasNextPage: true
-                },
                 nodes: [
                     {
                         createdAt: '2020-01-01T00:00:00Z',
@@ -35,34 +31,7 @@ const firstPage = {
                         forkCount: 2,
                         stargazers: {totalCount: 50},
                         issues: {totalCount: 1}
-                    }
-                ]
-            }
-        }
-    }
-};
-
-const lastPage = {
-    data: {
-        repositoryOwner: {
-            __typename: 'Organization',
-            id: 'orgID',
-            login: 'acme',
-            name: 'Acme Corp',
-            description: 'A test organization',
-            email: 'contact@acme.example',
-            location: 'Internet',
-            websiteUrl: 'https://acme.example',
-            twitterUsername: 'acme',
-            createdAt: '2015-01-01T00:00:00Z',
-            isVerified: true,
-            repositories: {
-                totalCount: 3,
-                pageInfo: {
-                    endCursor: null,
-                    hasNextPage: false
-                },
-                nodes: [
+                    },
                     {
                         createdAt: '2022-06-30T00:00:00Z',
                         forkCount: 1,
@@ -97,12 +66,8 @@ afterEach(() => {
 });
 
 describe('github api for organization details', () => {
-    it('should aggregate repo data across paginated responses', async () => {
-        mock.onPost('https://api.github.com/graphql')
-            .replyOnce(200, firstPage)
-            .onPost('https://api.github.com/graphql')
-            .replyOnce(200, lastPage)
-            .onAny();
+    it('should aggregate repo data from the top-100 query', async () => {
+        mock.onPost('https://api.github.com/graphql').reply(200, firstPage);
         const orgDetails = await getOrganizationDetails('acme', 'token');
         expect(orgDetails).toEqual({
             id: 'orgID',

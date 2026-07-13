@@ -9,23 +9,11 @@ const firstData = {
             __typename: 'Organization',
             repositories: {
                 nodes: [
-                    {
-                        primaryLanguage: {
-                            color: '#b07219',
-                            name: 'Java'
-                        }
-                    },
-                    {
-                        primaryLanguage: {
-                            color: '#dea584',
-                            name: 'Rust'
-                        }
-                    }
-                ],
-                pageInfo: {
-                    endCursor: 'ABCD29yOnYyOpHOBslODA==',
-                    hasNextPage: true
-                }
+                    {primaryLanguage: {color: '#b07219', name: 'Java'}},
+                    {primaryLanguage: {color: '#dea584', name: 'Rust'}},
+                    {primaryLanguage: {color: '#b07219', name: 'Java'}},
+                    {primaryLanguage: {color: '#f18e33', name: 'Kotlin'}}
+                ]
             }
         }
     }
@@ -82,11 +70,7 @@ afterEach(() => {
 
 describe('organization repos per language on github', () => {
     it('should get correct data', async () => {
-        mock.onPost('https://api.github.com/graphql')
-            .replyOnce(200, firstData)
-            .onPost('https://api.github.com/graphql')
-            .replyOnce(200, lastData)
-            .onAny();
+        mock.onPost('https://api.github.com/graphql').reply(200, firstData);
         const repoData = await getOrganizationRepoLanguages('acme', [], 'token');
         expect(repoData).toEqual({
             languageMap: new Map([

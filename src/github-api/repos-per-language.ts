@@ -38,18 +38,14 @@ const fetcher = (token: string, variables: any) => {
         },
         {
             query: `
-      query ReposPerLanguage($login: String!,$endCursor: String) {
+      query ReposPerLanguage($login: String!) {
         user(login: $login) {
-          repositories(isFork: false, first: 100, after: $endCursor,ownerAffiliations: OWNER) {
+          repositories(isFork: false, first: 100, ownerAffiliations: OWNER, orderBy: {direction: DESC, field: STARGAZERS}) {
             nodes {
               primaryLanguage {
                 name
                 color
               }
-            }
-            pageInfo{
-                endCursor
-                hasNextPage
             }
           }
         }
@@ -66,26 +62,18 @@ export async function getRepoLanguages(
     exclude: Array<string>,
     token: string
 ): Promise<RepoLanguages> {
-    let hasNextPage = true;
-    let cursor = null;
+    // Cap at the top 100 repos (by stars) in a single query instead of paginating
+    // through every repo: unbounded pagination let large accounts blow past the
+    // Vercel function timeout and burn the shared GitHub rate limit for everyone.
     const repoLanguages = new RepoLanguages();
-    const nodes = [];
 
-    while (hasNextPage) {
-        const res: any = await fetcher(token, {
-            login: username,
-            endCursor: cursor
-        });
-
-        if (res.data.errors) {
-            throw Error(res.data.errors[0].message || 'GetRepoLanguage fail');
-        }
-        cursor = res.data.data.user.repositories.pageInfo.endCursor;
-        hasNextPage = res.data.data.user.repositories.pageInfo.hasNextPage;
-        nodes.push(...res.data.data.user.repositories.nodes);
+    const res: any = await fetcher(token, {login: username});
+    if (res.data.errors) {
+        throw Error(res.data.errors[0].message || 'GetRepoLanguage fail');
     }
+    const nodes = res.data.data.user.repositories.nodes;
 
-    nodes.forEach(node => {
+    nodes.forEach((node: {primaryLanguage: {name: string; color: string} | null}) => {
         if (node.primaryLanguage) {
             const langName = node.primaryLanguage.name;
             const langColor = node.primaryLanguage.color;
