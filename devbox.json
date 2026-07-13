@@ -8,7 +8,8 @@
     "shell": {
         "init_hook": [
             "echo 'Welcome to github-profile-summary-cards dev environment'",
-            "npm install"
+            "npm install",
+            "for f in .git/hooks/pre-commit node_modules/pre-commit/hook; do [ -f \"$f\" ] && sed '1s|#!/bin/bash|#!/usr/bin/env bash|' \"$f\" > \"$f.tmp\" && mv \"$f.tmp\" \"$f\" && chmod +x \"$f\"; done"
         ],
         "scripts": {
             "test": "npm test",
