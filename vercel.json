@@ -17,15 +17,6 @@
     },
     "headers": [
         {
-            "source": "/api/cards/(.*)",
-            "headers": [
-                {
-                    "key": "cache-control",
-                    "value": "public, max-age=21600, s-maxage=21600, stale-while-revalidate=14400"
-                }
-            ]
-        },
-        {
             "source": "/api/theme",
             "headers": [
                 {
