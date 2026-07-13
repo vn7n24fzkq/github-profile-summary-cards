@@ -5,7 +5,8 @@ const mock = new MockAdapter(axios);
 
 const data = {
     data: {
-        organization: {
+        repositoryOwner: {
+            __typename: 'Organization',
             repositories: {
                 nodes: [
                     {
@@ -96,7 +97,7 @@ const error = {
 
 const notFound = {
     data: {
-        organization: null
+        repositoryOwner: null
     }
 };
 

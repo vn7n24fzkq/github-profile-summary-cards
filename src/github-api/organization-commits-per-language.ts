@@ -8,6 +8,7 @@ import {CommitLanguages} from './commits-per-language';
 const MAX_REPOS = 50;
 
 const fetcher = (token: string, variables: any) => {
+    // Use `repositoryOwner` + Organization fragment (public, no read:org scope).
     return request(
         {
             Authorization: `bearer ${token}`
@@ -15,18 +16,21 @@ const fetcher = (token: string, variables: any) => {
         {
             query: `
       query OrganizationCommitsPerLanguage($login: String!, $first: Int!) {
-        organization(login: $login) {
-          repositories(first: $first, privacy: PUBLIC, isFork: false, ownerAffiliations: OWNER, orderBy: {direction: DESC, field: STARGAZERS}) {
-            nodes {
-              primaryLanguage {
-                name
-                color
-              }
-              defaultBranchRef {
-                target {
-                  ... on Commit {
-                    history(first: 0) {
-                      totalCount
+        repositoryOwner(login: $login) {
+          __typename
+          ... on Organization {
+            repositories(first: $first, privacy: PUBLIC, isFork: false, ownerAffiliations: OWNER, orderBy: {direction: DESC, field: STARGAZERS}) {
+              nodes {
+                primaryLanguage {
+                  name
+                  color
+                }
+                defaultBranchRef {
+                  target {
+                    ... on Commit {
+                      history(first: 0) {
+                        totalCount
+                      }
                     }
                   }
                 }
@@ -58,10 +62,11 @@ export async function getOrganizationCommitLanguage(
         throw Error(res.data.errors[0].message || 'GetOrganizationCommitLanguage failed');
     }
 
-    const org = res.data.data.organization;
-    if (!org) {
+    const owner = res.data.data.repositoryOwner;
+    if (!owner || owner.__typename !== 'Organization') {
         throw Error(`Organization not found: ${login}`);
     }
+    const org = owner;
 
     org.repositories.nodes.forEach(
         (node: {

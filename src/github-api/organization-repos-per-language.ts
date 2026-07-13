@@ -2,7 +2,7 @@ import request from '../utils/request';
 import {RepoLanguages} from './repos-per-language';
 
 const fetcher = (token: string, variables: any) => {
-    // contain private repo need token permission
+    // Use `repositoryOwner` + Organization fragment (public, no read:org scope).
     return request(
         {
             Authorization: `bearer ${token}`
@@ -10,17 +10,20 @@ const fetcher = (token: string, variables: any) => {
         {
             query: `
       query OrganizationReposPerLanguage($login: String!, $endCursor: String) {
-        organization(login: $login) {
-          repositories(isFork: false, first: 100, after: $endCursor, ownerAffiliations: OWNER) {
-            nodes {
-              primaryLanguage {
-                name
-                color
+        repositoryOwner(login: $login) {
+          __typename
+          ... on Organization {
+            repositories(isFork: false, first: 100, after: $endCursor, privacy: PUBLIC, ownerAffiliations: OWNER) {
+              nodes {
+                primaryLanguage {
+                  name
+                  color
+                }
               }
-            }
-            pageInfo{
-                endCursor
-                hasNextPage
+              pageInfo{
+                  endCursor
+                  hasNextPage
+              }
             }
           }
         }
@@ -51,10 +54,11 @@ export async function getOrganizationRepoLanguages(
         if (res.data.errors) {
             throw Error(res.data.errors[0].message || 'GetOrganizationRepoLanguage fail');
         }
-        const org = res.data.data.organization;
-        if (!org) {
+        const owner = res.data.data.repositoryOwner;
+        if (!owner || owner.__typename !== 'Organization') {
             throw Error(`Organization not found: ${login}`);
         }
+        const org = owner;
         cursor = org.repositories.pageInfo.endCursor;
         hasNextPage = org.repositories.pageInfo.hasNextPage;
         nodes.push(...org.repositories.nodes);

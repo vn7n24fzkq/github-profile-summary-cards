@@ -11,7 +11,6 @@ export class OrganizationDetails {
     websiteUrl: string | null = null;
     twitterUsername: string | null = null;
     isVerified: boolean = false;
-    totalMembers: number = 0;
     totalPublicRepos: number = 0;
     totalStars: number = 0;
     totalForks: number = 0;
@@ -26,7 +25,11 @@ export class OrganizationDetails {
 }
 
 const fetcher = (token: string, variables: any) => {
-    // contain private member info need token permission
+    // Query via `repositoryOwner` + an Organization fragment rather than the
+    // `organization` root field: the latter requires the `read:org` scope for
+    // every field (even login/name), which we deliberately don't grant — a
+    // public card service must only ever read public data with a shared token.
+    // `repositoryOwner` exposes exactly the public owner data and needs no scope.
     return request(
         {
             Authorization: `bearer ${token}`
@@ -34,34 +37,34 @@ const fetcher = (token: string, variables: any) => {
         {
             query: `
       query OrganizationDetails($login: String!, $endCursor: String) {
-        organization(login: $login) {
-            id
-            login
-            name
-            description
-            email
-            location
-            websiteUrl
-            twitterUsername
-            createdAt
-            isVerified
-            membersWithRole {
-                totalCount
-            }
-            repositories(first: 100, after: $endCursor, privacy: PUBLIC, isFork: false, ownerAffiliations: OWNER, orderBy: {direction: DESC, field: STARGAZERS}) {
-                totalCount
-                pageInfo {
-                    endCursor
-                    hasNextPage
-                }
-                nodes {
-                    createdAt
-                    forkCount
-                    stargazers {
-                        totalCount
+        repositoryOwner(login: $login) {
+            __typename
+            ... on Organization {
+                id
+                login
+                name
+                description
+                email
+                location
+                websiteUrl
+                twitterUsername
+                createdAt
+                isVerified
+                repositories(first: 100, after: $endCursor, privacy: PUBLIC, isFork: false, ownerAffiliations: OWNER, orderBy: {direction: DESC, field: STARGAZERS}) {
+                    totalCount
+                    pageInfo {
+                        endCursor
+                        hasNextPage
                     }
-                    issues(states: OPEN) {
-                        totalCount
+                    nodes {
+                        createdAt
+                        forkCount
+                        stargazers {
+                            totalCount
+                        }
+                        issues(states: OPEN) {
+                            totalCount
+                        }
                     }
                 }
             }
@@ -88,10 +91,11 @@ export async function getOrganizationDetails(login: string, token: string): Prom
             throw Error(res.data.errors[0].message || 'GetOrganizationDetails failed');
         }
 
-        const org = res.data.data.organization;
-        if (!org) {
+        const owner = res.data.data.repositoryOwner;
+        if (!owner || owner.__typename !== 'Organization') {
             throw Error(`Organization not found: ${login}`);
         }
+        const org = owner;
 
         if (organizationDetails === null) {
             organizationDetails = new OrganizationDetails(org.id, org.login, org.name, org.createdAt);
@@ -101,7 +105,6 @@ export async function getOrganizationDetails(login: string, token: string): Prom
             organizationDetails.websiteUrl = org.websiteUrl;
             organizationDetails.twitterUsername = org.twitterUsername;
             organizationDetails.isVerified = !!org.isVerified;
-            organizationDetails.totalMembers = org.membersWithRole.totalCount;
             organizationDetails.totalPublicRepos = org.repositories.totalCount;
         }
 

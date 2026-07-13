@@ -5,7 +5,8 @@ const mock = new MockAdapter(axios);
 
 const firstPage = {
     data: {
-        organization: {
+        repositoryOwner: {
+            __typename: 'Organization',
             id: 'orgID',
             login: 'acme',
             name: 'Acme Corp',
@@ -16,7 +17,6 @@ const firstPage = {
             twitterUsername: 'acme',
             createdAt: '2015-01-01T00:00:00Z',
             isVerified: true,
-            membersWithRole: {totalCount: 42},
             repositories: {
                 totalCount: 3,
                 pageInfo: {
@@ -44,7 +44,8 @@ const firstPage = {
 
 const lastPage = {
     data: {
-        organization: {
+        repositoryOwner: {
+            __typename: 'Organization',
             id: 'orgID',
             login: 'acme',
             name: 'Acme Corp',
@@ -55,7 +56,6 @@ const lastPage = {
             twitterUsername: 'acme',
             createdAt: '2015-01-01T00:00:00Z',
             isVerified: true,
-            membersWithRole: {totalCount: 42},
             repositories: {
                 totalCount: 3,
                 pageInfo: {
@@ -88,7 +88,7 @@ const error = {
 
 const notFound = {
     data: {
-        organization: null
+        repositoryOwner: null
     }
 };
 
@@ -115,7 +115,6 @@ describe('github api for organization details', () => {
             twitterUsername: 'acme',
             createdAt: '2015-01-01T00:00:00Z',
             isVerified: true,
-            totalMembers: 42,
             totalPublicRepos: 3,
             totalStars: 175,
             totalForks: 8,

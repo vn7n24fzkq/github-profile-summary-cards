@@ -56,12 +56,6 @@ const getOrganizationStatsData = async function (
         },
         {
             index: 3,
-            icon: Icon.PEOPLE,
-            name: 'Members:',
-            value: `${abbreviateNumber(organizationDetails.totalMembers, 1)}`
-        },
-        {
-            index: 4,
             icon: Icon.ISSUE,
             name: 'Open Issues:',
             value: `${abbreviateNumber(organizationDetails.totalOpenIssues, 1)}`

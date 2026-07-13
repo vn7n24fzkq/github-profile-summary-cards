@@ -74,7 +74,6 @@ describe('Cards Generation (Integration)', () => {
             twitterUsername: 'acme',
             createdAt: '2015-01-01T00:00:00Z',
             isVerified: true,
-            totalMembers: 42,
             totalPublicRepos: 10,
             totalStars: 100,
             totalForks: 25,

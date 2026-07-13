@@ -103,18 +103,12 @@ const getOrganizationProfileDetailsData = async function (
     const orgDetails: {index: number; icon: string; name: string; value: string}[] = [
         {
             index: 0,
-            icon: Icon.PEOPLE,
-            name: 'Members',
-            value: `${abbreviateNumber(organizationDetails.totalMembers, 2)} Public Members`
-        },
-        {
-            index: 1,
             icon: Icon.REPOS,
             name: 'Public Repos',
             value: `${abbreviateNumber(organizationDetails.totalPublicRepos, 2)} Public Repos`
         },
         {
-            index: 2,
+            index: 1,
             icon: Icon.CLOCK,
             name: 'CreatedAt',
             value: `Created on GitHub ${getOrganizationDateCreated(organizationDetails)}`
@@ -123,21 +117,21 @@ const getOrganizationProfileDetailsData = async function (
 
     if (organizationDetails.email) {
         orgDetails.push({
-            index: 3,
+            index: 2,
             icon: Icon.EMAIL,
             name: 'Email',
             value: organizationDetails.email
         });
     } else if (organizationDetails.location) {
         orgDetails.push({
-            index: 3,
+            index: 2,
             icon: Icon.LOCATION,
             name: 'Location',
             value: organizationDetails.location
         });
     } else if (organizationDetails.websiteUrl) {
         orgDetails.push({
-            index: 3,
+            index: 2,
             icon: Icon.LINK,
             name: 'Website',
             value: organizationDetails.websiteUrl
