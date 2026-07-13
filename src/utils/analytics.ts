@@ -36,39 +36,41 @@ export async function sendAnalytics(
     // Only execute in Vercel environment with valid credentials
     if (!process.env.VERCEL || !GA_MEASUREMENT_ID || !GA_API_SECRET) return;
 
-    // Destructure to remove sensitive PII (username) from the final payload
-    const {username, ...cleanParams} = params;
-    const clientId = getClientId(username);
-
-    // Extract user IP and User-Agent from Vercel-injected headers
-    // Vercel headers are plain objects (string | string[] | undefined)
-    const forwardedFor = headers?.['x-forwarded-for'];
-    const ip = (Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor)?.split(',')[0] || '';
-
-    const userAgent = headers?.['user-agent'];
-    const ua = Array.isArray(userAgent) ? userAgent[0] : userAgent || '';
-
-    const url = `https://www.google-analytics.com/mp/collect?measurement_id=${GA_MEASUREMENT_ID}&api_secret=${GA_API_SECRET}`;
-
-    const payload = {
-        client_id: clientId,
-        // GA4 Measurement Protocol supports top-level overrides for UA and IP
-        user_agent: ua,
-        ip_override: ip,
-        events: [
-            {
-                name: eventName,
-                params: {
-                    ...cleanParams,
-                    // Use provided session_id or fallback to a timestamp-based ID to ensure session separation
-                    session_id: cleanParams.session_id || Date.now().toString(),
-                    engagement_time_msec: 100
-                }
-            }
-        ]
-    };
-
+    // Wrap the entire body so fire-and-forget callers (`void sendAnalytics(...)`)
+    // can never produce an unhandled rejection, even if setup throws before fetch.
     try {
+        // Destructure to remove sensitive PII (username) from the final payload
+        const {username, ...cleanParams} = params;
+        const clientId = getClientId(username);
+
+        // Extract user IP and User-Agent from Vercel-injected headers
+        // Vercel headers are plain objects (string | string[] | undefined)
+        const forwardedFor = headers?.['x-forwarded-for'];
+        const ip = (Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor)?.split(',')[0] || '';
+
+        const userAgent = headers?.['user-agent'];
+        const ua = Array.isArray(userAgent) ? userAgent[0] : userAgent || '';
+
+        const url = `https://www.google-analytics.com/mp/collect?measurement_id=${GA_MEASUREMENT_ID}&api_secret=${GA_API_SECRET}`;
+
+        const payload = {
+            client_id: clientId,
+            // GA4 Measurement Protocol supports top-level overrides for UA and IP
+            user_agent: ua,
+            ip_override: ip,
+            events: [
+                {
+                    name: eventName,
+                    params: {
+                        ...cleanParams,
+                        // Use provided session_id or fallback to a timestamp-based ID to ensure session separation
+                        session_id: cleanParams.session_id || Date.now().toString(),
+                        engagement_time_msec: 100
+                    }
+                }
+            ]
+        };
+
         const response = await fetch(url, {
             method: 'POST',
             body: JSON.stringify(payload),
@@ -82,6 +84,6 @@ export async function sendAnalytics(
         }
     } catch (e) {
         // Log error but do not throw to prevent breaking the main application flow
-        console.error('Analytics error (ignored):', e instanceof Error ? e.message : e);
+        console.error(`Analytics error (ignored) [${eventName}]:`, e instanceof Error ? e.message : e);
     }
 }

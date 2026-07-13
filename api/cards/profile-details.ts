@@ -21,10 +21,11 @@ export default async (req: VercelRequest, res: VercelResponse) => {
         while (true) {
             try {
                 const cardSVG = await getProfileDetailsSVGWithThemeName(username, theme, token);
-                await sendAnalytics('profile-details-card', {username, theme}, req.headers);
                 res.setHeader('Content-Type', 'image/svg+xml');
                 res.setHeader('Cache-Control', CONST_CACHE_CONTROL);
                 res.send(cardSVG);
+                // Fire-and-forget: don't block the response on analytics
+                void sendAnalytics('profile_details_card', {username, theme}, req.headers);
                 return;
             } catch (err: any) {
                 console.log(err.message);

@@ -2,12 +2,12 @@
    <h1>GitHub Profile Summary Cards</h1>
 
 
- [English](/README.md) | [简体中文](/docs/README_zh-CN.md) | [繁體中文](/docs/README_zh-tw.md)
+   [English](/README.md) | [简体中文](/docs/README_zh-CN.md) | [繁體中文](/docs/README_zh-tw.md)
    <p>
-      A tool to generate your github summary card for profile README. Inspired by <a href=https://github.com/tipsy/profile-summary-for-github>profile-summary-for-github</a>
+      一个用来生成github个人简介摘要的工具. 受到 <a href=https://github.com/tipsy/profile-summary-for-github>profile-summary-for-github</a>的启发
    </p>
    <p>
-      :star: This repo is just for fun, feel free to contribute! :star:
+      :star: 欢迎大家随时贡献 :star:
    </p>
    <p align="center">
       <a href="https://github.com/vn7n24fzkq/github-profile-summary-cards/stargazers">
@@ -23,7 +23,7 @@
 
 <div align="center">
 <p>
-<a href="https://github-profile-summary-cards.vercel.app/demo.html">Get your own cards now!!</a>
+<a href="https://github-profile-summary-cards.vercel.app/demo.html">生成你的个人卡片</a>
 </p>
 
 
@@ -35,7 +35,7 @@
 
 </div>
 
-## Themes
+## Themes | 主题
 
 |   |   |   |   |   |
 |:---:|:---:|:---:|:---:|:---:|
@@ -48,100 +48,99 @@
 |transparent|
 |![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=transparent)|
 
-[More themes](https://github.com/vn7n24fzkq/github-profile-summary-cards-example/tree/master/profile-summary-card-output)
+[更多主题](https://github.com/vn7n24fzkq/github-profile-summary-cards-example/tree/master/profile-summary-card-output)
 
-## How to use (API)
-### Profile details card
+## 如何使用 (API)
+### 简介摘要卡片
 ![](http://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=nord_bright)
 
 `http://github-profile-summary-cards.vercel.app/api/cards/profile-details?username={username}&theme={theme_name}`
-- Accept url parameters
+- 可接收的链接参数
   - theme
     - Theme name
   - username
     - Username
-### Top languages used in repository card
+### 仓库首选语言卡片
 ![](http://github-profile-summary-cards.vercel.app/api/cards/repos-per-language?username=vn7n24fzkq&theme=nord_bright)
 
 `http://github-profile-summary-cards.vercel.app/api/cards/repos-per-language?username={username}&theme={theme_name}&exclude={exclude}`
-- Accept url parameters
+- 可接收的参数
   - theme
     - Theme name
   - username
     - Username
   - exclude:
-    - A comma separated list of languages to exclude, e.g., exclude=java,rust,jupyter%20Notebook
-      - You can represent a space in the language list by using '%20' when you want to include a space.
-    - You can found the supported languages in [here](https://github.com/github/linguist/blob/master/lib/linguist/languages.yml)
+    - 排除以逗号分隔的语言列表, e.g., exclude=java,rust,jupyter%20Notebook
+      - 当语言中有空格时，使用'%20'来表示.
+    - [提供支持的语言](https://github.com/github/linguist/blob/master/lib/linguist/languages.yml)
 
-### Top languages in commits card
+### 提交首选语言卡片
 ![](http://github-profile-summary-cards.vercel.app/api/cards/most-commit-language?username=vn7n24fzkq&theme=nord_bright)
 
 `http://github-profile-summary-cards.vercel.app/api/cards/most-commit-language?username={username}&theme={theme_name}&exclude={exclude}`
-- Accept url parameters
+- 可接收的参数
   - theme
     - Theme name
   - username
     - Username
   - exclude:
-    - A comma separated list of languages to exclude, e.g., exclude=java,rust,jupyter%20Notebook
-      - You can represent a space in the language list by using '%20' when you want to include a space.
-    - You can found the supported languages in [here](https://github.com/github/linguist/blob/master/lib/linguist/languages.yml)
+    - 排除以逗号分隔的语言列表, e.g., exclude=java,rust,jupyter%20Notebook
+      - 当语言中有空格时，使用'%20'来表示
+    - [提供支持的语言](https://github.com/github/linguist/blob/master/lib/linguist/languages.yml)
 
-### GitHub stats card
+### GitHub 状态卡片
 ![](http://github-profile-summary-cards.vercel.app/api/cards/stats?username=vn7n24fzkq&theme=nord_bright&)
 
 `http://github-profile-summary-cards.vercel.app/api/cards/stats?username={username}&theme={theme_name}`
-- Accept url parameters
+- 可接收的参数
   - theme
     - Theme name
   - username
     - Username
 
-### Productive time card
+### 提交时间表卡片
 ![](http://github-profile-summary-cards.vercel.app/api/cards/productive-time?username=vn7n24fzkq&theme=nord_bright&utcOffset=8)
 
 `http://github-profile-summary-cards.vercel.app/api/cards/productive-time?username={username}&theme={theme_name}&utcOffset={utcOffset}`
-- accept url parameters
+- 可接收的参数
   - theme
   - username
   - utcOffset
 
 ---
 
-## How to use (GitHub Actions)
+## 如何使用 (GitHub Actions)
 
-This action generate your github profile summary cards and make a commit to your repo.
-You can also trigger action by yourself after add this action.
+此操作会生成您的GitHub个人资料摘要卡，并提交到您的存储库。添加此操作后，您还可以自己触发操作。
 
-:star: [Follow tutorial](https://github.com/vn7n24fzkq/github-profile-summary-cards/wiki/Tutorial) ( Recommendation ) :star:
+:star: [教程](https://github.com/vn7n24fzkq/github-profile-summary-cards/wiki/Tutorial) ( Recommendation ) :star:
 
-#### First step
+#### 首先
 
-- You need create a [Personal access token](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) with correct permissions.
+- 你需要正确授权的token | [Personal access token](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token).
   [Personal token](https://github.com/vn7n24fzkq/github-profile-summary-cards/wiki/Tutorial#generate-token)
 
-- Add personal access token to repo secret.
+- 添加 personal access token 到 repo secret.
 
-#### Use template ( create a repository )
+#### 使用模版 ( create a repository )
 
 - [github-profile-summary-cards-example](https://github.com/vn7n24fzkq/github-profile-summary-cards-example)
 
-- Action already setup in this template, you just need click `use this template button` to create your profile readme.
+- Action 已经准备就绪, 点击 `use this template button` 创建个人简介.
 
-- After replace GITHUB_TOKEN with your repo secret and trigger action you can use everything in `profile-summary-card-output` folder.
+- 在把 GITHUB_TOKEN 替换为你的 repo secret 之后触发 action ，你可以在 `profile-summary-card-output` 下尽情使用.
 
-#### Add to exist repository
+#### 添加到已经创建的仓库
 
-- Add this action to repo and replace GITHUB_TOKEN in action yml file with your repo secret.
+- 将此 action 添加到你的仓库， 将你的 GITHUB_TOKEN in action yml file 替换成你的 repo secret.
 
 ---
 
-## GitHub Actions usage
+## GitHub Actions 使用方法
 
-After the action finished. You can see all of summary cards are in folder which named `profile-summary-card-output`.
+在 action 完成之后. 你可以在 `profile-summary-card-output` 看到所有的摘要卡片.
 
-`Note: Some summary cards might not be updated in time, because github raw file has cache time.`
+`注意: 一些摘要卡片可能不会及时更新, 因为github原始文件需要缓冲`
 
 ```yml
 name: GitHub-Profile-Summary-Cards
@@ -177,39 +176,29 @@ jobs:
 
 ---
 
-## Development (Devbox)
+## 本地运行
 
-This project uses [devbox](https://www.jetify.com/devbox) to ensure a reproducible development environment (Node.js 22, Python 3).
+- 需要 `node 16` 版本, 低版本可能会造成问题.
+- 添加 personal access token 到 `.env` 文件. ex: `GITHUB_TOKEN=abcda69ddf66ae95538c5b1666591b59b4abc73a`
+- 代码修改完毕后执行 `npm run build` 
 
-### 1. Setup
 ```sh
-# Install devbox
-curl -fsSL https://get.jetpack.io/devbox | bash
-
-# Enter shell (installs all dependencies automatically)
-devbox shell
+npm run run [username] [UTC offset]
 ```
 
-### 2. Local Testing
-We provide a script to generate cards locally for visual verification.
-**Prerequisite**: You must have a `GITHUB_TOKEN`.
+例如
 
 ```sh
-# Set token (or add to .env)
-export GITHUB_TOKEN=your_token_here
-
-# Run local test generator
-npm run test:local
+npm run run vn7n24fzkq 8
 ```
-Outputs will be saved to `debug_output/` folder.
 
-### 3. Run Vercel API Locally
+- 可使用 vercel 开发包本地运行API
+
 ```sh
-npm i -g vercel
 vercel dev
 ```
 
-## Deploy your own API on Vercel
-Quickly deploy your own version!
+## 在 Vercel 上部署API
+快速部署
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvn7n24fzkq%2Fgithub-profile-summary-cards&env=GITHUB_TOKEN&envDescription=https%3A%2F%2Fgithub.com%2Fvn7n24fzkq%2Fgithub-profile-summary-cards%23first-step&project-name=my-github-profile-summary-cards)

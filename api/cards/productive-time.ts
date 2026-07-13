@@ -25,10 +25,11 @@ export default async (req: VercelRequest, res: VercelResponse) => {
         while (true) {
             try {
                 const cardSVG = await getProductiveTimeSVGWithThemeName(username, theme, Number(utcOffset), token);
-                await sendAnalytics('productive-time-card', {username, theme, utcOffset}, req.headers);
                 res.setHeader('Content-Type', 'image/svg+xml');
                 res.setHeader('Cache-Control', CONST_CACHE_CONTROL);
                 res.send(cardSVG);
+                // Fire-and-forget: don't block the response on analytics
+                void sendAnalytics('productive_time_card', {username, theme, utcOffset}, req.headers);
                 return;
             } catch (err: any) {
                 console.log(err.message);
