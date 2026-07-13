@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/vn7n24fzkq/github-profile-summary-cards/blob/master/LICENSE)
 ![release](https://img.shields.io/github/v/release/vn7n24fzkq/github-profile-summary-cards.svg)
 
-[繁體中文](./docs/README.zh-tw.md)
+[English](/README.md) | [简体中文](/docs/README_zh-CN.md) | [繁體中文](/docs/README_zh-tw.md)
 
 :star: 這份 repo 是好玩才寫的,任何貢獻都很歡迎！ :star:
 

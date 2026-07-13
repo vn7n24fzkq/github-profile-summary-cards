@@ -1,6 +1,6 @@
 {
     "name": "github-profile-summary-cards",
-    "version": "0.7.1",
+    "version": "0.8.0",
     "description": "Generate github profile summary cards",
     "main": "lib/app.js",
     "scripts": {
@@ -21,12 +21,12 @@
     "author": "Casper <vn7n24fzkq@gmail.com>",
     "license": "MIT",
     "dependencies": {
-        "@actions/core": "^1.9.1",
+        "@actions/core": "^1.11.1",
         "@actions/github": "^6.0.0",
-        "axios": "^1.8.2",
+        "axios": "^1.17.0",
         "d3": "^6.7.0",
         "dotenv": "^8.2.0",
-        "jest-junit": "^14.0.0",
+        "jest-junit": "^17.0.0",
         "js-abbreviation-number": "^1.4.0",
         "jsdom": "^16.4.0",
         "retry-axios": "^2.6.0"
@@ -61,6 +61,6 @@
         "lint"
     ],
     "engines": {
-        "node": "22.x"
+        "node": "24.x"
     }
 }

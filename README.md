@@ -2,7 +2,7 @@
    <h1>GitHub Profile Summary Cards</h1>
 
 
-   [繁體中文](./docs/README.zh-tw.md)
+ [English](/README.md) | [简体中文](/docs/README_zh-CN.md) | [繁體中文](/docs/README_zh-tw.md)
    <p>
       A tool to generate your github summary card for profile README. Inspired by <a href=https://github.com/tipsy/profile-summary-for-github>profile-summary-for-github</a>
    </p>

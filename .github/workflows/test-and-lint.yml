@@ -16,9 +16,9 @@ jobs:
       with:
         api_key: ${{ secrets.foresight_api_key }}
 
-    - uses: actions/checkout@v4
-    - name: Use Node.js 22
-      uses: actions/setup-node@v4
+    - uses: actions/checkout@v5
+    - name: Use Node.js 24
+      uses: actions/setup-node@v5
       with:
         node-version-file: '.node-version'
         cache: 'npm'
@@ -39,9 +39,9 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js 22
-      uses: actions/setup-node@v4
+    - uses: actions/checkout@v5
+    - name: Use Node.js 24
+      uses: actions/setup-node@v5
       with:
         node-version-file: '.node-version'
         cache: 'npm'

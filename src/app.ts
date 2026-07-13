@@ -45,7 +45,7 @@ const generateUserCards = async (username: string, utcOffset: number, exclude: A
     try {
         core.info(`Creating ProfileDetailsCard...`);
         await createProfileDetailsCard(username, token);
-        await sendAnalytics('action-profile-details-card', {username});
+        await sendAnalytics('action_profile_details_card', {username});
     } catch (error: any) {
         core.error(`Error when creating ProfileDetailsCard \n${error.stack}`);
     }
@@ -88,7 +88,7 @@ const generateOrganizationCards = async (login: string, exclude: Array<string>, 
     try {
         core.info(`Creating Organization ProfileDetailsCard...`);
         await createOrganizationProfileDetailsCard(login, token);
-        await sendAnalytics('action-organization-profile-details-card', {username: login});
+        await sendAnalytics('action_organization_profile_details_card', {username: login});
     } catch (error: any) {
         core.error(`Error when creating Organization ProfileDetailsCard \n${error.stack}`);
     }
