@@ -439,19 +439,31 @@
                     return out;
                 }
 
+                // Clamp a numeric input to [min,max]; null if it isn't a number.
+                function clampNum(raw, min, max) {
+                    var n = parseFloat(raw);
+                    if (isNaN(n)) return null;
+                    return Math.min(max, Math.max(min, n));
+                }
+
                 // Build a card URL. `demo` = true adds source=demo (for previews on this
                 // page only); the Markdown users copy must NOT carry it, or their embeds
-                // would be miscounted as demo traffic.
+                // would be miscounted as demo traffic. Assumes a non-empty username
+                // (build() guards that) — we never silently substitute another profile.
                 function cardUrl(endpoint, demo) {
                     var p = new URLSearchParams();
-                    p.set('username', els.username.value.trim() || 'vn7n24fzkq');
+                    p.set('username', els.username.value.trim());
                     p.set('theme', els.theme.value);
                     if (els.animation.value) {
                         p.set('animation', els.animation.value);
-                        if (els.duration.value) p.set('duration', els.duration.value);
+                        var dur = clampNum(els.duration.value, 0.2, 10);
+                        if (dur !== null) p.set('duration', String(dur));
                     }
                     if (endpoint === 'profile-details' && els.name.value.trim()) p.set('name', els.name.value.trim());
-                    if (endpoint === 'productive-time' && els.utcOffset.value !== '') p.set('utcOffset', els.utcOffset.value);
+                    if (endpoint === 'productive-time') {
+                        var off = clampNum(els.utcOffset.value, -12, 14);
+                        if (off !== null) p.set('utcOffset', String(off));
+                    }
                     if ((endpoint === 'repos-per-language' || endpoint === 'most-commit-language') && els.exclude.value.trim())
                         p.set('exclude', els.exclude.value.trim());
                     colorParams().forEach(function (kv) {
@@ -468,6 +480,15 @@
                 // ---- Render preview cards ----
                 function build() {
                     cardsEl.replaceChildren();
+                    // Require a username — never guess a profile on the user's behalf.
+                    if (!els.username.value.trim()) {
+                        var hint = document.createElement('p');
+                        hint.className = 'hint';
+                        hint.style.gridColumn = '1 / -1';
+                        hint.textContent = 'Enter a GitHub username or organization to preview your cards.';
+                        cardsEl.appendChild(hint);
+                        return;
+                    }
                     var bust = Date.now(); // cache-buster so animations replay on re-render
                     CARDS.forEach(function (c) {
                         var endpoint = c[0],
@@ -516,14 +537,14 @@
                     };
                     if (navigator.clipboard && navigator.clipboard.writeText) {
                         navigator.clipboard.writeText(text).then(done, function () {
-                            legacyCopy(text);
-                            done();
+                            if (legacyCopy(text)) done();
                         });
-                    } else {
-                        legacyCopy(text);
+                    } else if (legacyCopy(text)) {
                         done();
                     }
                 }
+                // Returns whether the copy actually succeeded, so callers don't claim
+                // "Copied" when nothing reached the clipboard.
                 function legacyCopy(text) {
                     var ta = document.createElement('textarea');
                     ta.value = text;
@@ -531,12 +552,14 @@
                     ta.style.opacity = '0';
                     document.body.appendChild(ta);
                     ta.select();
+                    var ok = false;
                     try {
-                        document.execCommand('copy');
+                        ok = document.execCommand('copy');
                     } catch (e) {
-                        /* ignore */
+                        ok = false;
                     }
                     document.body.removeChild(ta);
+                    return ok;
                 }
 
                 document.getElementById('copyAll').addEventListener('click', function () {
@@ -550,9 +573,15 @@
                 var STORE = 'gpsc-demo';
                 function save() {
                     try {
-                        var s = {};
+                        var s = {fields: {}, colors: {}};
                         Object.keys(els).forEach(function (k) {
-                            s[k] = els[k].value;
+                            s.fields[k] = els[k].value;
+                        });
+                        COLORS.forEach(function (c) {
+                            var key = c[0];
+                            var on = colorGrid.querySelector('[data-enable="' + key + '"]');
+                            var val = colorGrid.querySelector('[data-color="' + key + '"]');
+                            s.colors[key] = {on: !!(on && on.checked), val: val ? val.value : '#000000'};
                         });
                         localStorage.setItem(STORE, JSON.stringify(s));
                     } catch (e) {
@@ -562,10 +591,21 @@
                 function restore() {
                     try {
                         var s = JSON.parse(localStorage.getItem(STORE) || '{}');
-                        Object.keys(s).forEach(function (k) {
-                            if (els[k] && s[k] != null && els[k].tagName !== 'SELECT') els[k].value = s[k];
+                        var fields = s.fields || {};
+                        Object.keys(fields).forEach(function (k) {
+                            if (els[k] && fields[k] != null && els[k].tagName !== 'SELECT') els[k].value = fields[k];
                         });
-                        return s;
+                        var colors = s.colors || {};
+                        COLORS.forEach(function (c) {
+                            var key = c[0];
+                            var cfg = colors[key];
+                            if (!cfg) return;
+                            var on = colorGrid.querySelector('[data-enable="' + key + '"]');
+                            var val = colorGrid.querySelector('[data-color="' + key + '"]');
+                            if (on) on.checked = !!cfg.on;
+                            if (val && cfg.val) val.value = cfg.val;
+                        });
+                        return fields; // caller reads .theme / .animation
                     } catch (e) {
                         return {};
                     }
