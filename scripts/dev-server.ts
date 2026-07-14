@@ -60,7 +60,16 @@ const indexHtml = (host: string) => `<!doctype html>
     <option>gruvbox</option>
     <option>nord_dark</option>
   </select></label>
-  <button>Render</button>
+  <label>Animation<select name="animation">
+    <option value="">none</option>
+    <option value="fade">fade</option>
+    <option value="rise">rise</option>
+    <option value="draw">draw</option>
+    <option value="stagger">stagger</option>
+    <option value="load">load</option>
+  </select></label>
+  <button type="submit">Render</button>
+  <button type="button" id="replayBtn" title="Re-fetch the cards so the entrance animation plays again">Replay ▶</button>
 </form>
 <div id="preview" class="grid"></div>
 
@@ -83,9 +92,12 @@ const indexHtml = (host: string) => `<!doctype html>
   var form = document.getElementById('renderForm');
   var grid = document.getElementById('preview');
 
-  function render(login, theme) {
+  function render(login, theme, animation) {
     grid.replaceChildren();
     if (!login) return;
+    // Cache-buster so re-rendering the same login/theme still re-fetches the SVG,
+    // which lets a CSS entrance animation play from the start again.
+    var bust = Date.now();
     cards.forEach(function(c) {
       var wrap = document.createElement('div');
       // profile-details has a 700x200 SVG; span both columns so the chart
@@ -97,7 +109,9 @@ const indexHtml = (host: string) => `<!doctype html>
       var img = document.createElement('img');
       var url = '/api/cards/' + c
         + '?username=' + encodeURIComponent(login)
-        + '&theme=' + encodeURIComponent(theme);
+        + '&theme=' + encodeURIComponent(theme)
+        + (animation ? '&animation=' + encodeURIComponent(animation) : '')
+        + '&_t=' + bust;
       img.src = url;
       img.alt = c;
       wrap.appendChild(label);
@@ -106,34 +120,42 @@ const indexHtml = (host: string) => `<!doctype html>
     });
   }
 
-  // Restore the last login + theme on page load so a refresh doesn't blank the grid.
+  function selectOption(sel, value) {
+    for (var i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].value === value) { sel.selectedIndex = i; return; }
+    }
+  }
+
+  // Restore the last login + theme + animation on page load so a refresh doesn't blank the grid.
   try {
     var savedLogin = localStorage.getItem('devLogin') || '';
     var savedTheme = localStorage.getItem('devTheme') || '';
+    var savedAnim = localStorage.getItem('devAnimation') || '';
     if (savedLogin) form.login.value = savedLogin;
-    if (savedTheme) {
-      for (var i = 0; i < form.theme.options.length; i++) {
-        if (form.theme.options[i].value === savedTheme) {
-          form.theme.selectedIndex = i;
-          break;
-        }
-      }
-    }
+    if (savedTheme) selectOption(form.theme, savedTheme);
+    if (savedAnim) selectOption(form.animation, savedAnim);
     // Fall back to whatever the form is currently showing (default "vercel") so a fresh
     // first-time visitor with empty localStorage still gets a populated grid on load.
     var initialLogin = savedLogin || form.login.value.trim();
-    if (initialLogin) render(initialLogin, form.theme.value);
+    if (initialLogin) render(initialLogin, form.theme.value, form.animation.value);
   } catch (err) { /* localStorage unavailable; non-fatal */ }
 
   form.addEventListener('submit', function(e) {
     e.preventDefault();
     var login = e.target.login.value.trim();
     var theme = e.target.theme.value;
+    var animation = e.target.animation.value;
     try {
       localStorage.setItem('devLogin', login);
       localStorage.setItem('devTheme', theme);
+      localStorage.setItem('devAnimation', animation);
     } catch (err) { /* ignore */ }
-    render(login, theme);
+    render(login, theme, animation);
+  });
+
+  // Replay re-renders with the current values (new cache-buster) so the animation plays again.
+  document.getElementById('replayBtn').addEventListener('click', function() {
+    render(form.login.value.trim(), form.theme.value, form.animation.value);
   });
 })();
 </script>

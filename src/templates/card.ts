@@ -18,7 +18,7 @@ export class Card {
         // use fake dom let us can get html element
         const fakeDom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
         this.body = d3.select(fakeDom.window.document).select('body');
-        this.svg = this.body
+        const svgRoot = this.body
             .append('div')
             .attr('class', 'container')
             .append('svg')
@@ -26,14 +26,18 @@ export class Card {
             .attr('width', width)
             .attr('height', height)
             .attr('viewBox', `0 0 ${this.width} ${this.height}`);
-        this.svg.append('style').html(
+        svgRoot.append('style').html(
             `* {
           font-family: 'Segoe UI', Ubuntu, "Helvetica Neue", Sans-Serif
         }`
         );
+        // All visible content lives inside a transform-less wrapper group. A per-request
+        // animation (injected as a <style> block; see api/utils/handle-card.ts) can then
+        // fade/translate the whole card and stagger its parts by targeting `.gpsc-root`
+        // and its direct children, without fighting the elements' own transforms.
+        const root = svgRoot.append('g').attr('class', 'gpsc-root');
         const strokeWidth = 1;
-        this.svg
-            .append('rect')
+        root.append('rect')
             .attr('x', 1)
             .attr('y', 1)
             .attr('rx', 5)
@@ -53,8 +57,7 @@ export class Card {
         const TITLE_LINE_HEIGHT = 24;
         const titleLines = this.title === '' ? [] : this.title.split('\n');
         titleLines.forEach((line, i) => {
-            this.svg
-                .append('text')
+            root.append('text')
                 .attr('x', this.xPadding)
                 .attr('y', this.yPadding + i * TITLE_LINE_HEIGHT)
                 .style('font-size', `22px`)
@@ -65,7 +68,7 @@ export class Card {
         // Empty/single-line titles preserve the historic 40-px translate so all existing
         // single-line cards render byte-identically.
         const bodyOffset = titleLines.length <= 1 ? 40 : 40 + (titleLines.length - 1) * TITLE_LINE_HEIGHT;
-        this.svg = this.svg.append<SVGSVGElement>('g').attr('transform', `translate(0,${bodyOffset})`);
+        this.svg = root.append<SVGSVGElement>('g').attr('transform', `translate(0,${bodyOffset})`);
     }
 
     getSVG() {

@@ -119,6 +119,21 @@ Values are hex **without** the leading `#` — 3, 4, 6, or 8 digits (the 4/8-dig
 
 Resolves [#110](https://github.com/vn7n24fzkq/github-profile-summary-cards/issues/110) and [#152](https://github.com/vn7n24fzkq/github-profile-summary-cards/issues/152).
 
+### Animations
+
+Every card endpoint also accepts an optional `animation` parameter to add a CSS entrance animation that plays when the card first appears (works in GitHub READMEs, which allow CSS but strip scripts):
+
+`none` (default) · `fade` · `rise` · `draw` · `stagger` · `load`
+
+- `fade` / `rise` — the whole card fades (and gently slides up for `rise`).
+- `draw` — bars grow and donut/segments pop in as the chart "draws on".
+- `stagger` — background, title and body appear one after another.
+- `load` — a coordinated "loading → loaded" assembly: the card slides up, its parts stagger in, then the charts draw on.
+
+`http://github-profile-summary-cards.vercel.app/api/cards/stats?username=vn7n24fzkq&theme=default&animation=load`
+
+Any unrecognized value is treated as `none`, and visitors with `prefers-reduced-motion` set always get the final, un-animated card.
+
 ---
 
 ## Organization cards

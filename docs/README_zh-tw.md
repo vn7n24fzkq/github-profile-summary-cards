@@ -64,6 +64,21 @@
 
 解決 [#110](https://github.com/vn7n24fzkq/github-profile-summary-cards/issues/110) 與 [#152](https://github.com/vn7n24fzkq/github-profile-summary-cards/issues/152)。
 
+## 進場動畫 (Animations)
+
+每個卡片端點都接受選用的 `animation` 參數,讓卡片首次載入時播放純 CSS 進場動畫(可在 GitHub README 上運作 —— GitHub 允許 CSS 但會移除 script):
+
+`none`(預設)、`fade`、`rise`、`draw`、`stagger`、`load`
+
+- `fade` / `rise` —— 整張卡片淡入(`rise` 會再輕微上浮)。
+- `draw` —— 長條圖長出、甜甜圈/區塊彈入,呈現圖表「描繪」的感覺。
+- `stagger` —— 背景、標題、內容依序出現。
+- `load` —— 編排式的「載入 → 完成」組裝感:卡片上浮、各部位逐一出現,最後圖表描繪上去。
+
+`http://github-profile-summary-cards.vercel.app/api/cards/stats?username=vn7n24fzkq&theme=default&animation=load`
+
+無法辨識的值一律視為 `none`;若使用者系統開啟 `prefers-reduced-motion`,一律回傳最終(無動畫)的卡片。
+
 ---
 
 ## 設定 GitHub Token

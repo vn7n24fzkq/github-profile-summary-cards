@@ -3,6 +3,7 @@ import {getErrorMsgCard} from './error-card';
 import {sendAnalytics} from '../../src/utils/analytics';
 import {CONST_CACHE_CONTROL} from '../../src/const/cache';
 import {resolveThemeName, parseThemeColorOverride, ThemeColorOverride} from '../../src/const/theme';
+import {parseAnimation, applyAnimation} from '../../src/utils/animation';
 import type {VercelRequest, VercelResponse} from '@vercel/node';
 
 // A card renderer receives the already-validated username, the resolved theme
@@ -46,6 +47,7 @@ export async function handleCard(
     }
     const theme = resolveThemeName(rawTheme);
     const override = parseThemeColorOverride(req.query);
+    const animation = parseAnimation(req.query.animation);
 
     try {
         let tokenIndex = 0;
@@ -57,7 +59,7 @@ export async function handleCard(
                 const cardSVG = await render(username, theme, override, token);
                 res.setHeader('Content-Type', 'image/svg+xml');
                 res.setHeader('Cache-Control', CONST_CACHE_CONTROL);
-                res.send(cardSVG);
+                res.send(applyAnimation(cardSVG, animation));
                 // Fire-and-forget: don't block the response on analytics.
                 void sendAnalytics(eventName, {username, theme, ...extraAnalytics}, req.headers);
                 return;
