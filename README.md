@@ -369,7 +369,9 @@ A lightweight local dev server is bundled — no Vercel CLI required:
 npm run dev
 # then open http://localhost:3000/
 ```
-The dev server mounts the same route handlers used in production (`api/cards/*`), so requests like `http://localhost:3000/api/cards/profile-details?username=<login>&theme=<theme>` exercise the exact code path Vercel runs. The index page at `/` includes a form that renders every card for a given login + theme.
+The dev server mounts the same route handlers used in production (`api/cards/*`), so requests like `http://localhost:3000/api/cards/profile-details?username=<login>&theme=<theme>` exercise the exact code path Vercel runs. The index page at `/` includes a form that renders every card for a given login + theme, plus a theme/animation picker and a **Replay** button to watch the entrance animation.
+
+**No token? No problem.** When no `GITHUB_TOKEN` is set, the dev server automatically serves **mock cards** from local fixtures — no network calls — which is ideal for iterating on themes and animations. Add `&mock=1` to any card URL to force fixtures even when a token is present, or `&mock=0` to force live data.
 
 If you'd rather use the real Vercel runtime (closer match to production behaviour but requires linking the repo to a Vercel project):
 ```sh

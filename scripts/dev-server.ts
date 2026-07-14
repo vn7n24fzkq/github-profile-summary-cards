@@ -14,6 +14,8 @@ import reposPerLanguageHandler from '../api/cards/repos-per-language';
 import mostCommitLanguageHandler from '../api/cards/most-commit-language';
 import statsHandler from '../api/cards/stats';
 import productiveTimeHandler from '../api/cards/productive-time';
+import {parseAnimation, applyAnimation} from '../src/utils/animation';
+import {renderMockCard} from './mock-cards';
 
 type RouteHandler = (req: VercelRequest, res: VercelResponse) => Promise<void> | void;
 
@@ -27,7 +29,18 @@ const routes: Record<string, RouteHandler> = {
 
 const PORT = Number(process.env.PORT ?? 3000);
 
+// Mock mode renders cards from local fixtures (no GitHub token, no network),
+// which is ideal for previewing themes/animations. It is on by default when no
+// token is configured; force it on/off per request with `?mock=1` / `?mock=0`.
+const HAS_TOKEN = Boolean(process.env.GITHUB_TOKEN || process.env.GITHUB_TOKEN_0);
+function isMock(query: Record<string, string>): boolean {
+    if (query.mock === '1') return true;
+    if (query.mock === '0') return false;
+    return !HAS_TOKEN;
+}
+
 const indexHtml = (host: string) => `<!doctype html>
+<!-- mock mode: ${HAS_TOKEN ? 'off (token found)' : 'on (no token)'} -->
 <html><head><meta charset="utf-8"><title>Profile Summary Cards — Dev</title>
 <style>
   body { font-family: -apple-system, Segoe UI, Roboto, sans-serif; max-width: 960px; margin: 2rem auto; padding: 0 1rem; color: #222; }
@@ -49,6 +62,12 @@ const indexHtml = (host: string) => `<!doctype html>
 </head><body>
 <h1>github-profile-summary-cards — Dev</h1>
 <p>This dev server runs the same Vercel route handlers locally. Type a user or org login below to render every card.</p>
+${
+    HAS_TOKEN
+        ? `<p class="small">GitHub token detected — cards use live data. Append <code>&amp;mock=1</code> to any card URL to preview from fixtures instead.</p>`
+        : `<p class="small" style="background:#fff8c5;border:1px solid #d4c65a;padding:.5rem;border-radius:4px">
+    <strong>Mock mode</strong> (no GitHub token found): cards render from local fixtures, so the login field is ignored and no network calls are made — perfect for previewing themes &amp; animations. Add a token to <code>.env</code> for live data.</p>`
+}
 <form id="renderForm">
   <label>Login (user or org)<input name="login" value="vercel" autocomplete="off" required></label>
   <label>Theme<select name="theme">
@@ -177,6 +196,18 @@ const server = http.createServer(async (rawReq, rawRes) => {
         }
         const query: Record<string, string> = {};
         url.searchParams.forEach((v, k) => (query[k] = v));
+
+        // Mock mode: render from fixtures without touching GitHub, then apply the
+        // same animation the real send path would.
+        if (isMock(query)) {
+            const card = url.pathname.replace('/api/cards/', '');
+            const parsed = Number(query.utcOffset);
+            const utcOffset = Number.isFinite(parsed) ? Math.min(14, Math.max(-12, parsed)) : 0;
+            const svg = renderMockCard(card, query.theme ?? 'default', utcOffset);
+            rawRes.setHeader('Content-Type', 'image/svg+xml');
+            rawRes.end(applyAnimation(svg, parseAnimation(query.animation)));
+            return;
+        }
         const req = Object.assign(rawReq, {query, cookies: {}, body: undefined}) as unknown as VercelRequest;
         const res = Object.assign(rawRes, {
             status(code: number) {
