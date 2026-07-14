@@ -7,7 +7,10 @@
 import 'dotenv/config';
 import http from 'http';
 import {URL} from 'url';
+import {readFileSync} from 'fs';
+import {join} from 'path';
 import type {VercelRequest, VercelResponse} from '@vercel/node';
+import {ThemeMap} from '../src/const/theme';
 
 import profileDetailsHandler from '../api/cards/profile-details';
 import reposPerLanguageHandler from '../api/cards/repos-per-language';
@@ -202,6 +205,19 @@ const server = http.createServer(async (rawReq, rawRes) => {
         if (url.pathname === '/' || url.pathname === '/index.html') {
             rawRes.setHeader('Content-Type', 'text/html; charset=utf-8');
             rawRes.end(indexHtml(rawReq.headers.host ?? `localhost:${PORT}`));
+            return;
+        }
+        // Serve the real landing page (api/pages/demo.html) so it can be tested here
+        // against the mock cards — no Vercel CLI, no token needed.
+        if (url.pathname === '/demo' || url.pathname === '/demo.html') {
+            rawRes.setHeader('Content-Type', 'text/html; charset=utf-8');
+            rawRes.end(readFileSync(join(__dirname, '../api/pages/demo.html'), 'utf-8'));
+            return;
+        }
+        // The landing page fetches this to populate the theme dropdown.
+        if (url.pathname === '/api/theme') {
+            rawRes.setHeader('Content-Type', 'application/json');
+            rawRes.end(JSON.stringify({themes: [...ThemeMap.keys()]}));
             return;
         }
         const handler = routes[url.pathname];

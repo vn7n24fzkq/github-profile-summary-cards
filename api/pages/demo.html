@@ -1,295 +1,639 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
+        <meta charset="UTF-8" />
+        <!-- Responsive, and (unlike the old page) zoom is NOT disabled. -->
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>GitHub Profile Summary Cards</title>
-        <link
-            href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900"
-            rel="stylesheet"
-        />
-        <link
-            href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css"
-            rel="stylesheet"
-        />
-        <link
-            href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css"
-            rel="stylesheet"
-        />
         <meta
-            charset="UTF-8"
-            name="viewport"
-            content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui"
+            name="description"
+            content="Generate summary cards for your GitHub profile README — themes, custom colours and animations, live preview."
         />
-    </head>
-    <body>
+        <link
+            rel="icon"
+            href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%87%3C/text%3E%3C/svg%3E"
+        />
         <style>
-            .github-corner:hover .octo-arm {
-                animation: octocat-wave 560ms ease-in-out;
+            /* ---- Theme tokens: system pref by default, [data-theme] wins when toggled ---- */
+            :root {
+                --bg: #ffffff;
+                --surface: #f6f8fa;
+                --fg: #1f2328;
+                --muted: #656d76;
+                --border: #d0d7de;
+                --accent: #0969da;
+                --accent-fg: #ffffff;
+                --shadow: 0 1px 3px rgba(27, 31, 36, 0.12);
+                --radius: 10px;
+                color-scheme: light;
             }
-            @keyframes octocat-wave {
-                0%,
-                100% {
-                    transform: rotate(0);
-                }
-                20%,
-                60% {
-                    transform: rotate(-25deg);
-                }
-                40%,
-                80% {
-                    transform: rotate(10deg);
+            @media (prefers-color-scheme: dark) {
+                :root {
+                    --bg: #0d1117;
+                    --surface: #161b22;
+                    --fg: #e6edf3;
+                    --muted: #8b949e;
+                    --border: #30363d;
+                    --accent: #2f81f7;
+                    --accent-fg: #ffffff;
+                    --shadow: 0 1px 3px rgba(1, 4, 9, 0.5);
+                    color-scheme: dark;
                 }
             }
-            @media (max-width: 500px) {
-                .github-corner:hover .octo-arm {
-                    animation: none;
+            :root[data-theme='light'] {
+                --bg: #ffffff;
+                --surface: #f6f8fa;
+                --fg: #1f2328;
+                --muted: #656d76;
+                --border: #d0d7de;
+                --accent: #0969da;
+                --shadow: 0 1px 3px rgba(27, 31, 36, 0.12);
+                color-scheme: light;
+            }
+            :root[data-theme='dark'] {
+                --bg: #0d1117;
+                --surface: #161b22;
+                --fg: #e6edf3;
+                --muted: #8b949e;
+                --border: #30363d;
+                --accent: #2f81f7;
+                --shadow: 0 1px 3px rgba(1, 4, 9, 0.5);
+                color-scheme: dark;
+            }
+
+            * {
+                box-sizing: border-box;
+            }
+            body {
+                margin: 0;
+                background: var(--bg);
+                color: var(--fg);
+                font-family:
+                    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif,
+                    'Apple Color Emoji', 'Segoe UI Emoji';
+                line-height: 1.5;
+            }
+            a {
+                color: var(--accent);
+            }
+            .wrap {
+                max-width: 1080px;
+                margin: 0 auto;
+                padding: 1.5rem 1rem 4rem;
+            }
+
+            header {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 0.75rem 1rem;
+                margin-bottom: 1.5rem;
+            }
+            header h1 {
+                font-size: clamp(1.4rem, 3.5vw, 2rem);
+                margin: 0;
+                flex: 1 1 auto;
+            }
+            header .sub {
+                width: 100%;
+                margin: 0;
+                color: var(--muted);
+            }
+            .toolbar {
+                display: flex;
+                gap: 0.5rem;
+                align-items: center;
+                flex-wrap: wrap;
+            }
+            .btn {
+                font: inherit;
+                cursor: pointer;
+                border: 1px solid var(--border);
+                background: var(--surface);
+                color: var(--fg);
+                border-radius: var(--radius);
+                padding: 0.45rem 0.8rem;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.4rem;
+                text-decoration: none;
+            }
+            .btn:hover {
+                border-color: var(--accent);
+            }
+            .btn.primary {
+                background: var(--accent);
+                color: var(--accent-fg);
+                border-color: var(--accent);
+            }
+
+            .layout {
+                display: grid;
+                grid-template-columns: 320px 1fr;
+                gap: 1.5rem;
+                align-items: start;
+            }
+            @media (max-width: 800px) {
+                .layout {
+                    grid-template-columns: 1fr;
                 }
-                .github-corner .octo-arm {
-                    animation: octocat-wave 560ms ease-in-out;
+            }
+
+            .panel {
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                padding: 1rem;
+            }
+            .controls {
+                position: sticky;
+                top: 1rem;
+            }
+            .field {
+                margin-bottom: 0.9rem;
+            }
+            .field label {
+                display: block;
+                font-size: 0.82rem;
+                font-weight: 600;
+                margin-bottom: 0.25rem;
+            }
+            .field input,
+            .field select {
+                width: 100%;
+                font: inherit;
+                padding: 0.45rem 0.55rem;
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                background: var(--bg);
+                color: var(--fg);
+            }
+            .row {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 0.6rem;
+            }
+            details.colors {
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                padding: 0.5rem 0.7rem;
+                margin-bottom: 0.9rem;
+            }
+            details.colors summary {
+                cursor: pointer;
+                font-size: 0.82rem;
+                font-weight: 600;
+            }
+            .colorgrid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 0.5rem;
+                margin-top: 0.7rem;
+            }
+            .colorrow {
+                display: flex;
+                align-items: center;
+                gap: 0.4rem;
+                font-size: 0.8rem;
+            }
+            .colorrow input[type='color'] {
+                width: 34px;
+                height: 28px;
+                padding: 0;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                background: none;
+            }
+            .hint {
+                font-size: 0.75rem;
+                color: var(--muted);
+                margin: 0.2rem 0 0;
+            }
+
+            .cards {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1rem;
+            }
+            .card {
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                overflow: hidden;
+                background: var(--bg);
+                box-shadow: var(--shadow);
+            }
+            .card.wide {
+                grid-column: 1 / -1;
+            }
+            @media (max-width: 560px) {
+                .cards {
+                    grid-template-columns: 1fr;
                 }
+            }
+            .card figure {
+                margin: 0;
+                padding: 0.75rem;
+                display: flex;
+                justify-content: center;
+                background: var(--surface);
+            }
+            .card img {
+                max-width: 100%;
+                height: auto;
+            }
+            .card .meta {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 0.5rem;
+                padding: 0.5rem 0.75rem;
+                border-top: 1px solid var(--border);
+            }
+            .card .meta span {
+                font-size: 0.8rem;
+                color: var(--muted);
+            }
+            .copy {
+                font-size: 0.78rem;
+                padding: 0.3rem 0.6rem;
+            }
+            .copy.copied {
+                color: #1a7f37;
+                border-color: #1a7f37;
+            }
+
+            footer {
+                margin-top: 2.5rem;
+                text-align: center;
+                color: var(--muted);
+                font-size: 0.85rem;
+            }
+            .bmc {
+                margin-top: 1rem;
+                text-align: center;
+            }
+            @media (prefers-reduced-motion: reduce) {
+                * {
+                    transition: none !important;
+                    scroll-behavior: auto !important;
+                }
+            }
+            :focus-visible {
+                outline: 2px solid var(--accent);
+                outline-offset: 2px;
             }
         </style>
-        <div id="app">
-            <v-app>
-                <v-main>
-                    <v-container class="py-8 px-6" width="950px">
-                        <a
-                            href="https://github.com/vn7n24fzkq/github-profile-summary-cards"
-                            class="github-corner"
-                            aria-label="View source on GitHub"
-                        >
-                            <svg
-                                width="80"
-                                height="80"
-                                viewBox="0 0 250 250"
-                                style="
-                                    fill: #151513;
-                                    color: #fff;
-                                    position: absolute;
-                                    top: 0;
-                                    border: 0;
-                                    right: 0;
-                                "
-                                aria-hidden="true"
-                            >
-                                <path
-                                    d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"
-                                ></path>
-                                <path
-                                    d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
-                                    fill="currentColor"
-                                    style="transform-origin: 130px 106px"
-                                    class="octo-arm"
-                                ></path>
-                                <path
-                                    d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
-                                    fill="currentColor"
-                                    class="octo-body"
-                                ></path>
-                            </svg>
-                        </a>
-                        <v-content>
-                        <v-row justify="center" no-gutters>
-                            <v-col cols="10">
-                                <div
-                                    class="title font-weight-black text-center"
-                                >
-                                    GitHub Profile Summary Cards
-                                </div>
-                            </v-col>
-                        </v-row>
-                        <v-row justify="center" no-gutters>
-                            <v-col cols="5">
-                                <!-- Place this tag where you want the button to render. -->
-                                <v-row
-                                    justify="center"
-                                    no-gutters
-                                    style="margin-top: 16px;"
-                                >
-                                        <a
-                                            class="github-button"
-                                            href="https://github.com/vn7n24fzkq/github-profile-summary-cards"
-                                            data-size="large"
-                                            data-show-count="true"
-                                            aria-label="Star vn7n24fzkq/github-profile-summary-cards on GitHub"
-                                            >Star</a
-                                        >
-                                </v-row>
-                            </v-col>
-                            <v-col cols="5">
-                                <v-row
-                                    justify="center"
-                                    no-gutters
-                                >
-                                <v-switch
-                                    v-model="$vuetify.theme.dark"
-                                    inset
-                                    label="Dark Mode"
-                                    persistent-hint
-                                ></v-switch>
-                                </v-row>
-                            </v-col>
-                        </v-row>
-                        <v-row justify="center" no-gutters>
-                            <v-col cols="10" sm="5">
-                                <v-text-field
-                                    v-model="username"
-                                    value="Your username"
-                                    label="username"
-                                    outlined
-                                ></v-text-field>
-                            </v-col>
-                            <v-col cols="10" sm="5">
-                                <v-select
-                                    :items="themes"
-                                    v-model="theme"
-                                    @change="selectTheme"
-                                    label="theme"
-                                    hint="Select theme"
-                                    outlined
-                                ></v-select>
-                            </v-col>
-                        </v-row>
-                        <v-row justify="center" no-gutters>
-                            <v-col cols="10">
-                                <v-btn
-                                    width="100%"
-                                    color="green"
-                                    @click="submit"
-                                >
-                                    Submit
-                                </v-btn>
-                            </v-col>
-                        </v-row>
-                        <v-row justify="center" no-gutters>
-                            <v-col cols="10">
-                                <v-card outlined>
-                                    <v-img :src="profileDetailSource"></v-img>
-                                    <v-card-text class="text--primary">
-                                        <div>Markdown Usage</div>
-                                        <code>
-                                            ![]({{ profileDetailSource }})
-                                        </code>
-                                    </v-card-text>
-                                </v-card>
-                            </v-col>
-                        </v-row>
-                        <v-row justify="center" no-gutters>
-                            <v-col cols="10" sm="5">
-                                <v-card outlined>
-                                    <v-img :src="repoLanguageSource"></v-img>
-                                    <v-card-text class="text--primary">
-                                        <div>Markdown Usage</div>
-                                        <code>
-                                            ![]({{ repoLanguageSource }})
-                                        </code>
-                                    </v-card-text>
-                                </v-card>
-                            </v-col>
-                            <v-col cols="10" sm="5">
-                                <v-card outlined>
-                                    <v-img :src="commitLanguageSource"></v-img>
-                                    <v-card-text class="text--primary">
-                                        <div>Markdown Usage</div>
-                                        <code>
-                                            ![]({{ commitLanguageSource }})
-                                        </code>
-                                    </v-card-text>
-                                </v-card>
-                            </v-col>
-                        </v-row>
-                        <v-row justify="center" no-gutters>
-                            <v-col cols="10" sm="5">
-                                <v-card outlined>
-                                    <v-img :src="statsSource"></v-img>
-                                    <v-card-text class="text--primary">
-                                        <div>Markdown Usage</div>
-                                        <code> ![]({{ statsSource }}) </code>
-                                    </v-card-text>
-                                </v-card>
-                            </v-col>
-                            <v-col cols="10" sm="5">
-                                <v-card outlined>
-                                    <v-img :src="productiveTimeSource"></v-img>
-                                    <v-card-text class="text--primary">
-                                        <div>Markdown Usage</div>
-                                        <code>
-                                            ![]({{ productiveTimeSource }})
-                                        </code>
-                                    </v-card-text>
-                                </v-card>
-                            </v-col>
-                        </v-row>
-                    </v-container>
-                    <v-footer padless>
-                        <v-col class="text-center" cols="12">
-                            <strong>GitHub Profile Summary Cards</strong>
-                        </v-col>
-                    </v-footer>
-                </v-main>
-            </v-app>
+    </head>
+    <body>
+        <div class="wrap">
+            <header>
+                <h1>GitHub Profile Summary Cards</h1>
+                <div class="toolbar">
+                    <button class="btn" id="themeToggle" type="button" aria-label="Toggle colour theme">🌓 Theme</button>
+                    <a
+                        class="btn"
+                        href="https://github.com/vn7n24fzkq/github-profile-summary-cards"
+                        target="_blank"
+                        rel="noopener"
+                        >★ Star on GitHub</a
+                    >
+                </div>
+                <p class="sub">
+                    Generate summary cards for your profile README — pick a theme, tweak colours and animation, then copy
+                    the Markdown.
+                </p>
+            </header>
+
+            <div class="layout">
+                <!-- ---------------- Controls ---------------- -->
+                <form class="panel controls" id="form" autocomplete="off">
+                    <div class="field">
+                        <label for="username">GitHub username / organization</label>
+                        <input id="username" name="username" value="vn7n24fzkq" required />
+                    </div>
+
+                    <div class="row">
+                        <div class="field">
+                            <label for="theme">Theme</label>
+                            <select id="theme" name="theme"></select>
+                        </div>
+                        <div class="field">
+                            <label for="animation">Animation</label>
+                            <select id="animation" name="animation">
+                                <option value="">none</option>
+                                <option value="fade">fade</option>
+                                <option value="rise">rise</option>
+                                <option value="draw">draw</option>
+                                <option value="stagger">stagger</option>
+                                <option value="load">load</option>
+                                <option value="sequence">sequence</option>
+                                <option value="tint">tint</option>
+                                <option value="rgb">rgb</option>
+                                <option value="rgb-soft">rgb-soft</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="field">
+                            <label for="duration">Duration (s)</label>
+                            <input id="duration" name="duration" type="number" min="0.2" max="10" step="0.1" placeholder="default" />
+                        </div>
+                        <div class="field">
+                            <label for="utcOffset">UTC offset</label>
+                            <input id="utcOffset" name="utcOffset" type="number" min="-12" max="14" step="1" value="0" />
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="name">Display name (profile card)</label>
+                        <input id="name" name="name" placeholder="default: login (name)" />
+                    </div>
+
+                    <div class="field">
+                        <label for="exclude">Exclude languages (comma separated)</label>
+                        <input id="exclude" name="exclude" placeholder="e.g. html,css" />
+                    </div>
+
+                    <details class="colors">
+                        <summary>Custom colours</summary>
+                        <div class="colorgrid" id="colorgrid"></div>
+                        <p class="hint">Leave a colour unticked to use the theme's default.</p>
+                    </details>
+
+                    <button class="btn primary" id="copyAll" type="button" style="width: 100%">📋 Copy all Markdown</button>
+                </form>
+
+                <!-- ---------------- Preview ---------------- -->
+                <div>
+                    <div class="cards" id="cards"></div>
+                    <div class="bmc">
+                        <script
+                            type="text/javascript"
+                            src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js"
+                            data-name="bmc-button"
+                            data-slug="vn7n24fzkq"
+                            data-color="#FFDD00"
+                            data-emoji=""
+                            data-font="Bree"
+                            data-text="Buy me a coffee"
+                            data-outline-color="#000000"
+                            data-font-color="#000000"
+                            data-coffee-color="#ffffff"
+                        ></script>
+                    </div>
+                    <footer>
+                        Cards update as you type. Markdown you copy points at this site's API —
+                        <a href="https://github.com/vn7n24fzkq/github-profile-summary-cards" target="_blank" rel="noopener">docs &amp; self-hosting</a>.
+                    </footer>
+                </div>
+            </div>
         </div>
-        <!-- Buy Me a Coffee button. Kept outside the Vue #app so Vue's virtual DOM
-             never re-renders over the widget the script injects. -->
-        <div style="text-align: center; margin: 24px 0">
-            <script
-                type="text/javascript"
-                src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js"
-                data-name="bmc-button"
-                data-slug="vn7n24fzkq"
-                data-color="#FFDD00"
-                data-emoji=""
-                data-font="Bree"
-                data-text="Buy me a coffee"
-                data-outline-color="#000000"
-                data-font-color="#000000"
-                data-coffee-color="#ffffff"
-            ></script>
-        </div>
-        <script async defer src="https://buttons.github.io/buttons.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
         <script>
-            new Vue({
-                el: '#app',
-                vuetify: new Vuetify(),
-                data: {
-                    themes: ['default'],
-                    username: 'vn7n24fzkq',
-                    theme: 'default',
-                    profileDetailSource: '',
-                    repoLanguageSource: '',
-                    commitLanguageSource: '',
-                    statsSource: '',
-                    productiveTimeSource: '',
-                    baseURL: `http://${window.location.host}`,
-                },
-                created() {
-                    axios
-                        .get(
-                            `/api/theme`
-                        )
-                        .then((response) => {
-                            this.themes = response.data.themes;
-                            this.updateAllCards();
+            (function () {
+                'use strict';
+                var origin = window.location.origin;
+
+                // Card list: [endpoint, label, wide?]
+                var CARDS = [
+                    ['profile-details', 'Profile details', true],
+                    ['repos-per-language', 'Top languages by repo', false],
+                    ['most-commit-language', 'Top languages by commit', false],
+                    ['stats', 'Stats', false],
+                    ['productive-time', 'Productive time', false]
+                ];
+                // Custom-colour params (API expects hex without '#').
+                var COLORS = [
+                    ['title_color', 'Title'],
+                    ['text_color', 'Text'],
+                    ['bg_color', 'Background'],
+                    ['border_color', 'Border'],
+                    ['icon_color', 'Icon'],
+                    ['chart_color', 'Chart']
+                ];
+                var FALLBACK_THEMES = ['default', 'github_dark', 'dracula', 'tokyonight', 'solarized', 'gruvbox', 'nord_dark', 'transparent'];
+
+                var form = document.getElementById('form');
+                var cardsEl = document.getElementById('cards');
+                var colorGrid = document.getElementById('colorgrid');
+                var els = {};
+                ['username', 'theme', 'animation', 'duration', 'utcOffset', 'name', 'exclude'].forEach(function (id) {
+                    els[id] = document.getElementById(id);
+                });
+
+                // ---- Build custom-colour inputs (checkbox enables it + a colour picker) ----
+                COLORS.forEach(function (c) {
+                    var key = c[0];
+                    var row = document.createElement('label');
+                    row.className = 'colorrow';
+                    row.innerHTML =
+                        '<input type="checkbox" data-enable="' + key + '"> ' +
+                        '<input type="color" data-color="' + key + '" value="#000000"> ' +
+                        '<span>' + c[1] + '</span>';
+                    colorGrid.appendChild(row);
+                });
+
+                function colorParams() {
+                    var out = [];
+                    COLORS.forEach(function (c) {
+                        var key = c[0];
+                        var on = colorGrid.querySelector('[data-enable="' + key + '"]');
+                        var val = colorGrid.querySelector('[data-color="' + key + '"]');
+                        if (on && on.checked && val) out.push([key, val.value.replace('#', '')]);
+                    });
+                    return out;
+                }
+
+                // Build a card URL. `demo` = true adds source=demo (for previews on this
+                // page only); the Markdown users copy must NOT carry it, or their embeds
+                // would be miscounted as demo traffic.
+                function cardUrl(endpoint, demo) {
+                    var p = new URLSearchParams();
+                    p.set('username', els.username.value.trim() || 'vn7n24fzkq');
+                    p.set('theme', els.theme.value);
+                    if (els.animation.value) {
+                        p.set('animation', els.animation.value);
+                        if (els.duration.value) p.set('duration', els.duration.value);
+                    }
+                    if (endpoint === 'profile-details' && els.name.value.trim()) p.set('name', els.name.value.trim());
+                    if (endpoint === 'productive-time' && els.utcOffset.value !== '') p.set('utcOffset', els.utcOffset.value);
+                    if ((endpoint === 'repos-per-language' || endpoint === 'most-commit-language') && els.exclude.value.trim())
+                        p.set('exclude', els.exclude.value.trim());
+                    colorParams().forEach(function (kv) {
+                        p.set(kv[0], kv[1]);
+                    });
+                    if (demo) p.set('source', 'demo');
+                    return origin + '/api/cards/' + endpoint + '?' + p.toString();
+                }
+
+                function markdown(endpoint) {
+                    return '![](' + cardUrl(endpoint, false) + ')';
+                }
+
+                // ---- Render preview cards ----
+                function build() {
+                    cardsEl.replaceChildren();
+                    var bust = Date.now(); // cache-buster so animations replay on re-render
+                    CARDS.forEach(function (c) {
+                        var endpoint = c[0],
+                            label = c[1],
+                            wide = c[2];
+                        var card = document.createElement('div');
+                        card.className = 'card' + (wide ? ' wide' : '');
+
+                        var fig = document.createElement('figure');
+                        var img = document.createElement('img');
+                        img.loading = 'lazy';
+                        img.alt = label + ' card preview';
+                        img.src = cardUrl(endpoint, true) + '&_t=' + bust;
+                        fig.appendChild(img);
+
+                        var meta = document.createElement('div');
+                        meta.className = 'meta';
+                        var name = document.createElement('span');
+                        name.textContent = label;
+                        var copy = document.createElement('button');
+                        copy.type = 'button';
+                        copy.className = 'btn copy';
+                        copy.textContent = 'Copy Markdown';
+                        copy.addEventListener('click', function () {
+                            copyText(markdown(endpoint), copy);
                         });
-                },
-                methods: {
-                    submit: function () {
-                        this.updateAllCards();
-                    },
-                    selectTheme: function (theme) {
-                        this.theme = theme;
-                    },
-                    updateAllCards: function () {
-                        this.profileDetailSource = `${this.baseURL}/api/cards/profile-details?username=${this.username}&theme=${this.theme}`;
-                        this.repoLanguageSource = `${this.baseURL}/api/cards/repos-per-language?username=${this.username}&theme=${this.theme}`;
-                        this.commitLanguageSource = `${this.baseURL}/api/cards/most-commit-language?username=${this.username}&theme=${this.theme}`;
-                        this.statsSource = `${this.baseURL}/api/cards/stats?username=${this.username}&theme=${this.theme}`;
-                        this.productiveTimeSource = `${this.baseURL}/api/cards/productive-time?username=${this.username}&theme=${this.theme}&utcOffset=8`;
-                    },
-                },
-            });
+                        meta.appendChild(name);
+                        meta.appendChild(copy);
+
+                        card.appendChild(fig);
+                        card.appendChild(meta);
+                        cardsEl.appendChild(card);
+                    });
+                }
+
+                function copyText(text, btn) {
+                    var done = function () {
+                        if (!btn) return;
+                        var old = btn.textContent;
+                        btn.textContent = 'Copied ✓';
+                        btn.classList.add('copied');
+                        setTimeout(function () {
+                            btn.textContent = old;
+                            btn.classList.remove('copied');
+                        }, 1500);
+                    };
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(text).then(done, function () {
+                            legacyCopy(text);
+                            done();
+                        });
+                    } else {
+                        legacyCopy(text);
+                        done();
+                    }
+                }
+                function legacyCopy(text) {
+                    var ta = document.createElement('textarea');
+                    ta.value = text;
+                    ta.style.position = 'fixed';
+                    ta.style.opacity = '0';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    try {
+                        document.execCommand('copy');
+                    } catch (e) {
+                        /* ignore */
+                    }
+                    document.body.removeChild(ta);
+                }
+
+                document.getElementById('copyAll').addEventListener('click', function () {
+                    var all = CARDS.map(function (c) {
+                        return markdown(c[0]);
+                    }).join('\n');
+                    copyText(all, this);
+                });
+
+                // ---- Persist + restore form state ----
+                var STORE = 'gpsc-demo';
+                function save() {
+                    try {
+                        var s = {};
+                        Object.keys(els).forEach(function (k) {
+                            s[k] = els[k].value;
+                        });
+                        localStorage.setItem(STORE, JSON.stringify(s));
+                    } catch (e) {
+                        /* ignore */
+                    }
+                }
+                function restore() {
+                    try {
+                        var s = JSON.parse(localStorage.getItem(STORE) || '{}');
+                        Object.keys(s).forEach(function (k) {
+                            if (els[k] && s[k] != null && els[k].tagName !== 'SELECT') els[k].value = s[k];
+                        });
+                        return s;
+                    } catch (e) {
+                        return {};
+                    }
+                }
+
+                var debounceTimer;
+                function scheduleBuild() {
+                    save();
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(build, 350);
+                }
+                form.addEventListener('input', scheduleBuild);
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    build();
+                });
+
+                // ---- Theme toggle (persisted) ----
+                var themeBtn = document.getElementById('themeToggle');
+                function applyTheme(t) {
+                    if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+                    else document.documentElement.removeAttribute('data-theme');
+                }
+                try {
+                    applyTheme(localStorage.getItem('gpsc-theme'));
+                } catch (e) {}
+                themeBtn.addEventListener('click', function () {
+                    var cur = document.documentElement.getAttribute('data-theme');
+                    var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    // Cycle: (system) -> opposite of system -> back to system.
+                    var next = cur ? '' : prefersDark ? 'light' : 'dark';
+                    applyTheme(next);
+                    try {
+                        localStorage.setItem('gpsc-theme', next);
+                    } catch (e) {}
+                });
+
+                // ---- Populate themes, then first render ----
+                var saved = restore();
+                function fillThemes(list) {
+                    els.theme.replaceChildren();
+                    list.forEach(function (t) {
+                        var o = document.createElement('option');
+                        o.value = t;
+                        o.textContent = t;
+                        els.theme.appendChild(o);
+                    });
+                    if (saved.theme && list.indexOf(saved.theme) !== -1) els.theme.value = saved.theme;
+                    if (saved.animation) els.animation.value = saved.animation;
+                    build();
+                }
+                fetch(origin + '/api/theme')
+                    .then(function (r) {
+                        return r.ok ? r.json() : null;
+                    })
+                    .then(function (d) {
+                        fillThemes(d && d.themes && d.themes.length ? d.themes : FALLBACK_THEMES);
+                    })
+                    .catch(function () {
+                        fillThemes(FALLBACK_THEMES);
+                    });
+            })();
         </script>
     </body>
 </html>
