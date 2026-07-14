@@ -55,7 +55,10 @@ export function renderMockCard(card: string, themeName: string, utcOffset = 0): 
     const theme = resolveTheme(themeName);
     switch (card) {
         case 'profile-details':
-            return createDetailCard('Mocktocat\n@octocat', profileDetails, contributions, theme);
+            // A realistic single-line "login (name)" title. Real cards only wrap to two
+            // lines when this string exceeds ~25 chars (see buildProfileDetailsTitle);
+            // pass a longer name here if you want to preview that wrapped layout.
+            return createDetailCard('octocat (Mona Lisa)', profileDetails, contributions, theme);
         case 'repos-per-language':
             return createDonutChartCard('Repos Per Language', LANGUAGES, theme);
         case 'most-commit-language':
