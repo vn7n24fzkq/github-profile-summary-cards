@@ -37,7 +37,17 @@ describe('applyAnimation', () => {
     it('includes the preset rule and shared keyframes', () => {
         const out = applyAnimation(SVG, 'fade');
         expect(out).toContain('@keyframes gpsc-fade');
-        expect(out).toContain('.gpsc-root{animation:gpsc-fade');
+        expect(out).toContain('.gpsc-item');
+        expect(out).toContain('gpsc-fade');
+    });
+
+    it('never animates the card frame (background shows immediately)', () => {
+        (['fade', 'rise', 'draw', 'stagger', 'load', 'sequence', 'hue'] as AnimationName[]).forEach(preset => {
+            const out = applyAnimation(SVG, preset);
+            // No rule animates the whole root or its background rect.
+            expect(out).not.toMatch(/\.gpsc-root\s*\{/);
+            expect(out).not.toContain('.gpsc-root>rect');
+        });
     });
 
     it('always emits a prefers-reduced-motion guard', () => {

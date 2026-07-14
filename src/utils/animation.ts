@@ -3,10 +3,18 @@
 // READMEs through GitHub's camo proxy, which strips <script> but renders CSS
 // animations. The animation is applied by post-processing the finished SVG
 // string (see api/utils/handle-card.ts) so no card generator needs to know about
-// it. Elements are targeted via the `.gpsc-root` wrapper (src/templates/card.ts),
-// the `.bar` / `.arc` chart classes, the per-item `--gpsc-i` index custom
-// property (set on each arc/bar for "one-by-one" staggering), and the
-// `.gpsc-reveal` clip rect (an inert full-size clip the reveal preset wipes in).
+// it.
+//
+// Targeting model: the background rect (a direct `<rect>` child of `.gpsc-root`)
+// is never animated, so it shows immediately. Everything else is animated per
+// atom via these hooks:
+//   - `.gpsc-item` — a content atom (title line, each detail/stats row, each
+//     language legend entry, the area chart). Carries a `--gpsc-i` index so
+//     presets can reveal atoms one-by-one. Only ever opacity/translate — items
+//     with an SVG transform attribute are wrapped so a CSS transform is safe.
+//   - `.arc` / `rect.bar` — donut arcs / histogram bars (transform-safe).
+//   - `.gpsc-reveal` — inert full-size clip rect the reveal presets wipe in from
+//     the left so the contributions line draws on along the x-axis.
 
 export type AnimationName = 'fade' | 'rise' | 'draw' | 'stagger' | 'load' | 'sequence' | 'hue';
 
@@ -48,7 +56,6 @@ export function parseDuration(value: unknown, fallback: number): number {
 const KEYFRAMES = `
 @keyframes gpsc-fade{from{opacity:0}to{opacity:1}}
 @keyframes gpsc-rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-@keyframes gpsc-slideup{from{transform:translateY(16px)}to{transform:translateY(0)}}
 @keyframes gpsc-grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
 @keyframes gpsc-pop{from{opacity:0;transform:scale(.55)}to{opacity:1;transform:scale(1)}}
 @keyframes gpsc-wipe{from{transform:scaleX(0)}to{transform:scaleX(1)}}
@@ -57,44 +64,55 @@ const KEYFRAMES = `
 // Trim floating-point noise from computed seconds (e.g. 0.44000000001 -> "0.44").
 const s = (seconds: number): string => `${Number(seconds.toFixed(3))}s`;
 
-// Each preset is a function of the base duration `d` (seconds); multi-step
-// presets express their part durations/delays as fractions of `d` so the whole
-// sequence scales uniformly when `d` changes.
+// Per-item stagger delay: index (`--gpsc-i`, default 0) times a base step.
+const itemDelay = (step: number): string => `calc(var(--gpsc-i,0) * ${s(step)})`;
+
+// Chart-element transform helpers (bars grow from the bottom, arcs/segments pop
+// from their centre, the reveal clip wipes from the left).
+const GROW = 'transform-box:fill-box;transform-origin:center bottom';
+const POP = 'transform-box:fill-box;transform-origin:center';
+const WIPE = 'transform-box:fill-box;transform-origin:left';
+
+// Each preset is a function of the base duration `d` (seconds). Presets never
+// touch `.gpsc-root` or its background `<rect>` (both stay put — the card frame
+// shows immediately); they animate the content atoms instead. Multi-step presets
+// express their part durations/delays as fractions of `d` so the whole sequence
+// scales uniformly when `d` changes.
 const PRESETS: Record<AnimationName, (d: number) => string> = {
-    fade: d => `.gpsc-root{animation:gpsc-fade ${s(d)} ease both}`,
-    rise: d => `.gpsc-root{animation:gpsc-rise ${s(d)} cubic-bezier(.2,.7,.3,1) both}`,
+    // Content atoms and charts simply fade in over the background.
+    fade: d => `.gpsc-item,.arc,rect.bar{animation:gpsc-fade ${s(d)} ease both}`,
+    // Same, but atoms also slide up a touch, lightly staggered.
+    rise: d =>
+        `.gpsc-item,.arc,rect.bar{animation:gpsc-rise ${s(d)} cubic-bezier(.2,.7,.3,1) both ${itemDelay(d * 0.05)}}`,
+    // Atoms fade while the charts "draw": bars grow, arcs pop, the line wipes in.
     draw: d =>
-        `.gpsc-root{animation:gpsc-fade ${s(d * 0.4)} ease both}` +
-        `rect.bar{animation:gpsc-grow ${s(d)} cubic-bezier(.2,.7,.3,1) both;transform-box:fill-box;transform-origin:center bottom}` +
-        `.arc{animation:gpsc-pop ${s(d * 0.6)} ease both;transform-box:fill-box;transform-origin:center}`,
-    stagger: d =>
-        `.gpsc-root>rect{animation:gpsc-fade ${s(d * 0.45)} ease both}` +
-        `.gpsc-root>text{animation:gpsc-fade ${s(d * 0.5)} ease both ${s(d * 0.2)}}` +
-        `.gpsc-root>g{animation:gpsc-fade ${s(d * 0.55)} ease both ${s(d * 0.4)}}`,
-    // "load": a coordinated loading→loaded assembly — the card slides up while its
-    // background, title and body fade in one after another, then the charts draw on.
+        `.gpsc-item{animation:gpsc-fade ${s(d * 0.5)} ease both}` +
+        `.arc{animation:gpsc-pop ${s(d * 0.6)} ease both;${POP}}` +
+        `rect.bar{animation:gpsc-grow ${s(d)} cubic-bezier(.2,.7,.3,1) both;${GROW}}` +
+        `.gpsc-reveal{animation:gpsc-wipe ${s(d)} linear both;${WIPE}}`,
+    // Every content atom fades in, one after another (background stays put).
+    stagger: d => `.gpsc-item,.arc,rect.bar{animation:gpsc-fade ${s(d * 0.6)} ease both ${itemDelay(d * 0.08)}}`,
+    // Coordinated "loading → loaded": atoms stagger in over the background, then
+    // the charts draw on.
     load: d =>
-        `.gpsc-root{animation:gpsc-slideup ${s(d * 0.45)} cubic-bezier(.2,.7,.3,1) both}` +
-        `.gpsc-root>rect{animation:gpsc-fade ${s(d * 0.3)} ease both}` +
-        `.gpsc-root>text{animation:gpsc-fade ${s(d * 0.35)} ease both ${s(d * 0.15)}}` +
-        `.gpsc-root>g{animation:gpsc-fade ${s(d * 0.4)} ease both ${s(d * 0.3)}}` +
-        `rect.bar{animation:gpsc-grow ${s(d * 0.5)} cubic-bezier(.2,.7,.3,1) both ${s(d * 0.45)};transform-box:fill-box;transform-origin:center bottom}` +
-        `.arc{animation:gpsc-pop ${s(d * 0.35)} ease both ${s(d * 0.55)};transform-box:fill-box;transform-origin:center}`,
-    // "sequence": chart elements reveal one-by-one — donut arcs pop and bars grow in
-    // index order (via --gpsc-i), and the contributions area wipes in along the
-    // x-axis (via the .gpsc-reveal clip). The card itself just fades in quickly.
+        `.gpsc-item{animation:gpsc-fade ${s(d * 0.4)} ease both ${itemDelay(d * 0.06)}}` +
+        `.arc{animation:gpsc-pop ${s(d * 0.4)} ease both ${s(d * 0.45)};${POP}}` +
+        `rect.bar{animation:gpsc-grow ${s(d * 0.5)} cubic-bezier(.2,.7,.3,1) both ${s(d * 0.45)};${GROW}}` +
+        `.gpsc-reveal{animation:gpsc-wipe ${s(d * 0.6)} linear both ${s(d * 0.4)};${WIPE}}`,
+    // Strict one-by-one reveal: title lines and every row/language reveal in index
+    // order, arcs pop and bars grow in order, and the line wipes in along the axis.
     sequence: d =>
-        `.gpsc-root{animation:gpsc-fade ${s(d * 0.2)} ease both}` +
-        `.arc{animation:gpsc-pop ${s(d * 0.35)} calc(var(--gpsc-i,0) * ${s(d * 0.12)}) ease both;transform-box:fill-box;transform-origin:center}` +
-        `rect.bar{animation:gpsc-grow ${s(d * 0.3)} calc(var(--gpsc-i,0) * ${s(d * 0.035)}) cubic-bezier(.2,.7,.3,1) both;transform-box:fill-box;transform-origin:center bottom}` +
-        `.gpsc-reveal{animation:gpsc-wipe ${s(d * 0.9)} linear both;transform-box:fill-box;transform-origin:left}`,
-    // "hue": the whole card fades in while its colours sweep from a shifted, more
-    // saturated hue to their final values — a soft gradient-like colour settle.
-    hue: d => `.gpsc-root{animation:gpsc-fade ${s(d * 0.5)} ease both,gpsc-hue ${s(d)} ease both}`
+        `.gpsc-item{animation:gpsc-fade ${s(d * 0.3)} ease both ${itemDelay(d * 0.12)}}` +
+        `.arc{animation:gpsc-pop ${s(d * 0.35)} ease both ${itemDelay(d * 0.12)};${POP}}` +
+        `rect.bar{animation:gpsc-grow ${s(d * 0.3)} cubic-bezier(.2,.7,.3,1) both ${itemDelay(d * 0.035)};${GROW}}` +
+        `.gpsc-reveal{animation:gpsc-wipe ${s(d * 0.9)} linear both;${WIPE}}`,
+    // Atoms fade in while their colours sweep from a shifted, more saturated hue to
+    // their final values — a soft gradient-like colour settle over the background.
+    hue: d => `.gpsc-item,.arc,rect.bar{animation:gpsc-fade ${s(d * 0.5)} ease both,gpsc-hue ${s(d)} ease both}`
 };
 
 // Respect users who prefer reduced motion — they get the final (un-animated) card.
-const REDUCED_MOTION = `@media (prefers-reduced-motion:reduce){.gpsc-root,.gpsc-root *,rect.bar,.arc,.gpsc-reveal{animation:none!important}}`;
+const REDUCED_MOTION = `@media (prefers-reduced-motion:reduce){.gpsc-root *,.gpsc-item,rect.bar,.arc,.gpsc-reveal{animation:none!important}}`;
 
 // Inject the animation CSS into an already-rendered card SVG string. Returns the
 // SVG unchanged for an unknown/absent preset. `durationRaw` is the raw query

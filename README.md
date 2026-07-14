@@ -134,6 +134,8 @@ Every card endpoint also accepts an optional `animation` parameter to add a CSS 
 - `sequence` — chart elements reveal one-by-one: donut segments pop and bars grow in order, and the contributions line wipes in along the time axis.
 - `hue` — the card fades in while its colours sweep from a shifted hue to their final values.
 
+In every preset the card background/frame appears immediately and the animation plays on the individual content pieces (each stat/detail row, each language, each bar), so it reads as the content filling into a ready card.
+
 `http://github-profile-summary-cards.vercel.app/api/cards/stats?username=vn7n24fzkq&theme=default&animation=load`
 
 Each preset has a sensible default speed. To make it faster or slower, add `duration` (in seconds, `0.2`–`5`) — it scales the whole animation, including staggered/draw-on timing:

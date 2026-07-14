@@ -13,10 +13,18 @@ export function createStatsCard(
     // draw icon
     const panel = svg.append('g').attr('transform', `translate(30,20)`);
     const labelHeight = 14;
+    // Each stat row is an animatable item; icon + name + value share --gpsc-i so
+    // they reveal together, one row at a time. The icon's position lives on an inner
+    // transform-free-of-CSS group: the animatable `.gpsc-item` wrapper carries no
+    // transform attribute, so a CSS transform animation (rise/grow) can't clobber the
+    // icon's SVG translate.
     panel
         .selectAll(null)
         .data(statsData)
         .enter()
+        .append('g')
+        .attr('class', 'gpsc-item')
+        .style('--gpsc-i', d => String(d.index))
         .append('g')
         .attr('transform', d => {
             const y = labelHeight * d.index * 1.8;
@@ -38,6 +46,8 @@ export function createStatsCard(
         })
         .attr('x', labelHeight * 1.5)
         .attr('y', d => labelHeight * d.index * 1.8 + labelHeight)
+        .attr('class', 'gpsc-item')
+        .style('--gpsc-i', d => String(d.index))
         .style('fill', theme.text)
         .style('font-size', `${labelHeight}px`);
 
@@ -51,6 +61,8 @@ export function createStatsCard(
         })
         .attr('x', 130)
         .attr('y', d => labelHeight * d.index * 1.8 + labelHeight)
+        .attr('class', 'gpsc-item')
+        .style('--gpsc-i', d => String(d.index))
         .style('fill', theme.text)
         .style('font-size', `${labelHeight}px`);
 

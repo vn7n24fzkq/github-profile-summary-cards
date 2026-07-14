@@ -38,9 +38,10 @@ export class Card {
         }`
         );
         // All visible content lives inside a transform-less wrapper group. A per-request
-        // animation (injected as a <style> block; see api/utils/handle-card.ts) can then
-        // fade/translate the whole card and stagger its parts by targeting `.gpsc-root`
-        // and its direct children, without fighting the elements' own transforms.
+        // animation (injected as a <style> block; see api/utils/handle-card.ts) targets
+        // the individual content atoms (`.gpsc-item`, each with a `--gpsc-i` index) and
+        // the chart classes, leaving the background rect (a direct `<rect>` child)
+        // untouched so it shows immediately.
         const root = svgRoot.append('g').attr('class', 'gpsc-root');
         const strokeWidth = 1;
         root.append('rect')
@@ -65,6 +66,10 @@ export class Card {
             root.append('text')
                 .attr('x', this.xPadding)
                 .attr('y', this.yPadding + i * TITLE_LINE_HEIGHT)
+                // Animatable content atom (see src/utils/animation.ts); the title is the
+                // first item so it carries the lowest --gpsc-i.
+                .attr('class', 'gpsc-item')
+                .style('--gpsc-i', String(i))
                 .style('font-size', `22px`)
                 .style('fill', `${theme.title}`)
                 .text(line);

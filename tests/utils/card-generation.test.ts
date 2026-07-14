@@ -44,7 +44,7 @@ describe('writeThemedCards', () => {
         writeThemedCards('3-stats', build, {animation: 'load'});
         expect(mockWriteSVG).toHaveBeenCalledTimes(ThemeMap.size);
         for (const call of mockWriteSVG.mock.calls) {
-            expect(call[2]).toContain('@keyframes gpsc-slideup');
+            expect(call[2]).toContain('.gpsc-item{animation:gpsc-fade');
         }
     });
 

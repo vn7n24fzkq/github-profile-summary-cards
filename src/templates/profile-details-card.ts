@@ -24,10 +24,16 @@ export function createDetailCard(
     // draw icon
     const panel = svg.append('g').attr('transform', `translate(30,30)`);
     const labelHeight = 14;
+    // Each detail row (icon + value) is an animatable item sharing --gpsc-i, so rows
+    // reveal one at a time. The icon's SVG translate lives on an inner group so the
+    // transform-free `.gpsc-item` wrapper can be safely CSS-transformed.
     panel
         .selectAll(null)
         .data(userDetails)
         .enter()
+        .append('g')
+        .attr('class', 'gpsc-item')
+        .style('--gpsc-i', d => String(d.index))
         .append('g')
         .attr('transform', d => {
             const y = labelHeight * d.index * 2;
@@ -49,6 +55,8 @@ export function createDetailCard(
         })
         .attr('x', labelHeight * 1.5)
         .attr('y', d => labelHeight * d.index * 2 + labelHeight)
+        .attr('class', 'gpsc-item')
+        .style('--gpsc-i', d => String(d.index))
         .style('fill', theme.text)
         .style('font-size', `${labelHeight}px`);
 
@@ -129,10 +137,13 @@ export function createDetailCard(
         .attr('height', chartHeight);
 
     // draw chart line (inside a transform-less, clipped wrapper so the reveal clip
-    // lines up with the plotting area)
+    // lines up with the plotting area). The wrapper is an animatable item (revealed
+    // after the detail rows) so it fades in for the non-drawing presets.
     chartPanel
         .append('g')
         .attr('clip-path', `url(#${REVEAL_CLIP_ID})`)
+        .attr('class', 'gpsc-item')
+        .style('--gpsc-i', String(userDetails.length))
         .append('path')
         .data([lineChartData])
         .attr('transform', `translate(${-chartRightMargin},0)`)
