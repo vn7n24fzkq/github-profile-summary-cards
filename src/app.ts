@@ -165,8 +165,9 @@ const action = async () => {
     if (animationInput && !animation) {
         core.warning(`ANIMATION "${animationInput}" is not a supported value; generating without animation.`);
     }
-    const options: CardGenerationOptions = {theme: themeInput || undefined, animation};
-    core.info(`Theme: ${themeInput || 'all'}; Animation: ${animation ?? 'none'}`);
+    const displayName = core.getInput('NAME', {required: false}).trim() || undefined;
+    const options: CardGenerationOptions = {theme: themeInput || undefined, animation, displayName};
+    core.info(`Theme: ${themeInput || 'all'}; Animation: ${animation ?? 'none'}; Name: ${displayName ?? '(default)'}`);
 
     try {
         // Remove old output

@@ -186,8 +186,9 @@ const action = () => __awaiter(void 0, void 0, void 0, function* () {
     if (animationInput && !animation) {
         core.warning(`ANIMATION "${animationInput}" is not a supported value; generating without animation.`);
     }
-    const options = { theme: themeInput || undefined, animation };
-    core.info(`Theme: ${themeInput || 'all'}; Animation: ${animation !== null && animation !== void 0 ? animation : 'none'}`);
+    const displayName = core.getInput('NAME', { required: false }).trim() || undefined;
+    const options = { theme: themeInput || undefined, animation, displayName };
+    core.info(`Theme: ${themeInput || 'all'}; Animation: ${animation !== null && animation !== void 0 ? animation : 'none'}; Name: ${displayName !== null && displayName !== void 0 ? displayName : '(default)'}`);
     try {
         // Remove old output
         core.info(`Remove old cards...`);
@@ -470,30 +471,20 @@ const js_abbreviation_number_1 = __nccwpck_require__(82365);
 const organization_details_1 = __nccwpck_require__(55911);
 const profile_details_card_1 = __nccwpck_require__(4881);
 const card_generation_1 = __nccwpck_require__(31693);
+const profile_title_1 = __nccwpck_require__(63164);
 const ORG_CHART_CAPTION = 'repos created over time';
-// Wraps the title between the login and the parenthesised display name when the
-// joined string would overrun the chart-free part of the card. Never splits
-// inside the login or inside the name itself.
-const TITLE_SOFT_WRAP_THRESHOLD = 25;
-const buildOrgTitle = function (login, name) {
-    if (name == null) {
-        return login;
-    }
-    const oneLine = `${login} (${name})`;
-    return oneLine.length > TITLE_SOFT_WRAP_THRESHOLD ? `${login}\n(${name})` : oneLine;
-};
 /**
  * Creates a Profile Details Card SVG for a GitHub organization.
  *
  * @param {string} login - The GitHub organization login.
  * @param {string} token - The GitHub API token.
- * @param {CardGenerationOptions} [options] - Optional theme/animation controls.
+ * @param {CardGenerationOptions} [options] - Optional theme/animation/displayName controls.
  * @return {Promise<void>}
  */
 const createOrganizationProfileDetailsCard = function (login_1, token_1) {
     return __awaiter(this, arguments, void 0, function* (login, token, options = {}) {
         const profileDetailsData = yield getOrganizationProfileDetailsData(login, token);
-        const title = buildOrgTitle(login, profileDetailsData[0].name);
+        const title = (0, profile_title_1.buildProfileTitle)(login, profileDetailsData[0].name, options.displayName);
         // use 0- prefix for sort in preview
         (0, card_generation_1.writeThemedCards)('0-profile-details', themeName => getOrganizationProfileDetailsSVG(title, profileDetailsData[2], profileDetailsData[1], themeName), options);
     });
@@ -506,14 +497,15 @@ exports.createOrganizationProfileDetailsCard = createOrganizationProfileDetailsC
  * @param {string} themeName - The card theme.
  * @param {string} token - The GitHub API token.
  * @param {ThemeColorOverride} [override] - Optional per-request color overrides.
+ * @param {string} [displayName] - Optional override for the displayed name/title.
  * @return {Promise<string>} The SVG string.
  */
-const getOrganizationProfileDetailsSVGWithThemeName = function (login, themeName, token, override) {
+const getOrganizationProfileDetailsSVGWithThemeName = function (login, themeName, token, override, displayName) {
     return __awaiter(this, void 0, void 0, function* () {
         if (!theme_1.ThemeMap.has(themeName))
             throw new Error('Theme does not exist');
         const profileDetailsData = yield getOrganizationProfileDetailsData(login, token);
-        const title = buildOrgTitle(login, profileDetailsData[0].name);
+        const title = (0, profile_title_1.buildProfileTitle)(login, profileDetailsData[0].name, displayName);
         return getOrganizationProfileDetailsSVG(title, profileDetailsData[2], profileDetailsData[1], themeName, override);
     });
 };
@@ -854,29 +846,19 @@ const profile_details_1 = __nccwpck_require__(98765);
 const contributions_by_year_1 = __nccwpck_require__(30920);
 const profile_details_card_1 = __nccwpck_require__(4881);
 const card_generation_1 = __nccwpck_require__(31693);
+const profile_title_1 = __nccwpck_require__(63164);
 /**
  * Creates a Profile Details Card SVG.
  *
  * @param {string} username - The GitHub username.
  * @param {string} token - The GitHub API token.
+ * @param {CardGenerationOptions} [options] - Optional theme/animation/displayName controls.
  * @return {Promise<void>}
  */
-// Returns the title to render on the profile-details card. When the combined
-// `${login} (${name})` would visually run into the chart area, breaks between
-// the login and the (name) so they render on two stacked lines. Never splits
-// within the login or within the name itself.
-const TITLE_SOFT_WRAP_THRESHOLD = 25;
-const buildProfileDetailsTitle = function (username, name) {
-    if (name == null) {
-        return username;
-    }
-    const oneLine = `${username} (${name})`;
-    return oneLine.length > TITLE_SOFT_WRAP_THRESHOLD ? `${username}\n(${name})` : oneLine;
-};
 const createProfileDetailsCard = function (username_1, token_1) {
     return __awaiter(this, arguments, void 0, function* (username, token, options = {}) {
         const profileDetailsData = yield getProfileDetailsData(username, token);
-        const title = buildProfileDetailsTitle(username, profileDetailsData[0].name);
+        const title = (0, profile_title_1.buildProfileTitle)(username, profileDetailsData[0].name, options.displayName);
         // use 0- prefix for sort in preview
         (0, card_generation_1.writeThemedCards)('0-profile-details', themeName => getProfileDetailsSVG(title, profileDetailsData[0].contributions, profileDetailsData[1], themeName), options);
     });
@@ -889,14 +871,15 @@ exports.createProfileDetailsCard = createProfileDetailsCard;
  * @param {string} themeName - The card theme.
  * @param {string} token - The GitHub API token.
  * @param {ThemeColorOverride} [override] - Optional per-request color overrides.
+ * @param {string} [displayName] - Optional override for the displayed name/title.
  * @return {Promise<string>} The SVG string.
  */
-const getProfileDetailsSVGWithThemeName = function (username, themeName, token, override) {
+const getProfileDetailsSVGWithThemeName = function (username, themeName, token, override, displayName) {
     return __awaiter(this, void 0, void 0, function* () {
         if (!theme_1.ThemeMap.has(themeName))
             throw new Error('Theme does not exist');
         const profileDetailsData = yield getProfileDetailsData(username, token);
-        const title = buildProfileDetailsTitle(username, profileDetailsData[0].name);
+        const title = (0, profile_title_1.buildProfileTitle)(username, profileDetailsData[0].name, displayName);
         return getProfileDetailsSVG(title, profileDetailsData[0].contributions, profileDetailsData[1], themeName, override);
     });
 };
@@ -3364,6 +3347,62 @@ function getThemeMarkdown(urlPrefix, ownerType = 'User') {
     }
     return result;
 }
+
+
+/***/ }),
+
+/***/ 63164:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+// Builds the single-line title shown on the profile-details card.
+//
+// The title area is ~265px wide before the chart begins; at the 22px title font
+// that is roughly 22 characters. Beyond that the title would overrun the chart,
+// so instead of wrapping to a second line (which changes the card height) we
+// elide to fit. Callers may also override the displayed name entirely.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.buildProfileTitle = exports.PROFILE_TITLE_MAX = void 0;
+// Single-line character budget for the title.
+exports.PROFILE_TITLE_MAX = 22;
+// Collapse whitespace/newlines to a single space so a user-supplied name can
+// never force a line break or smuggle control characters into the SVG text.
+function normalize(text) {
+    return text.replace(/\s+/g, ' ').trim();
+}
+// Truncate to `max` characters with a trailing ellipsis when it doesn't fit.
+function clamp(text, max) {
+    if (text.length <= max)
+        return text;
+    return `${text.slice(0, max - 1).trimEnd()}…`;
+}
+// Resolve the title:
+// - a non-empty `displayName` overrides the whole title (the user decides what to
+//   show), clamped to the budget;
+// - otherwise it's `login (name)` with the name elided so the login is always
+//   shown in full and the title never overruns the chart;
+// - with no name at all, just the login.
+function buildProfileTitle(login, name, displayName) {
+    if (displayName && normalize(displayName)) {
+        return clamp(normalize(displayName), exports.PROFILE_TITLE_MAX);
+    }
+    if (!name) {
+        return clamp(login, exports.PROFILE_TITLE_MAX);
+    }
+    const full = `${login} (${name})`;
+    if (full.length <= exports.PROFILE_TITLE_MAX) {
+        return full;
+    }
+    // Chars used by everything except the name: `login` + " (" + ")".
+    const nameBudget = exports.PROFILE_TITLE_MAX - (login.length + 3);
+    if (nameBudget < 2) {
+        // The login alone already fills (or exceeds) the budget — drop the name.
+        return clamp(login, exports.PROFILE_TITLE_MAX);
+    }
+    return `${login} (${clamp(normalize(name), nameBudget)})`;
+}
+exports.buildProfileTitle = buildProfileTitle;
 
 
 /***/ }),

@@ -4,27 +4,16 @@ import {abbreviateNumber} from 'js-abbreviation-number';
 import {getOrganizationDetails, OrganizationDetails} from '../github-api/organization-details';
 import {createDetailCard} from '../templates/profile-details-card';
 import {CardGenerationOptions, writeThemedCards} from '../utils/card-generation';
+import {buildProfileTitle} from '../utils/profile-title';
 
 const ORG_CHART_CAPTION = 'repos created over time';
-
-// Wraps the title between the login and the parenthesised display name when the
-// joined string would overrun the chart-free part of the card. Never splits
-// inside the login or inside the name itself.
-const TITLE_SOFT_WRAP_THRESHOLD = 25;
-const buildOrgTitle = function (login: string, name: string | null): string {
-    if (name == null) {
-        return login;
-    }
-    const oneLine = `${login} (${name})`;
-    return oneLine.length > TITLE_SOFT_WRAP_THRESHOLD ? `${login}\n(${name})` : oneLine;
-};
 
 /**
  * Creates a Profile Details Card SVG for a GitHub organization.
  *
  * @param {string} login - The GitHub organization login.
  * @param {string} token - The GitHub API token.
- * @param {CardGenerationOptions} [options] - Optional theme/animation controls.
+ * @param {CardGenerationOptions} [options] - Optional theme/animation/displayName controls.
  * @return {Promise<void>}
  */
 export const createOrganizationProfileDetailsCard = async function (
@@ -33,7 +22,7 @@ export const createOrganizationProfileDetailsCard = async function (
     options: CardGenerationOptions = {}
 ) {
     const profileDetailsData = await getOrganizationProfileDetailsData(login, token);
-    const title = buildOrgTitle(login, profileDetailsData[0].name);
+    const title = buildProfileTitle(login, profileDetailsData[0].name, options.displayName);
     // use 0- prefix for sort in preview
     writeThemedCards(
         '0-profile-details',
@@ -49,17 +38,19 @@ export const createOrganizationProfileDetailsCard = async function (
  * @param {string} themeName - The card theme.
  * @param {string} token - The GitHub API token.
  * @param {ThemeColorOverride} [override] - Optional per-request color overrides.
+ * @param {string} [displayName] - Optional override for the displayed name/title.
  * @return {Promise<string>} The SVG string.
  */
 export const getOrganizationProfileDetailsSVGWithThemeName = async function (
     login: string,
     themeName: string,
     token: string,
-    override?: ThemeColorOverride
+    override?: ThemeColorOverride,
+    displayName?: string
 ): Promise<string> {
     if (!ThemeMap.has(themeName)) throw new Error('Theme does not exist');
     const profileDetailsData = await getOrganizationProfileDetailsData(login, token);
-    const title = buildOrgTitle(login, profileDetailsData[0].name);
+    const title = buildProfileTitle(login, profileDetailsData[0].name, displayName);
     return getOrganizationProfileDetailsSVG(title, profileDetailsData[2], profileDetailsData[1], themeName, override);
 };
 

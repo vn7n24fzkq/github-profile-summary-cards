@@ -36,7 +36,12 @@ inputs:
   ANIMATION:
     type: string
     required: false
-    description: 'Bake a CSS entrance animation into the cards: none | fade | rise | draw | stagger | load. Leave empty for no animation.'
+    description: 'Bake a CSS entrance animation into the cards: none | fade | rise | draw | stagger | load | sequence | hue. Leave empty for no animation.'
+    default: ''
+  NAME:
+    type: string
+    required: false
+    description: 'Override the displayed name/title on the profile-details card (elided to fit). Leave empty to use the default "login (name)".'
     default: ''
 
 runs:

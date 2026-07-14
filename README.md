@@ -60,6 +60,8 @@
     - Theme name
   - username
     - Username
+  - name
+    - Optional override for the displayed name/title (e.g. `name=Casper`). Defaults to `login (name)`; long values are elided to fit on one line (~22 chars).
 ### Top languages used in repository card
 ![](http://github-profile-summary-cards.vercel.app/api/cards/repos-per-language?username=vn7n24fzkq&theme=nord_bright)
 
@@ -337,8 +339,10 @@ jobs:
           AUTO_PUSH: true
           # THEME is optional; set it to generate only that one theme (e.g. github_dark). Leave empty to generate every theme.
           THEME: ""
-          # ANIMATION is optional; bake a CSS entrance animation into the cards: none | fade | rise | draw | stagger | load. Empty = no animation.
+          # ANIMATION is optional; bake a CSS entrance animation into the cards: none | fade | rise | draw | stagger | load | sequence | hue. Empty = no animation.
           ANIMATION: ""
+          # NAME is optional; override the displayed name/title on the profile-details card (elided to ~22 chars). Empty = default "login (name)".
+          NAME: ""
 ```
 
 `THEME` and `ANIMATION` are independent:

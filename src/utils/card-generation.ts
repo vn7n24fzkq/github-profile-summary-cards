@@ -9,6 +9,9 @@ export interface CardGenerationOptions {
     theme?: string;
     // Bake an entrance animation into the generated SVGs; when unset, no animation.
     animation?: AnimationName;
+    // Override the displayed name/title on the profile-details card; when unset,
+    // the default `login (name)` is used. Ignored by the other card types.
+    displayName?: string;
 }
 
 // Resolve which theme(s) to generate: a single validated theme when the caller

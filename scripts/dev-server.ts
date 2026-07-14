@@ -90,6 +90,7 @@ ${
     <option value="hue">hue</option>
   </select></label>
   <label>Duration (s)<input name="duration" type="number" step="0.1" min="0.2" max="5" placeholder="default" style="width:6rem"></label>
+  <label>Name override<input name="name" type="text" placeholder="(profile-details title)" autocomplete="off" style="width:12rem"></label>
   <button type="submit">Render</button>
   <button type="button" id="replayBtn" title="Re-fetch the cards so the entrance animation plays again">Replay ▶</button>
 </form>
@@ -114,7 +115,7 @@ ${
   var form = document.getElementById('renderForm');
   var grid = document.getElementById('preview');
 
-  function render(login, theme, animation, duration) {
+  function render(login, theme, animation, duration, name) {
     grid.replaceChildren();
     if (!login) return;
     // Cache-buster so re-rendering the same login/theme still re-fetches the SVG,
@@ -134,6 +135,7 @@ ${
         + '&theme=' + encodeURIComponent(theme)
         + (animation ? '&animation=' + encodeURIComponent(animation) : '')
         + (animation && duration ? '&duration=' + encodeURIComponent(duration) : '')
+        + (name ? '&name=' + encodeURIComponent(name) : '')
         + '&_t=' + bust;
       img.src = url;
       img.alt = c;
@@ -155,14 +157,16 @@ ${
     var savedTheme = localStorage.getItem('devTheme') || '';
     var savedAnim = localStorage.getItem('devAnimation') || '';
     var savedDur = localStorage.getItem('devDuration') || '';
+    var savedName = localStorage.getItem('devName') || '';
     if (savedLogin) form.login.value = savedLogin;
     if (savedTheme) selectOption(form.theme, savedTheme);
     if (savedAnim) selectOption(form.animation, savedAnim);
     if (savedDur) form.duration.value = savedDur;
+    if (savedName) form.name.value = savedName;
     // Fall back to whatever the form is currently showing (default "vercel") so a fresh
     // first-time visitor with empty localStorage still gets a populated grid on load.
     var initialLogin = savedLogin || form.login.value.trim();
-    if (initialLogin) render(initialLogin, form.theme.value, form.animation.value, form.duration.value.trim());
+    if (initialLogin) render(initialLogin, form.theme.value, form.animation.value, form.duration.value.trim(), form.name.value.trim());
   } catch (err) { /* localStorage unavailable; non-fatal */ }
 
   form.addEventListener('submit', function(e) {
@@ -171,18 +175,20 @@ ${
     var theme = e.target.theme.value;
     var animation = e.target.animation.value;
     var duration = e.target.duration.value.trim();
+    var name = e.target.name.value.trim();
     try {
       localStorage.setItem('devLogin', login);
       localStorage.setItem('devTheme', theme);
       localStorage.setItem('devAnimation', animation);
       localStorage.setItem('devDuration', duration);
+      localStorage.setItem('devName', name);
     } catch (err) { /* ignore */ }
-    render(login, theme, animation, duration);
+    render(login, theme, animation, duration, name);
   });
 
   // Replay re-renders with the current values (new cache-buster) so the animation plays again.
   document.getElementById('replayBtn').addEventListener('click', function() {
-    render(form.login.value.trim(), form.theme.value, form.animation.value, form.duration.value.trim());
+    render(form.login.value.trim(), form.theme.value, form.animation.value, form.duration.value.trim(), form.name.value.trim());
   });
 })();
 </script>
@@ -211,7 +217,7 @@ const server = http.createServer(async (rawReq, rawRes) => {
             const card = url.pathname.replace('/api/cards/', '');
             const parsed = Number(query.utcOffset);
             const utcOffset = Number.isFinite(parsed) ? Math.min(14, Math.max(-12, parsed)) : 0;
-            const svg = renderMockCard(card, query.theme ?? 'default', utcOffset);
+            const svg = renderMockCard(card, query.theme ?? 'default', utcOffset, query.name);
             rawRes.setHeader('Content-Type', 'image/svg+xml');
             rawRes.end(applyAnimation(svg, parseAnimation(query.animation), query.duration));
             return;

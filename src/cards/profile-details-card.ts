@@ -5,34 +5,23 @@ import {getProfileDetails, ProfileDetails, ProfileContribution} from '../github-
 import {getContributionByYear} from '../github-api/contributions-by-year';
 import {createDetailCard} from '../templates/profile-details-card';
 import {CardGenerationOptions, writeThemedCards} from '../utils/card-generation';
+import {buildProfileTitle} from '../utils/profile-title';
 
 /**
  * Creates a Profile Details Card SVG.
  *
  * @param {string} username - The GitHub username.
  * @param {string} token - The GitHub API token.
+ * @param {CardGenerationOptions} [options] - Optional theme/animation/displayName controls.
  * @return {Promise<void>}
  */
-// Returns the title to render on the profile-details card. When the combined
-// `${login} (${name})` would visually run into the chart area, breaks between
-// the login and the (name) so they render on two stacked lines. Never splits
-// within the login or within the name itself.
-const TITLE_SOFT_WRAP_THRESHOLD = 25;
-const buildProfileDetailsTitle = function (username: string, name: string | null): string {
-    if (name == null) {
-        return username;
-    }
-    const oneLine = `${username} (${name})`;
-    return oneLine.length > TITLE_SOFT_WRAP_THRESHOLD ? `${username}\n(${name})` : oneLine;
-};
-
 export const createProfileDetailsCard = async function (
     username: string,
     token: string,
     options: CardGenerationOptions = {}
 ) {
     const profileDetailsData = await getProfileDetailsData(username, token);
-    const title = buildProfileDetailsTitle(username, profileDetailsData[0].name);
+    const title = buildProfileTitle(username, profileDetailsData[0].name, options.displayName);
     // use 0- prefix for sort in preview
     writeThemedCards(
         '0-profile-details',
@@ -47,17 +36,19 @@ export const createProfileDetailsCard = async function (
  * @param {string} themeName - The card theme.
  * @param {string} token - The GitHub API token.
  * @param {ThemeColorOverride} [override] - Optional per-request color overrides.
+ * @param {string} [displayName] - Optional override for the displayed name/title.
  * @return {Promise<string>} The SVG string.
  */
 export const getProfileDetailsSVGWithThemeName = async function (
     username: string,
     themeName: string,
     token: string,
-    override?: ThemeColorOverride
+    override?: ThemeColorOverride,
+    displayName?: string
 ): Promise<string> {
     if (!ThemeMap.has(themeName)) throw new Error('Theme does not exist');
     const profileDetailsData = await getProfileDetailsData(username, token);
-    const title = buildProfileDetailsTitle(username, profileDetailsData[0].name);
+    const title = buildProfileTitle(username, profileDetailsData[0].name, displayName);
     return getProfileDetailsSVG(title, profileDetailsData[0].contributions, profileDetailsData[1], themeName, override);
 };
 

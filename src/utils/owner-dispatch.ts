@@ -41,11 +41,12 @@ export const dispatchProfileDetailsSVG = function (
     login: string,
     themeName: string,
     token: string,
-    override?: ThemeColorOverride
+    override?: ThemeColorOverride,
+    displayName?: string
 ): Promise<string> {
     return dispatch(
-        () => getProfileDetailsSVGWithThemeName(login, themeName, token, override),
-        () => getOrganizationProfileDetailsSVGWithThemeName(login, themeName, token, override)
+        () => getProfileDetailsSVGWithThemeName(login, themeName, token, override, displayName),
+        () => getOrganizationProfileDetailsSVGWithThemeName(login, themeName, token, override, displayName)
     );
 };
 

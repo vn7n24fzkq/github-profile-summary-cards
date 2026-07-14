@@ -10,6 +10,7 @@ import {createStatsCard} from '../src/templates/stats-card';
 import {createDetailCard} from '../src/templates/profile-details-card';
 import {createDonutChartCard} from '../src/templates/donut-chart-card';
 import {createProductiveCard} from '../src/templates/productive-time-card';
+import {buildProfileTitle} from '../src/utils/profile-title';
 
 export const MOCK_CARDS = ['profile-details', 'repos-per-language', 'most-commit-language', 'stats', 'productive-time'];
 
@@ -50,15 +51,19 @@ const profileDetails = [
 ];
 
 // Render one mock card to an SVG string. Throws on an unknown card name so the
-// dev server can surface a clear 404.
-export function renderMockCard(card: string, themeName: string, utcOffset = 0): string {
+// dev server can surface a clear 404. `displayName` previews the title override.
+export function renderMockCard(card: string, themeName: string, utcOffset = 0, displayName?: string): string {
     const theme = resolveTheme(themeName);
     switch (card) {
         case 'profile-details':
-            // A realistic single-line "login (name)" title. Real cards only wrap to two
-            // lines when this string exceeds ~25 chars (see buildProfileDetailsTitle);
-            // pass a longer name here if you want to preview that wrapped layout.
-            return createDetailCard('octocat (Mona Lisa)', profileDetails, contributions, theme);
+            // Uses the real title builder: default is the elided "login (name)"; a
+            // displayName overrides the whole title (both single-line, budget-clamped).
+            return createDetailCard(
+                buildProfileTitle('octocat', 'Mona Lisa', displayName),
+                profileDetails,
+                contributions,
+                theme
+            );
         case 'repos-per-language':
             return createDonutChartCard('Repos Per Language', LANGUAGES, theme);
         case 'most-commit-language':
