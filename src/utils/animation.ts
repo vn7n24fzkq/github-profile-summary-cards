@@ -16,9 +16,9 @@
 //   - `.gpsc-reveal` — inert full-size clip rect the reveal presets wipe in from
 //     the left so the contributions line draws on along the x-axis.
 
-export type AnimationName = 'fade' | 'rise' | 'draw' | 'stagger' | 'load' | 'sequence' | 'hue';
+export type AnimationName = 'fade' | 'rise' | 'draw' | 'stagger' | 'load' | 'sequence' | 'hue' | 'rgb';
 
-const ANIMATIONS: ReadonlySet<string> = new Set(['fade', 'rise', 'draw', 'stagger', 'load', 'sequence', 'hue']);
+const ANIMATIONS: ReadonlySet<string> = new Set(['fade', 'rise', 'draw', 'stagger', 'load', 'sequence', 'hue', 'rgb']);
 
 // Each preset has a default base duration (seconds), tuned to be comfortably
 // visible. Multi-step presets scale their parts off this base, so it doubles as
@@ -30,7 +30,10 @@ const DEFAULT_DURATION: Record<AnimationName, number> = {
     stagger: 2.6,
     load: 3,
     sequence: 2.8,
-    hue: 3
+    hue: 3,
+    // rgb is a continuous loop; the duration is the colour-cycle period (slower =
+    // calmer). Defaults to the max so it's mellow out of the box.
+    rgb: 5
 };
 
 // Bounds for the user-supplied `duration` override (seconds). Wide enough to go
@@ -58,8 +61,9 @@ const KEYFRAMES = `
 @keyframes gpsc-rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 @keyframes gpsc-grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
 @keyframes gpsc-pop{from{opacity:0;transform:scale(.55)}to{opacity:1;transform:scale(1)}}
-@keyframes gpsc-wipe{from{width:0}to{width:var(--gpsc-w,100%)}}
-@keyframes gpsc-hue{from{filter:sepia(.7) saturate(4) hue-rotate(-70deg)}to{filter:sepia(0) saturate(1) hue-rotate(0)}}`;
+@keyframes gpsc-wipe{from{transform:translateX(calc(-1 * var(--gpsc-w,420px)))}to{transform:translateX(0)}}
+@keyframes gpsc-hue{from{filter:sepia(.7) saturate(4) hue-rotate(-70deg)}to{filter:sepia(0) saturate(1) hue-rotate(0)}}
+@keyframes gpsc-rgb{from{filter:hue-rotate(0deg)}to{filter:hue-rotate(360deg)}}`;
 
 // Trim floating-point noise from computed seconds (e.g. 0.44000000001 -> "0.44").
 const s = (seconds: number): string => `${Number(seconds.toFixed(3))}s`;
@@ -107,11 +111,16 @@ const PRESETS: Record<AnimationName, (d: number) => string> = {
         `.gpsc-reveal{animation:gpsc-wipe ${s(d * 0.9)} linear both}`,
     // Atoms fade in while their colours sweep from a shifted, more saturated hue to
     // their final values — a soft gradient-like colour settle over the background.
-    hue: d => `.gpsc-item,.arc,rect.bar{animation:gpsc-fade ${s(d * 0.5)} ease both,gpsc-hue ${s(d)} ease both}`
+    hue: d => `.gpsc-item,.arc,rect.bar{animation:gpsc-fade ${s(d * 0.5)} ease both,gpsc-hue ${s(d)} ease both}`,
+    // "rgb": a continuous "gaming RGB" loop — the whole card's colours cycle through
+    // the spectrum and back (hue-rotate 0→360), rotating the chosen theme's own
+    // colours rather than overwriting them. The only looping/non-entrance preset,
+    // so it intentionally animates the whole `.gpsc-root` (border included).
+    rgb: d => `.gpsc-root{animation:gpsc-rgb ${s(d)} linear infinite}`
 };
 
 // Respect users who prefer reduced motion — they get the final (un-animated) card.
-const REDUCED_MOTION = `@media (prefers-reduced-motion:reduce){.gpsc-root *,.gpsc-item,rect.bar,.arc,.gpsc-reveal{animation:none!important}}`;
+const REDUCED_MOTION = `@media (prefers-reduced-motion:reduce){.gpsc-root,.gpsc-root *,.gpsc-item,rect.bar,.arc,.gpsc-reveal{animation:none!important}}`;
 
 // Inject the animation CSS into an already-rendered card SVG string. Returns the
 // SVG unchanged for an unknown/absent preset. `durationRaw` is the raw query

@@ -68,14 +68,17 @@
 
 每個卡片端點都接受選用的 `animation` 參數,讓卡片首次載入時播放純 CSS 進場動畫(可在 GitHub README 上運作 —— GitHub 允許 CSS 但會移除 script):
 
-`none`(預設)、`fade`、`rise`、`draw`、`stagger`、`load`、`sequence`、`hue`
+`none`(預設)、`fade`、`rise`、`draw`、`stagger`、`load`、`sequence`、`hue`、`rgb`
 
-- `fade` / `rise` —— 整張卡片淡入(`rise` 會再輕微上浮)。
-- `draw` —— 長條圖長出、甜甜圈/區塊彈入,呈現圖表「描繪」的感覺。
-- `stagger` —— 背景、標題、內容依序出現。
-- `load` —— 編排式的「載入 → 完成」組裝感:卡片上浮、各部位逐一出現,最後圖表描繪上去。
-- `sequence` —— 圖表元素逐一出現:甜甜圈一片片彈入、長條一條條長出,貢獻折線沿時間軸由左至右揭示。
-- `hue` —— 卡片淡入時,顏色由偏移的色相漸變回最終配色。
+- `fade` / `rise` —— 內容淡入(`rise` 會再輕微上浮);背景框立即顯示。
+- `draw` —— 長條圖長出、甜甜圈/區塊彈入、折線沿時間軸描繪。
+- `stagger` —— 各內容元件依序淡入。
+- `load` —— 編排式的「載入 → 完成」組裝感:各部位逐一出現,最後圖表描繪上去。
+- `sequence` —— 每個元件逐一出現:標題、每條資料、每個語言、每根長條依序,折線由左至右揭示。
+- `hue` —— 內容淡入時,顏色由偏移色相漸變回最終配色。
+- `rgb` —— 持續循環的「電競 RGB」效果:整張卡片的顏色在色相環上不斷循環(以你選的 theme 顏色為基礎;此效果會一直循環而非只播一次)。
+
+每個進場動畫(`rgb` 以外)都讓背景框立即顯示、只動個別內容元件。所有動畫都能用 `duration` 調速(`rgb` 則是循環週期)。
 
 `http://github-profile-summary-cards.vercel.app/api/cards/stats?username=vn7n24fzkq&theme=default&animation=load`
 

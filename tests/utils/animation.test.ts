@@ -1,9 +1,12 @@
 import {parseAnimation, parseDuration, applyAnimation, AnimationName} from '../../src/utils/animation';
 
 describe('parseAnimation', () => {
-    it.each(['fade', 'rise', 'draw', 'stagger', 'load', 'sequence', 'hue'])('accepts the known preset "%s"', preset => {
-        expect(parseAnimation(preset)).toBe(preset);
-    });
+    it.each(['fade', 'rise', 'draw', 'stagger', 'load', 'sequence', 'hue', 'rgb'])(
+        'accepts the known preset "%s"',
+        preset => {
+            expect(parseAnimation(preset)).toBe(preset);
+        }
+    );
 
     it('rejects unknown / empty values', () => {
         expect(parseAnimation('none')).toBeUndefined();
@@ -41,17 +44,25 @@ describe('applyAnimation', () => {
         expect(out).toContain('gpsc-fade');
     });
 
-    it('never animates the card frame (background shows immediately)', () => {
+    // The entrance presets (everything except the continuous "rgb" loop) must leave
+    // the card frame/background untouched so it shows immediately.
+    it('entrance presets never animate the card frame (background shows immediately)', () => {
         (['fade', 'rise', 'draw', 'stagger', 'load', 'sequence', 'hue'] as AnimationName[]).forEach(preset => {
             const out = applyAnimation(SVG, preset);
-            // No rule animates the whole root or its background rect.
             expect(out).not.toMatch(/\.gpsc-root\s*\{/);
             expect(out).not.toContain('.gpsc-root>rect');
         });
     });
 
+    it('rgb is a continuous whole-card colour loop', () => {
+        const out = applyAnimation(SVG, 'rgb');
+        expect(out).toContain('@keyframes gpsc-rgb');
+        expect(out).toContain('.gpsc-root{animation:gpsc-rgb');
+        expect(out).toContain('infinite');
+    });
+
     it('always emits a prefers-reduced-motion guard', () => {
-        (['fade', 'rise', 'draw', 'stagger', 'load', 'sequence', 'hue'] as AnimationName[]).forEach(preset => {
+        (['fade', 'rise', 'draw', 'stagger', 'load', 'sequence', 'hue', 'rgb'] as AnimationName[]).forEach(preset => {
             expect(applyAnimation(SVG, preset)).toContain('prefers-reduced-motion:reduce');
         });
     });

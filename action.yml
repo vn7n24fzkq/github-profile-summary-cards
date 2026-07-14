@@ -36,7 +36,7 @@ inputs:
   ANIMATION:
     type: string
     required: false
-    description: 'Bake a CSS entrance animation into the cards: none | fade | rise | draw | stagger | load | sequence | hue. Leave empty for no animation.'
+    description: 'Bake a CSS animation into the cards: none | fade | rise | draw | stagger | load | sequence | hue | rgb. Leave empty for no animation.'
     default: ''
   NAME:
     type: string
