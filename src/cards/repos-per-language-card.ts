@@ -29,6 +29,12 @@ const getReposPerLanguageSVG = function (
     themeName: string,
     override?: ThemeColorOverride
 ) {
+    if (langData.length == 0) {
+        // Placeholder so accounts with no public repos/languages get a labelled
+        // donut instead of a blank one (mirrors the commit-language card).
+        langData.push({name: 'There are no', value: 1, color: '#586e75'});
+        langData.push({name: 'repos to show', value: 1, color: '#586e75'});
+    }
     const svgString = createDonutChartCard('Top Languages by Repo', langData, resolveTheme(themeName, override));
     return svgString;
 };

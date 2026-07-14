@@ -1,4 +1,4 @@
-import request from '../utils/request';
+import request, {assertNoGraphQLErrors} from '../utils/request';
 
 export class ProfileDetails {
     id: number; // user id
@@ -94,9 +94,7 @@ export async function getProfileDetails(username: string, token: string): Promis
         login: username
     });
 
-    if (res.data.errors) {
-        throw Error(res.data.errors[0].message || 'GetProfileDetails failed');
-    }
+    assertNoGraphQLErrors(res, 'GetProfileDetails failed');
 
     const user = res.data.data.user;
     const profileDetails = new ProfileDetails(user.id, user.name, user.email, user.createdAt);

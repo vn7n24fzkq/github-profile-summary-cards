@@ -48,7 +48,9 @@ const getStatsData = async function (
 
     const totalRepositoryContributions = profileDetails.totalRepositoryContributions;
     if (process.env.VERCEL) {
-        // If running on vercel, we only calculate for last 1 year to avoid Vercel timeout limit
+        // If running on vercel, we only calculate for last 1 year to avoid Vercel timeout limit.
+        // Sort descending first so we take the latest year (GitHub's order isn't guaranteed).
+        profileDetails.contributionYears.sort((a, b) => b - a);
         profileDetails.contributionYears = profileDetails.contributionYears.slice(0, 1);
         for (const year of profileDetails.contributionYears) {
             const contributions = await getContributionByYear(username, year, token);
@@ -79,7 +81,9 @@ const getStatsData = async function (
             : {
                   index: 1,
                   icon: Icon.COMMIT,
-                  name: `${profileDetails.contributionYears[0]} Commits:`,
+                  name: profileDetails.contributionYears[0]
+                      ? `${profileDetails.contributionYears[0]} Commits:`
+                      : 'Total Commits:',
                   value: `${abbreviateNumber(totalCommitContributions, 1)}`
               },
         {

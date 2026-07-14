@@ -1,4 +1,4 @@
-import request from '../utils/request';
+import request, {assertNoGraphQLErrors} from '../utils/request';
 
 export type OwnerType = 'User' | 'Organization';
 
@@ -25,9 +25,7 @@ export async function getOwnerType(login: string, token: string): Promise<OwnerT
         login: login
     });
 
-    if (res.data.errors) {
-        throw Error(res.data.errors[0].message || 'GetOwnerType failed');
-    }
+    assertNoGraphQLErrors(res, 'GetOwnerType failed');
 
     const owner = res.data.data.repositoryOwner;
     if (!owner) {

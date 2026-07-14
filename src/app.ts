@@ -19,7 +19,7 @@ const execCmd = (cmd: string, args: string[] = []) =>
         const app = spawn(cmd, args, {stdio: 'pipe'});
         let stdout = '';
         app.stdout.on('data', data => {
-            stdout = data;
+            stdout += data;
         });
         app.on('close', code => {
             if (code !== 0 && !stdout.includes('nothing to commit')) {
@@ -175,6 +175,7 @@ const action = async () => {
                 retry += 1;
                 try {
                     await commitFile();
+                    break; // success — stop retrying
                 } catch (error) {
                     if (retry == maxRetry) {
                         throw error;

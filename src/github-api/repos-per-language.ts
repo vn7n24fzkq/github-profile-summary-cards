@@ -1,13 +1,14 @@
-import request from '../utils/request';
+import request, {assertNoGraphQLErrors} from '../utils/request';
 
 export class RepoLanguageInfo {
     name: string;
     color: string; // hexadecimal color code
     count: number;
 
-    constructor(name: string, color: string = '#586e75', count: number) {
+    constructor(name: string, color: string | null = '#586e75', count: number) {
         this.name = name;
-        this.color = color;
+        // GitHub returns null (not just undefined) for some languages' color.
+        this.color = color || '#586e75';
         this.count = count;
     }
 }
@@ -15,7 +16,7 @@ export class RepoLanguageInfo {
 export class RepoLanguages {
     private languageMap = new Map<string, RepoLanguageInfo>();
 
-    public addLanguage(name: string, color: string): void {
+    public addLanguage(name: string, color: string | null): void {
         if (this.languageMap.has(name)) {
             const lang = this.languageMap.get(name)!;
             lang.count += 1;
@@ -76,9 +77,7 @@ export async function getRepoLanguages(
 
     while (hasNextPage) {
         const res: any = await fetcher(token, {login: username, endCursor: cursor});
-        if (res.data.errors) {
-            throw Error(res.data.errors[0].message || 'GetRepoLanguage fail');
-        }
+        assertNoGraphQLErrors(res, 'GetRepoLanguage fail');
         const repos = res.data.data.user.repositories;
         nodes.push(...repos.nodes);
         cursor = repos.pageInfo?.endCursor ?? null;

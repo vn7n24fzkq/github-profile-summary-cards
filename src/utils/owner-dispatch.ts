@@ -26,7 +26,14 @@ async function dispatch(userRender: () => Promise<string>, orgRender: () => Prom
         return await userRender();
     } catch (err) {
         if (isAuthOrRateLimit(err)) throw err;
-        return orgRender();
+        try {
+            return await orgRender();
+        } catch {
+            // Login isn't a user and isn't a resolvable org either — surface the
+            // original user-pipeline error (e.g. a mistyped username) instead of
+            // the less-relevant "Organization not found".
+            throw err;
+        }
     }
 }
 

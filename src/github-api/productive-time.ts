@@ -1,4 +1,4 @@
-import request from '../utils/request';
+import request, {assertNoGraphQLErrors} from '../utils/request';
 
 export class ProfuctiveTime {
     productiveDate: Date[] = [];
@@ -91,9 +91,7 @@ export async function getProductiveTime(
         since: since
     });
 
-    if (res.data.errors) {
-        throw Error(res.data.errors[0].message || 'GetProductiveTime failed');
-    }
+    assertNoGraphQLErrors(res, 'GetProductiveTime failed');
 
     const productiveTime = new ProfuctiveTime();
     res.data.data.user.contributionsCollection.commitContributionsByRepository.forEach(

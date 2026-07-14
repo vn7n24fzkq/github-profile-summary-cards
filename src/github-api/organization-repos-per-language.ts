@@ -1,4 +1,4 @@
-import request from '../utils/request';
+import request, {assertNoGraphQLErrors} from '../utils/request';
 import {RepoLanguages} from './repos-per-language';
 
 const fetcher = (token: string, variables: any) => {
@@ -49,9 +49,7 @@ export async function getOrganizationRepoLanguages(
 
     while (hasNextPage) {
         const res: any = await fetcher(token, {login: login, endCursor: cursor});
-        if (res.data.errors) {
-            throw Error(res.data.errors[0].message || 'GetOrganizationRepoLanguage fail');
-        }
+        assertNoGraphQLErrors(res, 'GetOrganizationRepoLanguage fail');
         const owner = res.data.data.repositoryOwner;
         if (!owner || owner.__typename !== 'Organization') {
             throw Error(`Organization not found: ${login}`);

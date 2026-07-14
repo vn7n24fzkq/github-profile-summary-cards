@@ -1,72 +1,34 @@
 import {getProductiveTimeSVGWithThemeName} from '../../src/cards/productive-time-card';
 import {getOwnerType} from '../../src/github-api/owner-type';
-import {getGitHubToken} from '../utils/github-token-updater';
 import {getErrorMsgCard} from '../utils/error-card';
-import {sendAnalytics} from '../../src/utils/analytics';
-import {CONST_CACHE_CONTROL} from '../../src/const/cache';
-import {resolveThemeName, parseThemeColorOverride} from '../../src/const/theme';
+import {handleCard} from '../utils/handle-card';
 import type {VercelRequest, VercelResponse} from '@vercel/node';
 
-export default async (req: VercelRequest, res: VercelResponse) => {
-    const {username, theme: rawTheme = 'default', utcOffset = '0'} = req.query;
-    if (typeof rawTheme !== 'string') {
-        res.status(400).send('theme must be a string');
-        return;
-    }
-    if (typeof username !== 'string') {
-        res.status(400).send('username must be a string');
-        return;
-    }
-    if (typeof utcOffset !== 'string') {
+const ORG_NOT_SUPPORTED =
+    'The Productive Time card is not available for organization accounts. This card relies on per-user contribution data that GitHub does not expose at the organization level.';
+
+export default (req: VercelRequest, res: VercelResponse) => {
+    const {utcOffset: rawOffset = '0'} = req.query;
+    if (typeof rawOffset !== 'string') {
         res.status(400).send('utcOffset must be a string');
         return;
     }
-    const theme = resolveThemeName(rawTheme);
-    const override = parseThemeColorOverride(req.query);
-    try {
-        let token = getGitHubToken(0);
-        let tokenIndex = 0;
-        while (true) {
-            try {
-                const ownerType = await getOwnerType(username, token);
-                if (ownerType === 'Organization') {
-                    res.setHeader('Content-Type', 'image/svg+xml');
-                    res.setHeader('Cache-Control', CONST_CACHE_CONTROL);
-                    res.send(
-                        getErrorMsgCard(
-                            'The Productive Time card is not available for organization accounts. This card relies on per-user contribution data that GitHub does not expose at the organization level.',
-                            theme
-                        )
-                    );
-                    return;
-                }
-                const cardSVG = await getProductiveTimeSVGWithThemeName(
-                    username,
-                    theme,
-                    Number(utcOffset),
-                    token,
-                    override
-                );
-                res.setHeader('Content-Type', 'image/svg+xml');
-                res.setHeader('Cache-Control', CONST_CACHE_CONTROL);
-                res.send(cardSVG);
-                // Fire-and-forget: don't block the response on analytics
-                void sendAnalytics('productive_time_card', {username, theme, utcOffset}, req.headers);
-                return;
-            } catch (err: any) {
-                console.log(err.message);
-                // We update github token and try again, until getNextGitHubToken throw an Error
-                if (err.response && (err.response.status === 403 || err.response.status === 401)) {
-                    tokenIndex += 1;
-                    token = getGitHubToken(tokenIndex);
-                } else {
-                    throw err;
-                }
+    // Validate + clamp to a real UTC offset range so a non-numeric value can't
+    // produce an all-zero chart (NaN index) and a huge value can't grow the
+    // 24-hour bucket array out of range (which throws in the template).
+    const parsed = Number(rawOffset);
+    const utcOffset = Number.isFinite(parsed) ? Math.min(14, Math.max(-12, parsed)) : 0;
+    return handleCard(
+        req,
+        res,
+        'productive_time_card',
+        async (username, theme, override, token) => {
+            const ownerType = await getOwnerType(username, token);
+            if (ownerType === 'Organization') {
+                return getErrorMsgCard(ORG_NOT_SUPPORTED, theme);
             }
-        }
-    } catch (err: any) {
-        console.log(err);
-        res.setHeader('Content-Type', 'image/svg+xml');
-        res.send(getErrorMsgCard(err.message, theme));
-    }
+            return getProductiveTimeSVGWithThemeName(username, theme, utcOffset, token, override);
+        },
+        {utcOffset: String(utcOffset)}
+    );
 };

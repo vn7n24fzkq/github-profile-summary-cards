@@ -1,4 +1,4 @@
-import request from '../utils/request';
+import request, {assertNoGraphQLErrors} from '../utils/request';
 
 export class OrganizationDetails {
     id: number;
@@ -87,9 +87,7 @@ export async function getOrganizationDetails(login: string, token: string): Prom
     while (hasNextPage) {
         const res: any = await fetcher(token, {login: login, endCursor: cursor});
 
-        if (res.data.errors) {
-            throw Error(res.data.errors[0].message || 'GetOrganizationDetails failed');
-        }
+        assertNoGraphQLErrors(res, 'GetOrganizationDetails failed');
 
         const owner = res.data.data.repositoryOwner;
         if (!owner || owner.__typename !== 'Organization') {

@@ -1,4 +1,4 @@
-import request from '../utils/request';
+import request, {assertNoGraphQLErrors} from '../utils/request';
 
 export class ConrtibutionByYear {
     year: number;
@@ -11,27 +11,26 @@ export class ConrtibutionByYear {
     }
 }
 
-const fetcher = (token: string, variables: any, year: number) => {
+const fetcher = (token: string, variables: any) => {
+    // Pass the year window as GraphQL variables ($from/$to) instead of
+    // interpolating the year into the query string. Null from/to falls back to
+    // GitHub's default range (the past year).
     return request(
         {
             Authorization: `bearer ${token}`
         },
         {
             query: `
-      query ContributionsByYear($login: String!) {
+      query ContributionsByYear($login: String!, $from: DateTime, $to: DateTime) {
         user(login: $login) {
-            ${
-                year
-                    ? `contributionsCollection(from: "${year}-01-01T00:00:00Z", to: "${year}-12-31T23:59:59Z") {`
-                    : 'contributionsCollection {'
-            }
-                    totalCommitContributions
-                    contributionCalendar {
-                        totalContributions
-                    }
+            contributionsCollection(from: $from, to: $to) {
+                totalCommitContributions
+                contributionCalendar {
+                    totalContributions
                 }
             }
         }
+      }
       `,
             variables
         }
@@ -43,17 +42,13 @@ export async function getContributionByYear(
     year: number,
     token: string
 ): Promise<ConrtibutionByYear> {
-    const res = await fetcher(
-        token,
-        {
-            login: username
-        },
-        year
-    );
+    const res = await fetcher(token, {
+        login: username,
+        from: year ? `${year}-01-01T00:00:00Z` : null,
+        to: year ? `${year}-12-31T23:59:59Z` : null
+    });
 
-    if (res.data.errors) {
-        throw Error(res.data.errors[0].message || 'GetContributionByYear failed');
-    }
+    assertNoGraphQLErrors(res, 'GetContributionByYear failed');
 
     const user = res.data.data.user;
 

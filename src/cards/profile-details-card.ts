@@ -125,9 +125,9 @@ const getProfileDetailsData = async function (
                   index: 0,
                   icon: Icon.GITHUB,
                   name: 'Contributions',
-                  value: `${abbreviateNumber(totalContributions, 2)} Contributions in ${
-                      profileDetails.contributionYears[0]
-                  }`
+                  value: profileDetails.contributionYears[0]
+                      ? `${abbreviateNumber(totalContributions, 2)} Contributions in ${profileDetails.contributionYears[0]}`
+                      : `${abbreviateNumber(totalContributions, 2)} Contributions on GitHub`
               },
         {
             index: 1,

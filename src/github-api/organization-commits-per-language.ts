@@ -1,8 +1,10 @@
 // Aggregates commit counts by primary language across an organization's top public repos.
 // Capped at MAX_REPOS to stay within GitHub rate limits and Vercel function timeouts.
 // Semantics differ from the per-user version: orgs do not have contributionsCollection,
-// so we sample the default-branch history of each top repo.
-import request from '../utils/request';
+// so we sum each top repo's total default-branch commit count (all authors, all
+// time) and attribute it to that repo's primary language. `first: 1` is used
+// only to satisfy the connection arg — we read `totalCount`, not the nodes.
+import request, {assertNoGraphQLErrors} from '../utils/request';
 import {CommitLanguages} from './commits-per-language';
 
 const MAX_REPOS = 50;
@@ -28,7 +30,7 @@ const fetcher = (token: string, variables: any) => {
                 defaultBranchRef {
                   target {
                     ... on Commit {
-                      history(first: 0) {
+                      history(first: 1) {
                         totalCount
                       }
                     }
@@ -58,9 +60,7 @@ export async function getOrganizationCommitLanguage(
         first: MAX_REPOS
     });
 
-    if (res.data.errors) {
-        throw Error(res.data.errors[0].message || 'GetOrganizationCommitLanguage failed');
-    }
+    assertNoGraphQLErrors(res, 'GetOrganizationCommitLanguage failed');
 
     const owner = res.data.data.repositoryOwner;
     if (!owner || owner.__typename !== 'Organization') {

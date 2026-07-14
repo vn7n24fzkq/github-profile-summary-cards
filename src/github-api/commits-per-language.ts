@@ -1,13 +1,14 @@
-import request from '../utils/request';
+import request, {assertNoGraphQLErrors} from '../utils/request';
 
 export class CommitLanguageInfo {
     name: string;
     color: string; // hexadecimal color code
     count: number;
 
-    constructor(name: string, color: string = '#586e75', count: number) {
+    constructor(name: string, color: string | null = '#586e75', count: number) {
         this.name = name;
-        this.color = color;
+        // GitHub returns null (not just undefined) for some languages' color.
+        this.color = color || '#586e75';
         this.count = count;
     }
 }
@@ -15,7 +16,7 @@ export class CommitLanguageInfo {
 export class CommitLanguages {
     private languageMap = new Map<string, CommitLanguageInfo>();
 
-    public addLanguageCount(name: string, color: string, count: number): void {
+    public addLanguageCount(name: string, color: string | null, count: number): void {
         if (this.languageMap.has(name)) {
             const lang = this.languageMap.get(name)!;
             lang.count += count;
@@ -72,9 +73,7 @@ export async function getCommitLanguage(
         login: username
     });
 
-    if (res.data.errors) {
-        throw Error(res.data.errors[0].message || 'GetCommitLanguage failed');
-    }
+    assertNoGraphQLErrors(res, 'GetCommitLanguage failed');
 
     res.data.data.user.contributionsCollection.commitContributionsByRepository.forEach(
         (node: {
