@@ -1,7 +1,7 @@
 import {parseAnimation, parseDuration, applyAnimation, AnimationName} from '../../src/utils/animation';
 
 describe('parseAnimation', () => {
-    it.each(['fade', 'rise', 'draw', 'stagger', 'load', 'sequence', 'hue', 'rgb'])(
+    it.each(['fade', 'rise', 'draw', 'stagger', 'load', 'sequence', 'hue', 'rgb', 'light-rgb'])(
         'accepts the known preset "%s"',
         preset => {
             expect(parseAnimation(preset)).toBe(preset);
@@ -61,10 +61,21 @@ describe('applyAnimation', () => {
         expect(out).toContain('infinite');
     });
 
+    it('light-rgb cycles the content but leaves the card frame fixed', () => {
+        const out = applyAnimation(SVG, 'light-rgb');
+        expect(out).toContain('gpsc-rgb');
+        expect(out).toContain('infinite');
+        // Content classes cycle; the whole root does not.
+        expect(out).toContain('.gpsc-item,.gpsc-chart,.arc,rect.bar{animation:gpsc-rgb');
+        expect(out).not.toMatch(/\.gpsc-root\s*\{/);
+    });
+
     it('always emits a prefers-reduced-motion guard', () => {
-        (['fade', 'rise', 'draw', 'stagger', 'load', 'sequence', 'hue', 'rgb'] as AnimationName[]).forEach(preset => {
-            expect(applyAnimation(SVG, preset)).toContain('prefers-reduced-motion:reduce');
-        });
+        (['fade', 'rise', 'draw', 'stagger', 'load', 'sequence', 'hue', 'rgb', 'light-rgb'] as AnimationName[]).forEach(
+            preset => {
+                expect(applyAnimation(SVG, preset)).toContain('prefers-reduced-motion:reduce');
+            }
+        );
     });
 
     it('drives chart draw-on for the "draw" and "load" presets', () => {

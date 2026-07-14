@@ -133,7 +133,8 @@ Every card endpoint also accepts an optional `animation` parameter to add a CSS 
 - `load` — a coordinated "loading → loaded" assembly: the card slides up, its parts stagger in, then the charts draw on.
 - `sequence` — chart elements reveal one-by-one: donut segments pop and bars grow in order, and the contributions line wipes in along the time axis.
 - `hue` — the card fades in while its colours sweep from a shifted hue to their final values.
-- `rgb` — a continuous "gaming RGB" loop: the card's colours cycle through the spectrum and back, rotating your chosen theme's colours (this one loops forever rather than playing once).
+- `rgb` — a continuous "gaming RGB" loop: the whole card's colours (background/frame included) cycle through the spectrum and back, rotating your chosen theme's colours (this one loops forever rather than playing once).
+- `light-rgb` — the same continuous colour cycle, but only on the content — the background/frame keeps its theme colour.
 
 Every entrance preset (everything except `rgb`) leaves the card background/frame in place and plays on the individual content pieces (each stat/detail row, each language, each bar), so it reads as the content filling into a ready card. For all of them, `duration` sets the speed (for `rgb` it's the colour-cycle period).
 
@@ -342,7 +343,7 @@ jobs:
           AUTO_PUSH: true
           # THEME is optional; set it to generate only that one theme (e.g. github_dark). Leave empty to generate every theme.
           THEME: ""
-          # ANIMATION is optional; bake a CSS animation into the cards: none | fade | rise | draw | stagger | load | sequence | hue | rgb. Empty = no animation.
+          # ANIMATION is optional; bake a CSS animation into the cards: none | fade | rise | draw | stagger | load | sequence | hue | rgb | light-rgb. Empty = no animation.
           ANIMATION: ""
           # NAME is optional; override the displayed name/title on the profile-details card (elided to ~22 chars). Empty = default "login (name)".
           NAME: ""

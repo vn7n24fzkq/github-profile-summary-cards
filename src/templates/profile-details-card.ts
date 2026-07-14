@@ -136,9 +136,11 @@ export function createDetailCard(
         .attr('y', 0)
         .attr('width', revealWidth)
         .attr('height', chartHeight)
-        // Full width available to the wipe animation, which grows the clip's width
-        // from 0 → this value (a reliably left-to-right reveal; no transform-origin).
-        .style('--gpsc-w', `${revealWidth}px`);
+        // Full width available to the wipe animation, which slides the clip in from
+        // the left by this many px (a reliably left-to-right reveal; no
+        // transform-origin). The index places the wipe after the detail rows.
+        .style('--gpsc-w', `${revealWidth}px`)
+        .style('--gpsc-i', String(userDetails.length));
 
     // draw chart line (inside a transform-less, clipped wrapper so the reveal clip
     // lines up with the plotting area). The wrapper is an animatable item (revealed
@@ -146,7 +148,11 @@ export function createDetailCard(
     chartPanel
         .append('g')
         .attr('clip-path', `url(#${REVEAL_CLIP_ID})`)
-        .attr('class', 'gpsc-item')
+        // `.gpsc-chart` (not `.gpsc-item`): the non-drawing presets fade it in with
+        // the content, while the drawing presets (draw/load/sequence) leave its
+        // opacity alone and reveal it purely via the `.gpsc-reveal` clip wipe — so
+        // the two never fight and the line always draws from the left.
+        .attr('class', 'gpsc-chart')
         .style('--gpsc-i', String(userDetails.length))
         .append('path')
         .data([lineChartData])
