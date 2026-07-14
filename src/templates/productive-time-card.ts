@@ -67,7 +67,9 @@ export function createProductiveCard(chartData: number[], theme: Theme, utcOffse
         .enter()
         .append('rect')
         .attr('class', 'bar')
-        .style('hover', 'green')
+        // Per-bar index for staggered ("one-by-one") reveal animations. Inert unless an
+        // animation preset references --gpsc-i; see src/utils/animation.ts.
+        .style('--gpsc-i', (_: number, index: number) => String(index))
         .attr('fill', theme.chart)
         .attr('x', function (_, index) {
             return bottomScaleBand(index)!;

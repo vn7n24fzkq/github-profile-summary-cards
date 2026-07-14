@@ -86,6 +86,8 @@ ${
     <option value="draw">draw</option>
     <option value="stagger">stagger</option>
     <option value="load">load</option>
+    <option value="sequence">sequence</option>
+    <option value="hue">hue</option>
   </select></label>
   <label>Duration (s)<input name="duration" type="number" step="0.1" min="0.2" max="5" placeholder="default" style="width:6rem"></label>
   <button type="submit">Render</button>

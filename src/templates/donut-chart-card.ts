@@ -64,7 +64,10 @@ export function createDonutChartCard(
         .data(pieData)
         .enter()
         .append('g')
-        .attr('class', 'arc');
+        .attr('class', 'arc')
+        // Per-arc index for staggered ("one-by-one") reveal animations. Inert unless an
+        // animation preset references --gpsc-i; see src/utils/animation.ts.
+        .style('--gpsc-i', (d: PieArcDatum<{name: string; value: number; color: string}>) => String(d.index));
 
     g.append('path')
         .attr('d', arc)

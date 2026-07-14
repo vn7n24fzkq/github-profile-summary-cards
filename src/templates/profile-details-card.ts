@@ -114,8 +114,25 @@ export function createDetailCard(
         .attr('color', theme.chart)
         .attr('transform', `translate(${card.width - chartWidth - card.xPadding + 5},10)`);
 
-    // draw chart line
+    // Inert reveal clip: a full-size rect clipping the area chart. By default it
+    // covers the whole plotting region (no visual change); a "reveal"/"sequence"
+    // animation scales it in from the left so the area draws on along the x-axis.
+    const REVEAL_CLIP_ID = 'gpsc-reveal-clip';
     chartPanel
+        .append('clipPath')
+        .attr('id', REVEAL_CLIP_ID)
+        .append('rect')
+        .attr('class', 'gpsc-reveal')
+        .attr('x', -chartRightMargin)
+        .attr('y', 0)
+        .attr('width', chartWidth + chartRightMargin)
+        .attr('height', chartHeight);
+
+    // draw chart line (inside a transform-less, clipped wrapper so the reveal clip
+    // lines up with the plotting area)
+    chartPanel
+        .append('g')
+        .attr('clip-path', `url(#${REVEAL_CLIP_ID})`)
         .append('path')
         .data([lineChartData])
         .attr('transform', `translate(${-chartRightMargin},0)`)

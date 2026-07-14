@@ -68,12 +68,14 @@
 
 每個卡片端點都接受選用的 `animation` 參數,讓卡片首次載入時播放純 CSS 進場動畫(可在 GitHub README 上運作 —— GitHub 允許 CSS 但會移除 script):
 
-`none`(預設)、`fade`、`rise`、`draw`、`stagger`、`load`
+`none`(預設)、`fade`、`rise`、`draw`、`stagger`、`load`、`sequence`、`hue`
 
 - `fade` / `rise` —— 整張卡片淡入(`rise` 會再輕微上浮)。
 - `draw` —— 長條圖長出、甜甜圈/區塊彈入,呈現圖表「描繪」的感覺。
 - `stagger` —— 背景、標題、內容依序出現。
 - `load` —— 編排式的「載入 → 完成」組裝感:卡片上浮、各部位逐一出現,最後圖表描繪上去。
+- `sequence` —— 圖表元素逐一出現:甜甜圈一片片彈入、長條一條條長出,貢獻折線沿時間軸由左至右揭示。
+- `hue` —— 卡片淡入時,顏色由偏移的色相漸變回最終配色。
 
 `http://github-profile-summary-cards.vercel.app/api/cards/stats?username=vn7n24fzkq&theme=default&animation=load`
 

@@ -2614,7 +2614,10 @@ function createDonutChartCard(title, data, theme) {
         .data(pieData)
         .enter()
         .append('g')
-        .attr('class', 'arc');
+        .attr('class', 'arc')
+        // Per-arc index for staggered ("one-by-one") reveal animations. Inert unless an
+        // animation preset references --gpsc-i; see src/utils/animation.ts.
+        .style('--gpsc-i', (d) => String(d.index));
     g.append('path')
         .attr('d', arc)
         .style('fill', function (pieData) {
@@ -2706,7 +2709,9 @@ function createProductiveCard(chartData, theme, utcOffset) {
         .enter()
         .append('rect')
         .attr('class', 'bar')
-        .style('hover', 'green')
+        // Per-bar index for staggered ("one-by-one") reveal animations. Inert unless an
+        // animation preset references --gpsc-i; see src/utils/animation.ts.
+        .style('--gpsc-i', (_, index) => String(index))
         .attr('fill', theme.chart)
         .attr('x', function (_, index) {
         return bottomScaleBand(index);
@@ -2852,8 +2857,24 @@ function createDetailCard(title, userDetails, contributionsData, theme, chartCap
         .append('g')
         .attr('color', theme.chart)
         .attr('transform', `translate(${card.width - chartWidth - card.xPadding + 5},10)`);
-    // draw chart line
+    // Inert reveal clip: a full-size rect clipping the area chart. By default it
+    // covers the whole plotting region (no visual change); a "reveal"/"sequence"
+    // animation scales it in from the left so the area draws on along the x-axis.
+    const REVEAL_CLIP_ID = 'gpsc-reveal-clip';
     chartPanel
+        .append('clipPath')
+        .attr('id', REVEAL_CLIP_ID)
+        .append('rect')
+        .attr('class', 'gpsc-reveal')
+        .attr('x', -chartRightMargin)
+        .attr('y', 0)
+        .attr('width', chartWidth + chartRightMargin)
+        .attr('height', chartHeight);
+    // draw chart line (inside a transform-less, clipped wrapper so the reveal clip
+    // lines up with the plotting area)
+    chartPanel
+        .append('g')
+        .attr('clip-path', `url(#${REVEAL_CLIP_ID})`)
         .append('path')
         .data([lineChartData])
         .attr('transform', `translate(${-chartRightMargin},0)`)
@@ -3084,11 +3105,13 @@ exports.sendAnalytics = sendAnalytics;
 // READMEs through GitHub's camo proxy, which strips <script> but renders CSS
 // animations. The animation is applied by post-processing the finished SVG
 // string (see api/utils/handle-card.ts) so no card generator needs to know about
-// it. Elements are targeted via the `.gpsc-root` wrapper (src/templates/card.ts)
-// and the existing `.bar` / `.arc` chart classes.
+// it. Elements are targeted via the `.gpsc-root` wrapper (src/templates/card.ts),
+// the `.bar` / `.arc` chart classes, the per-item `--gpsc-i` index custom
+// property (set on each arc/bar for "one-by-one" staggering), and the
+// `.gpsc-reveal` clip rect (an inert full-size clip the reveal preset wipes in).
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.applyAnimation = exports.parseDuration = exports.parseAnimation = void 0;
-const ANIMATIONS = new Set(['fade', 'rise', 'draw', 'stagger', 'load']);
+const ANIMATIONS = new Set(['fade', 'rise', 'draw', 'stagger', 'load', 'sequence', 'hue']);
 // Each preset has a default base duration (seconds), tuned to be comfortably
 // visible. Multi-step presets scale their parts off this base, so it doubles as
 // the overall "speed" knob — see `duration` below.
@@ -3097,7 +3120,9 @@ const DEFAULT_DURATION = {
     rise: 1.1,
     draw: 1.3,
     stagger: 1.2,
-    load: 1.8
+    load: 1.8,
+    sequence: 2,
+    hue: 1.4
 };
 // Bounds for the user-supplied `duration` override (seconds). Wide enough to go
 // snappy or slow-mo, clamped so a hostile value can't freeze or spin the card.
@@ -3124,7 +3149,9 @@ const KEYFRAMES = `
 @keyframes gpsc-rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 @keyframes gpsc-slideup{from{transform:translateY(16px)}to{transform:translateY(0)}}
 @keyframes gpsc-grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
-@keyframes gpsc-pop{from{opacity:0;transform:scale(.55)}to{opacity:1;transform:scale(1)}}`;
+@keyframes gpsc-pop{from{opacity:0;transform:scale(.55)}to{opacity:1;transform:scale(1)}}
+@keyframes gpsc-wipe{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes gpsc-hue{from{filter:hue-rotate(-35deg) saturate(1.6)}to{filter:hue-rotate(0) saturate(1)}}`;
 // Trim floating-point noise from computed seconds (e.g. 0.44000000001 -> "0.44").
 const s = (seconds) => `${Number(seconds.toFixed(3))}s`;
 // Each preset is a function of the base duration `d` (seconds); multi-step
@@ -3146,10 +3173,20 @@ const PRESETS = {
         `.gpsc-root>text{animation:gpsc-fade ${s(d * 0.35)} ease both ${s(d * 0.15)}}` +
         `.gpsc-root>g{animation:gpsc-fade ${s(d * 0.4)} ease both ${s(d * 0.3)}}` +
         `rect.bar{animation:gpsc-grow ${s(d * 0.5)} cubic-bezier(.2,.7,.3,1) both ${s(d * 0.45)};transform-box:fill-box;transform-origin:center bottom}` +
-        `.arc{animation:gpsc-pop ${s(d * 0.35)} ease both ${s(d * 0.55)};transform-box:fill-box;transform-origin:center}`
+        `.arc{animation:gpsc-pop ${s(d * 0.35)} ease both ${s(d * 0.55)};transform-box:fill-box;transform-origin:center}`,
+    // "sequence": chart elements reveal one-by-one — donut arcs pop and bars grow in
+    // index order (via --gpsc-i), and the contributions area wipes in along the
+    // x-axis (via the .gpsc-reveal clip). The card itself just fades in quickly.
+    sequence: d => `.gpsc-root{animation:gpsc-fade ${s(d * 0.2)} ease both}` +
+        `.arc{animation:gpsc-pop ${s(d * 0.35)} calc(var(--gpsc-i,0) * ${s(d * 0.12)}) ease both;transform-box:fill-box;transform-origin:center}` +
+        `rect.bar{animation:gpsc-grow ${s(d * 0.3)} calc(var(--gpsc-i,0) * ${s(d * 0.035)}) cubic-bezier(.2,.7,.3,1) both;transform-box:fill-box;transform-origin:center bottom}` +
+        `.gpsc-reveal{animation:gpsc-wipe ${s(d * 0.9)} linear both;transform-box:fill-box;transform-origin:left}`,
+    // "hue": the whole card fades in while its colours sweep from a shifted, more
+    // saturated hue to their final values — a soft gradient-like colour settle.
+    hue: d => `.gpsc-root{animation:gpsc-fade ${s(d * 0.5)} ease both,gpsc-hue ${s(d)} ease both}`
 };
 // Respect users who prefer reduced motion — they get the final (un-animated) card.
-const REDUCED_MOTION = `@media (prefers-reduced-motion:reduce){.gpsc-root,.gpsc-root *,rect.bar,.arc{animation:none!important}}`;
+const REDUCED_MOTION = `@media (prefers-reduced-motion:reduce){.gpsc-root,.gpsc-root *,rect.bar,.arc,.gpsc-reveal{animation:none!important}}`;
 // Inject the animation CSS into an already-rendered card SVG string. Returns the
 // SVG unchanged for an unknown/absent preset. `durationRaw` is the raw query
 // value; it falls back to the preset's default when missing/invalid.

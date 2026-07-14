@@ -1,7 +1,7 @@
 import {parseAnimation, parseDuration, applyAnimation, AnimationName} from '../../src/utils/animation';
 
 describe('parseAnimation', () => {
-    it.each(['fade', 'rise', 'draw', 'stagger', 'load'])('accepts the known preset "%s"', preset => {
+    it.each(['fade', 'rise', 'draw', 'stagger', 'load', 'sequence', 'hue'])('accepts the known preset "%s"', preset => {
         expect(parseAnimation(preset)).toBe(preset);
     });
 
@@ -41,7 +41,7 @@ describe('applyAnimation', () => {
     });
 
     it('always emits a prefers-reduced-motion guard', () => {
-        (['fade', 'rise', 'draw', 'stagger', 'load'] as AnimationName[]).forEach(preset => {
+        (['fade', 'rise', 'draw', 'stagger', 'load', 'sequence', 'hue'] as AnimationName[]).forEach(preset => {
             expect(applyAnimation(SVG, preset)).toContain('prefers-reduced-motion:reduce');
         });
     });
@@ -49,6 +49,28 @@ describe('applyAnimation', () => {
     it('drives chart draw-on for the "draw" and "load" presets', () => {
         expect(applyAnimation(SVG, 'draw')).toContain('rect.bar{animation:gpsc-grow');
         expect(applyAnimation(SVG, 'load')).toContain('.arc{animation:gpsc-pop');
+    });
+
+    it('staggers chart elements by --gpsc-i and wipes the area for "sequence"', () => {
+        const out = applyAnimation(SVG, 'sequence');
+        // Per-item stagger references the index custom property.
+        expect(out).toContain('calc(var(--gpsc-i,0) *');
+        expect(out).toContain('.arc{animation:gpsc-pop');
+        expect(out).toContain('rect.bar{animation:gpsc-grow');
+        // Area reveal wipes the clip rect in from the left.
+        expect(out).toContain('.gpsc-reveal{animation:gpsc-wipe');
+        expect(out).toContain('@keyframes gpsc-wipe');
+    });
+
+    it('sweeps colours for the "hue" preset', () => {
+        const out = applyAnimation(SVG, 'hue');
+        expect(out).toContain('@keyframes gpsc-hue');
+        expect(out).toContain('gpsc-hue');
+    });
+
+    it('scales sequence stagger step with duration', () => {
+        // The per-index arc delay unit is d*0.12; at d=2 that is 0.24s.
+        expect(applyAnimation(SVG, 'sequence', '2')).toContain('calc(var(--gpsc-i,0) * 0.24s)');
     });
 
     it('uses the preset default duration when none is supplied', () => {

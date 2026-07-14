@@ -123,12 +123,14 @@ Resolves [#110](https://github.com/vn7n24fzkq/github-profile-summary-cards/issue
 
 Every card endpoint also accepts an optional `animation` parameter to add a CSS entrance animation that plays when the card first appears (works in GitHub READMEs, which allow CSS but strip scripts):
 
-`none` (default) · `fade` · `rise` · `draw` · `stagger` · `load`
+`none` (default) · `fade` · `rise` · `draw` · `stagger` · `load` · `sequence` · `hue`
 
 - `fade` / `rise` — the whole card fades (and gently slides up for `rise`).
 - `draw` — bars grow and donut/segments pop in as the chart "draws on".
 - `stagger` — background, title and body appear one after another.
 - `load` — a coordinated "loading → loaded" assembly: the card slides up, its parts stagger in, then the charts draw on.
+- `sequence` — chart elements reveal one-by-one: donut segments pop and bars grow in order, and the contributions line wipes in along the time axis.
+- `hue` — the card fades in while its colours sweep from a shifted hue to their final values.
 
 `http://github-profile-summary-cards.vercel.app/api/cards/stats?username=vn7n24fzkq&theme=default&animation=load`
 
