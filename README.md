@@ -132,7 +132,11 @@ Every card endpoint also accepts an optional `animation` parameter to add a CSS 
 
 `http://github-profile-summary-cards.vercel.app/api/cards/stats?username=vn7n24fzkq&theme=default&animation=load`
 
-Any unrecognized value is treated as `none`, and visitors with `prefers-reduced-motion` set always get the final, un-animated card.
+Each preset has a sensible default speed. To make it faster or slower, add `duration` (in seconds, `0.2`–`5`) — it scales the whole animation, including staggered/draw-on timing:
+
+`http://github-profile-summary-cards.vercel.app/api/cards/stats?username=vn7n24fzkq&theme=default&animation=load&duration=3`
+
+Any unrecognized `animation` value is treated as `none`, an invalid `duration` falls back to the preset default, and visitors with `prefers-reduced-motion` set always get the final, un-animated card.
 
 ---
 

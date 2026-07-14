@@ -1,4 +1,4 @@
-import {Card} from './card';
+import {Card, TITLE_LINE_HEIGHT} from './card';
 import * as d3 from 'd3';
 import {Theme} from '../const/theme';
 
@@ -14,7 +14,11 @@ export function createDetailCard(
     theme: Theme,
     chartCaption: string = 'contributions in the last year'
 ) {
-    const card = new Card(title, 700, 200, theme);
+    // A wrapped (two-line) title consumes one extra TITLE_LINE_HEIGHT of vertical
+    // space; grow the canvas to match so the details rows, chart and caption don't
+    // get pushed off the bottom of the (otherwise fixed) 200-px card.
+    const extraTitleLines = Math.max(0, title.split('\n').length - 1);
+    const card = new Card(title, 700, 200 + extraTitleLines * TITLE_LINE_HEIGHT, theme);
     const svg = card.getSVG();
 
     // draw icon

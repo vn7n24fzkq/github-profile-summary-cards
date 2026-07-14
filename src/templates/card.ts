@@ -1,6 +1,12 @@
 import {Theme} from '../const/theme';
 import * as d3 from 'd3';
 import {JSDOM} from 'jsdom';
+
+// Vertical space each additional title line occupies. Exported so cards that use
+// multi-line titles (e.g. profile-details) can grow their canvas by the same
+// amount instead of letting extra lines push content off the bottom.
+export const TITLE_LINE_HEIGHT = 24;
+
 export class Card {
     title: string;
     width: number;
@@ -54,7 +60,6 @@ export class Card {
         // Multi-line titles: callers pass `\n` to break the title (e.g. when login + name
         // would otherwise overflow into the chart area in profile-details). Each line is
         // rendered as its own <text> stacked at TITLE_LINE_HEIGHT.
-        const TITLE_LINE_HEIGHT = 24;
         const titleLines = this.title === '' ? [] : this.title.split('\n');
         titleLines.forEach((line, i) => {
             root.append('text')

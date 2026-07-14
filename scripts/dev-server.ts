@@ -87,6 +87,7 @@ ${
     <option value="stagger">stagger</option>
     <option value="load">load</option>
   </select></label>
+  <label>Duration (s)<input name="duration" type="number" step="0.1" min="0.2" max="5" placeholder="default" style="width:6rem"></label>
   <button type="submit">Render</button>
   <button type="button" id="replayBtn" title="Re-fetch the cards so the entrance animation plays again">Replay ▶</button>
 </form>
@@ -111,7 +112,7 @@ ${
   var form = document.getElementById('renderForm');
   var grid = document.getElementById('preview');
 
-  function render(login, theme, animation) {
+  function render(login, theme, animation, duration) {
     grid.replaceChildren();
     if (!login) return;
     // Cache-buster so re-rendering the same login/theme still re-fetches the SVG,
@@ -130,6 +131,7 @@ ${
         + '?username=' + encodeURIComponent(login)
         + '&theme=' + encodeURIComponent(theme)
         + (animation ? '&animation=' + encodeURIComponent(animation) : '')
+        + (animation && duration ? '&duration=' + encodeURIComponent(duration) : '')
         + '&_t=' + bust;
       img.src = url;
       img.alt = c;
@@ -150,13 +152,15 @@ ${
     var savedLogin = localStorage.getItem('devLogin') || '';
     var savedTheme = localStorage.getItem('devTheme') || '';
     var savedAnim = localStorage.getItem('devAnimation') || '';
+    var savedDur = localStorage.getItem('devDuration') || '';
     if (savedLogin) form.login.value = savedLogin;
     if (savedTheme) selectOption(form.theme, savedTheme);
     if (savedAnim) selectOption(form.animation, savedAnim);
+    if (savedDur) form.duration.value = savedDur;
     // Fall back to whatever the form is currently showing (default "vercel") so a fresh
     // first-time visitor with empty localStorage still gets a populated grid on load.
     var initialLogin = savedLogin || form.login.value.trim();
-    if (initialLogin) render(initialLogin, form.theme.value, form.animation.value);
+    if (initialLogin) render(initialLogin, form.theme.value, form.animation.value, form.duration.value.trim());
   } catch (err) { /* localStorage unavailable; non-fatal */ }
 
   form.addEventListener('submit', function(e) {
@@ -164,17 +168,19 @@ ${
     var login = e.target.login.value.trim();
     var theme = e.target.theme.value;
     var animation = e.target.animation.value;
+    var duration = e.target.duration.value.trim();
     try {
       localStorage.setItem('devLogin', login);
       localStorage.setItem('devTheme', theme);
       localStorage.setItem('devAnimation', animation);
+      localStorage.setItem('devDuration', duration);
     } catch (err) { /* ignore */ }
-    render(login, theme, animation);
+    render(login, theme, animation, duration);
   });
 
   // Replay re-renders with the current values (new cache-buster) so the animation plays again.
   document.getElementById('replayBtn').addEventListener('click', function() {
-    render(form.login.value.trim(), form.theme.value, form.animation.value);
+    render(form.login.value.trim(), form.theme.value, form.animation.value, form.duration.value.trim());
   });
 })();
 </script>
@@ -205,7 +211,7 @@ const server = http.createServer(async (rawReq, rawRes) => {
             const utcOffset = Number.isFinite(parsed) ? Math.min(14, Math.max(-12, parsed)) : 0;
             const svg = renderMockCard(card, query.theme ?? 'default', utcOffset);
             rawRes.setHeader('Content-Type', 'image/svg+xml');
-            rawRes.end(applyAnimation(svg, parseAnimation(query.animation)));
+            rawRes.end(applyAnimation(svg, parseAnimation(query.animation), query.duration));
             return;
         }
         const req = Object.assign(rawReq, {query, cookies: {}, body: undefined}) as unknown as VercelRequest;

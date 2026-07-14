@@ -13,14 +13,14 @@ import {createProductiveCard} from '../src/templates/productive-time-card';
 
 export const MOCK_CARDS = ['profile-details', 'repos-per-language', 'most-commit-language', 'stats', 'productive-time'];
 
-// A believable language breakdown for the two donut cards.
+// A believable language breakdown for the two donut cards. The real cards cap at
+// the top 5 languages (see *-language-card.ts), so the fixture has exactly 5.
 const LANGUAGES = [
     {name: 'TypeScript', value: 4200, color: '#3178c6'},
     {name: 'JavaScript', value: 2600, color: '#f1e05a'},
     {name: 'Go', value: 1500, color: '#00add8'},
     {name: 'Python', value: 1100, color: '#3572a5'},
-    {name: 'Rust', value: 700, color: '#dea584'},
-    {name: 'CSS', value: 400, color: '#563d7c'}
+    {name: 'Rust', value: 700, color: '#dea584'}
 ];
 
 // Twelve months of contribution counts for the profile-details area chart.

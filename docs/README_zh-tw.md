@@ -77,7 +77,11 @@
 
 `http://github-profile-summary-cards.vercel.app/api/cards/stats?username=vn7n24fzkq&theme=default&animation=load`
 
-無法辨識的值一律視為 `none`;若使用者系統開啟 `prefers-reduced-motion`,一律回傳最終(無動畫)的卡片。
+每種動畫都有預設速度。想更快或更慢,可加上 `duration`(秒,範圍 `0.2`–`5`)—— 它會等比例縮放整段動畫(含逐項/描繪的時間):
+
+`http://github-profile-summary-cards.vercel.app/api/cards/stats?username=vn7n24fzkq&theme=default&animation=load&duration=3`
+
+無法辨識的 `animation` 值一律視為 `none`;無效的 `duration` 會退回該動畫的預設值;若使用者系統開啟 `prefers-reduced-motion`,一律回傳最終(無動畫)的卡片。
 
 ---
 
