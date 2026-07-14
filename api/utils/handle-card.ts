@@ -32,13 +32,17 @@ function isRotatableError(err: any): boolean {
 function safeErrorMessage(err: any): string {
     const raw = String(err?.message ?? '').toLowerCase();
     const status = err?.response?.status;
-    if (err?.isRateLimit === true || status === 429 || status === 403 || raw.includes('rate limit')) {
+    // Rate limited: only on explicit evidence (429, our GraphQL isRateLimit flag, or
+    // message text). Note 403 alone is NOT rate limiting — it's usually auth/permission.
+    if (err?.isRateLimit === true || status === 429 || raw.includes('rate limit')) {
         return 'Cards are temporarily rate limited. Please try again in a few minutes.';
     }
-    if (raw.includes('could not resolve') || raw.includes('not found') || raw.includes('not exist')) {
+    // Not found: explicit 404, or GitHub's "could not resolve to a User/Organization".
+    if (status === 404 || raw.includes('could not resolve') || raw.includes('not found') || raw.includes('not exist')) {
         return 'Could not find that user or organization — please check the username.';
     }
-    // Auth / token / config problems: don't hint at the backing setup.
+    // Everything else (auth/permission incl. 401/403, token/config problems): stay
+    // generic so we don't hint at the backing setup.
     return 'This card is temporarily unavailable. Please try again later.';
 }
 
@@ -92,7 +96,10 @@ export async function handleCard(
         }
     } catch (err: any) {
         // Log the real error for debugging; show only a generic message to clients.
-        console.log(err);
+        // Log only a redacted summary — never the raw error object, which for axios
+        // failures carries the request config/headers (incl. the Authorization token)
+        // and response body.
+        console.log(`card error [${eventName}] status=${err?.response?.status ?? 'n/a'}: ${err?.message ?? 'unknown'}`);
         res.setHeader('Content-Type', 'image/svg+xml');
         // Short cache so a transient outage doesn't re-invoke the function on every
         // request, but clears quickly (and lets image proxies refetch) once healthy.
