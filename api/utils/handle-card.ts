@@ -1,6 +1,6 @@
 import {getGitHubToken} from './github-token-updater';
 import {getErrorMsgCard} from './error-card';
-import {sendAnalytics} from '../../src/utils/analytics';
+import {sendAnalytics, resolveSource} from '../../src/utils/analytics';
 import {CONST_CACHE_CONTROL} from '../../src/const/cache';
 import {resolveThemeName, parseThemeColorOverride, ThemeColorOverride} from '../../src/const/theme';
 import {parseAnimation, applyAnimation} from '../../src/utils/animation';
@@ -81,8 +81,10 @@ export async function handleCard(
                 res.setHeader('Content-Type', 'image/svg+xml');
                 res.setHeader('Cache-Control', CONST_CACHE_CONTROL);
                 res.send(applyAnimation(cardSVG, animation, req.query.duration));
-                // Fire-and-forget: don't block the response on analytics.
-                void sendAnalytics(eventName, {username, theme, ...extraAnalytics}, req.headers);
+                // Fire-and-forget: don't block the response on analytics. Tag the
+                // source (demo page vs README embed vs other) for GA segmentation.
+                const source = resolveSource(req.query.source, String(req.headers['user-agent'] ?? ''));
+                void sendAnalytics(eventName, {username, theme, source, ...extraAnalytics}, req.headers);
                 return;
             } catch (err: any) {
                 console.log(err.message);

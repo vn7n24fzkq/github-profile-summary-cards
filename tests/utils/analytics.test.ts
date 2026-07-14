@@ -79,6 +79,45 @@ describe('Analytics Utils', () => {
         expect(event.params.engagement_time_msec).toBe(100);
     });
 
+    it('normalizes username casing/whitespace into the same client_id', async () => {
+        process.env.GA_MEASUREMENT_ID = 'G-TEST';
+        process.env.GA_API_SECRET = 'SECRET';
+        process.env.VERCEL = '1';
+        const {sendAnalytics} = require('../../src/utils/analytics');
+
+        await sendAnalytics('e', {username: 'Torvalds'});
+        await sendAnalytics('e', {username: '  torvalds '});
+
+        const calls = (global.fetch as jest.Mock).mock.calls;
+        const id1 = JSON.parse(calls[0][1].body).client_id;
+        const id2 = JSON.parse(calls[1][1].body).client_id;
+        expect(id1).toBe(id2);
+    });
+
+    it('skips obvious bots/scrapers (but not the camo image proxy)', async () => {
+        process.env.GA_MEASUREMENT_ID = 'G-TEST';
+        process.env.GA_API_SECRET = 'SECRET';
+        process.env.VERCEL = '1';
+        const {sendAnalytics} = require('../../src/utils/analytics');
+
+        await sendAnalytics('e', {username: 'u'}, {'user-agent': 'Googlebot/2.1'});
+        await sendAnalytics('e', {username: 'u'}, {'user-agent': 'curl/8.4.0'});
+        expect(global.fetch).not.toHaveBeenCalled();
+
+        // camo (README embed) must still be counted.
+        await sendAnalytics('e', {username: 'u'}, {'user-agent': 'github-camo (abc123)'});
+        expect(global.fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('resolveSource classifies demo / embed / other', () => {
+        const {resolveSource} = require('../../src/utils/analytics');
+        expect(resolveSource('demo', 'Mozilla/5.0')).toBe('demo');
+        expect(resolveSource('DEMO', 'Mozilla/5.0')).toBe('demo');
+        expect(resolveSource(undefined, 'github-camo (abc)')).toBe('embed');
+        expect(resolveSource(undefined, 'Mozilla/5.0')).toBe('other');
+        expect(resolveSource(['x'], 'Mozilla/5.0')).toBe('other');
+    });
+
     it('should handle fetch errors gracefully', async () => {
         process.env.GA_MEASUREMENT_ID = 'G-TEST';
         process.env.GA_API_SECRET = 'SECRET';
