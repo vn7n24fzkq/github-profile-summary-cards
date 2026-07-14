@@ -14,7 +14,9 @@
         "scripts": {
             "test": "npm test",
             "build": "npm run build",
-            "package": "npm run package"
+            "package": "npm run package",
+            "dev": "npm run dev",
+            "test:local": "npm run test:local"
         }
     }
 }

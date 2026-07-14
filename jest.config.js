@@ -13,7 +13,7 @@ module.exports = {
     setupFilesAfterEnv: [],
     testMatch: ['**/*.test.ts'],
     verbose: true,
-    collectCoverageFrom: ['**/*.{ts,jx}', '!**/node_modules/**', '!**/dist/**', '!**/lib/**', '!scripts/**'],
+    collectCoverageFrom: ['**/*.{ts,tsx}', '!**/node_modules/**', '!**/dist/**', '!**/lib/**', '!scripts/**'],
     moduleNameMapper: {
         '^axios$': path.join(__dirname, 'node_modules/axios/dist/node/axios.cjs')
     },

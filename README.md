@@ -178,7 +178,7 @@ Always set an expiration (90 days is a good default) and copy the token immediat
 
 Where the token lives depends on how you're running the tool. Same token, different home.
 
-#### Local development (`npm run test:local` or `vercel dev`)
+#### Local development (`npm run dev`, `npm run test:local`, or `vercel dev`)
 
 Copy `.env.example` to `.env` in the repo root and paste the token in:
 
@@ -186,7 +186,12 @@ Copy `.env.example` to `.env` in the repo root and paste the token in:
 GITHUB_TOKEN=your_github_token_here
 ```
 
-`.env` is already in [.gitignore](.gitignore) — do not commit it. Both `npm run test:local` and `vercel dev` auto-load this file.
+`.env` is already in [.gitignore](.gitignore) — do not commit it. All of the commands below auto-load it.
+
+Three ways to preview locally:
+- **`npm run dev`** — runs the real card handlers on a local server at `http://localhost:3000/` and live-reloads on save; type a user or org login to render every card. Best for iterating.
+- **`npm run test:local -- <login> [utcOffset] [exclude]`** — renders all cards for one login to `profile-summary-card-output/`.
+- **`vercel dev`** — full Vercel emulation of the API routes and the `/demo` page.
 
 #### GitHub Actions (production card refresh on your profile repo)
 

@@ -10,8 +10,10 @@
         "lint": "eslint '**/*.ts'",
         "package": "ncc build --source-map --license licenses.txt",
         "test": "jest --passWithNoTests --reporters=default --reporters=jest-junit --coverage",
+        "test:unit": "jest --passWithNoTests",
+        "typecheck": "tsc --noEmit -p tsconfig.test.json",
         "test:local": "ts-node scripts/local-test.ts",
-        "dev": "ts-node scripts/dev-server.ts",
+        "dev": "node --watch -r ts-node/register scripts/dev-server.ts",
         "run": "node -r dotenv/config lib/app.js",
         "all": "npm run build && npm run format && npm run lint && npm run package && npm test"
     },
@@ -57,7 +59,7 @@
         "typescript": "5.4.5"
     },
     "pre-commit": [
-        "test",
+        "test:unit",
         "lint"
     ],
     "engines": {
