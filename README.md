@@ -333,7 +333,17 @@ jobs:
           EXCLUDE: ""
           # AUTO_PUSH is optional, a boolean variable default to true, whether automatically push generated files to desired branch
           AUTO_PUSH: true
+          # THEME is optional; set it to generate only that one theme (e.g. github_dark). Leave empty to generate every theme.
+          THEME: ""
+          # ANIMATION is optional; bake a CSS entrance animation into the cards: none | fade | rise | draw | stagger | load. Empty = no animation.
+          ANIMATION: ""
 ```
+
+`THEME` and `ANIMATION` are independent:
+- **neither** → every theme, no animation (the default, unchanged).
+- **`THEME` only** → just that theme, no animation.
+- **`ANIMATION` only** → every theme, each with that animation.
+- **both** → that one theme with that animation.
 
 ---
 

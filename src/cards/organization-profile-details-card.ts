@@ -3,7 +3,7 @@ import {Icon} from '../const/icon';
 import {abbreviateNumber} from 'js-abbreviation-number';
 import {getOrganizationDetails, OrganizationDetails} from '../github-api/organization-details';
 import {createDetailCard} from '../templates/profile-details-card';
-import {writeSVG} from '../utils/file-writer';
+import {CardGenerationOptions, writeThemedCards} from '../utils/card-generation';
 
 const ORG_CHART_CAPTION = 'repos created over time';
 
@@ -24,21 +24,22 @@ const buildOrgTitle = function (login: string, name: string | null): string {
  *
  * @param {string} login - The GitHub organization login.
  * @param {string} token - The GitHub API token.
+ * @param {CardGenerationOptions} [options] - Optional theme/animation controls.
  * @return {Promise<void>}
  */
-export const createOrganizationProfileDetailsCard = async function (login: string, token: string) {
+export const createOrganizationProfileDetailsCard = async function (
+    login: string,
+    token: string,
+    options: CardGenerationOptions = {}
+) {
     const profileDetailsData = await getOrganizationProfileDetailsData(login, token);
-    for (const themeName of ThemeMap.keys()) {
-        const title = buildOrgTitle(login, profileDetailsData[0].name);
-        const svgString = getOrganizationProfileDetailsSVG(
-            title,
-            profileDetailsData[2],
-            profileDetailsData[1],
-            themeName
-        );
-        // output to folder, use 0- prefix for sort in preview
-        writeSVG(themeName, '0-profile-details', svgString);
-    }
+    const title = buildOrgTitle(login, profileDetailsData[0].name);
+    // use 0- prefix for sort in preview
+    writeThemedCards(
+        '0-profile-details',
+        themeName => getOrganizationProfileDetailsSVG(title, profileDetailsData[2], profileDetailsData[1], themeName),
+        options
+    );
 };
 
 /**

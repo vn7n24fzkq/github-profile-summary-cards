@@ -3,15 +3,16 @@ import {Icon} from '../const/icon';
 import {abbreviateNumber} from 'js-abbreviation-number';
 import {getOrganizationDetails} from '../github-api/organization-details';
 import {createStatsCard as statsCard} from '../templates/stats-card';
-import {writeSVG} from '../utils/file-writer';
+import {CardGenerationOptions, writeThemedCards} from '../utils/card-generation';
 
-export const createOrganizationStatsCard = async function (login: string, token: string) {
+export const createOrganizationStatsCard = async function (
+    login: string,
+    token: string,
+    options: CardGenerationOptions = {}
+) {
     const statsData = await getOrganizationStatsData(login, token);
-    for (const themeName of ThemeMap.keys()) {
-        const svgString = getOrganizationStatsSVG(statsData, themeName);
-        // output to folder, use 3- prefix for sort in preview
-        writeSVG(themeName, '3-stats', svgString);
-    }
+    // use 3- prefix for sort in preview
+    writeThemedCards('3-stats', themeName => getOrganizationStatsSVG(statsData, themeName), options);
 };
 
 export const getOrganizationStatsSVGWithThemeName = async function (

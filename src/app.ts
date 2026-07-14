@@ -13,6 +13,9 @@ import {getOwnerType, OwnerType} from './github-api/owner-type';
 import {spawn} from 'child_process';
 import {translateLanguage} from './utils/translator';
 import {OUTPUT_PATH, generatePreviewMarkdown} from './utils/file-writer';
+import {ThemeMap} from './const/theme';
+import {parseAnimation} from './utils/animation';
+import {CardGenerationOptions} from './utils/card-generation';
 
 const execCmd = (cmd: string, args: string[] = []) =>
     new Promise((resolve, reject) => {
@@ -40,11 +43,17 @@ const commitFile = async () => {
     await execCmd('git', ['push']);
 };
 
-const generateUserCards = async (username: string, utcOffset: number, exclude: Array<string>, token: string) => {
+const generateUserCards = async (
+    username: string,
+    utcOffset: number,
+    exclude: Array<string>,
+    token: string,
+    options: CardGenerationOptions = {}
+) => {
     // ProfileDetailsCard
     try {
         core.info(`Creating ProfileDetailsCard...`);
-        await createProfileDetailsCard(username, token);
+        await createProfileDetailsCard(username, token, options);
         await sendAnalytics('action_profile_details_card', {username});
     } catch (error: any) {
         core.error(`Error when creating ProfileDetailsCard \n${error.stack}`);
@@ -53,7 +62,7 @@ const generateUserCards = async (username: string, utcOffset: number, exclude: A
     // ReposPerLanguageCard
     try {
         core.info(`Creating ReposPerLanguageCard...`);
-        await createReposPerLanguageCard(username, exclude, token);
+        await createReposPerLanguageCard(username, exclude, token, options);
     } catch (error: any) {
         core.error(`Error when creating ReposPerLanguageCard \n${error.stack}`);
     }
@@ -61,7 +70,7 @@ const generateUserCards = async (username: string, utcOffset: number, exclude: A
     // CommitsPerLanguageCard
     try {
         core.info(`Creating CommitsPerLanguageCard...`);
-        await createCommitsPerLanguageCard(username, exclude, token);
+        await createCommitsPerLanguageCard(username, exclude, token, options);
     } catch (error: any) {
         core.error(`Error when creating CommitsPerLanguageCard \n${error.stack}`);
     }
@@ -69,7 +78,7 @@ const generateUserCards = async (username: string, utcOffset: number, exclude: A
     // StatsCard
     try {
         core.info(`Creating StatsCard...`);
-        await createStatsCard(username, token);
+        await createStatsCard(username, token, options);
     } catch (error: any) {
         core.error(`Error when creating StatsCard \n${error.stack}`);
     }
@@ -77,17 +86,22 @@ const generateUserCards = async (username: string, utcOffset: number, exclude: A
     // ProductiveTimeCard
     try {
         core.info(`Creating ProductiveTimeCard...`);
-        await createProductiveTimeCard(username, utcOffset, token);
+        await createProductiveTimeCard(username, utcOffset, token, options);
     } catch (error: any) {
         core.error(`Error when creating ProductiveTimeCard \n${error.stack}`);
     }
 };
 
-const generateOrganizationCards = async (login: string, exclude: Array<string>, token: string) => {
+const generateOrganizationCards = async (
+    login: string,
+    exclude: Array<string>,
+    token: string,
+    options: CardGenerationOptions = {}
+) => {
     // ProfileDetailsCard
     try {
         core.info(`Creating Organization ProfileDetailsCard...`);
-        await createOrganizationProfileDetailsCard(login, token);
+        await createOrganizationProfileDetailsCard(login, token, options);
         await sendAnalytics('action_organization_profile_details_card', {username: login});
     } catch (error: any) {
         core.error(`Error when creating Organization ProfileDetailsCard \n${error.stack}`);
@@ -96,7 +110,7 @@ const generateOrganizationCards = async (login: string, exclude: Array<string>, 
     // ReposPerLanguageCard
     try {
         core.info(`Creating Organization ReposPerLanguageCard...`);
-        await createOrganizationReposPerLanguageCard(login, exclude, token);
+        await createOrganizationReposPerLanguageCard(login, exclude, token, options);
     } catch (error: any) {
         core.error(`Error when creating Organization ReposPerLanguageCard \n${error.stack}`);
     }
@@ -104,7 +118,7 @@ const generateOrganizationCards = async (login: string, exclude: Array<string>, 
     // CommitsPerLanguageCard
     try {
         core.info(`Creating Organization CommitsPerLanguageCard...`);
-        await createOrganizationCommitsPerLanguageCard(login, exclude, token);
+        await createOrganizationCommitsPerLanguageCard(login, exclude, token, options);
     } catch (error: any) {
         core.error(`Error when creating Organization CommitsPerLanguageCard \n${error.stack}`);
     }
@@ -112,7 +126,7 @@ const generateOrganizationCards = async (login: string, exclude: Array<string>, 
     // StatsCard
     try {
         core.info(`Creating Organization StatsCard...`);
-        await createOrganizationStatsCard(login, token);
+        await createOrganizationStatsCard(login, token, options);
     } catch (error: any) {
         core.error(`Error when creating Organization StatsCard \n${error.stack}`);
     }
@@ -138,6 +152,22 @@ const action = async () => {
     const autoPush = core.getBooleanInput('AUTO_PUSH', {required: false});
     core.info(`You ${autoPush ? 'have' : "haven't"} set automatically push commits`);
 
+    // Optional generation controls. THEME pins output to a single theme (default:
+    // all themes). ANIMATION bakes a CSS entrance animation into the SVGs
+    // (default: none). Both are independent — any combination is valid.
+    const themeInput = core.getInput('THEME', {required: false}).trim();
+    if (themeInput && !ThemeMap.has(themeInput)) {
+        core.setFailed(`THEME "${themeInput}" does not exist. See the theme list in the README.`);
+        return;
+    }
+    const animationInput = core.getInput('ANIMATION', {required: false}).trim();
+    const animation = parseAnimation(animationInput);
+    if (animationInput && !animation) {
+        core.warning(`ANIMATION "${animationInput}" is not a supported value; generating without animation.`);
+    }
+    const options: CardGenerationOptions = {theme: themeInput || undefined, animation};
+    core.info(`Theme: ${themeInput || 'all'}; Animation: ${animation ?? 'none'}`);
+
     try {
         // Remove old output
         core.info(`Remove old cards...`);
@@ -153,9 +183,9 @@ const action = async () => {
         }
 
         if (ownerType === 'Organization') {
-            await generateOrganizationCards(username, exclude, process.env.GITHUB_TOKEN!);
+            await generateOrganizationCards(username, exclude, process.env.GITHUB_TOKEN!, options);
         } else {
-            await generateUserCards(username, utcOffset, exclude, process.env.GITHUB_TOKEN!);
+            await generateUserCards(username, utcOffset, exclude, process.env.GITHUB_TOKEN!, options);
         }
 
         // generate markdown

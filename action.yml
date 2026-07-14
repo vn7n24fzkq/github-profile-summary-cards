@@ -28,6 +28,16 @@ inputs:
     required: false
     description: 'Whether automatically push generated files to desired branch'
     default: true
+  THEME:
+    type: string
+    required: false
+    description: 'Generate only this theme (e.g. github_dark). Leave empty to generate every theme.'
+    default: ''
+  ANIMATION:
+    type: string
+    required: false
+    description: 'Bake a CSS entrance animation into the cards: none | fade | rise | draw | stagger | load. Leave empty for no animation.'
+    default: ''
 
 runs:
   using: 'node24'

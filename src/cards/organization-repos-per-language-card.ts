@@ -1,19 +1,21 @@
 import {ThemeMap, ThemeColorOverride, resolveTheme} from '../const/theme';
 import {getOrganizationRepoLanguages} from '../github-api/organization-repos-per-language';
 import {createDonutChartCard} from '../templates/donut-chart-card';
-import {writeSVG} from '../utils/file-writer';
+import {CardGenerationOptions, writeThemedCards} from '../utils/card-generation';
 
 export const createOrganizationReposPerLanguageCard = async function (
     login: string,
     exclude: Array<string>,
-    token: string
+    token: string,
+    options: CardGenerationOptions = {}
 ) {
     const langData = await getOrganizationRepoLanguageData(login, exclude, token);
-    for (const themeName of ThemeMap.keys()) {
-        const svgString = getOrganizationReposPerLanguageSVG(langData, themeName);
-        // output to folder, use 1- prefix for sort in preview
-        writeSVG(themeName, '1-repos-per-language', svgString);
-    }
+    // use 1- prefix for sort in preview
+    writeThemedCards(
+        '1-repos-per-language',
+        themeName => getOrganizationReposPerLanguageSVG(langData, themeName),
+        options
+    );
 };
 
 export const getOrganizationReposPerLanguageSVGWithThemeName = async function (

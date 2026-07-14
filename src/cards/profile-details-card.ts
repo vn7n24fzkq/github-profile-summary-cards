@@ -4,7 +4,7 @@ import {abbreviateNumber} from 'js-abbreviation-number';
 import {getProfileDetails, ProfileDetails, ProfileContribution} from '../github-api/profile-details';
 import {getContributionByYear} from '../github-api/contributions-by-year';
 import {createDetailCard} from '../templates/profile-details-card';
-import {writeSVG} from '../utils/file-writer';
+import {CardGenerationOptions, writeThemedCards} from '../utils/card-generation';
 
 /**
  * Creates a Profile Details Card SVG.
@@ -26,19 +26,19 @@ const buildProfileDetailsTitle = function (username: string, name: string | null
     return oneLine.length > TITLE_SOFT_WRAP_THRESHOLD ? `${username}\n(${name})` : oneLine;
 };
 
-export const createProfileDetailsCard = async function (username: string, token: string) {
+export const createProfileDetailsCard = async function (
+    username: string,
+    token: string,
+    options: CardGenerationOptions = {}
+) {
     const profileDetailsData = await getProfileDetailsData(username, token);
-    for (const themeName of ThemeMap.keys()) {
-        const title = buildProfileDetailsTitle(username, profileDetailsData[0].name);
-        const svgString = getProfileDetailsSVG(
-            title,
-            profileDetailsData[0].contributions,
-            profileDetailsData[1],
-            themeName
-        );
-        // output to folder, use 0- prefix for sort in preview
-        writeSVG(themeName, '0-profile-details', svgString);
-    }
+    const title = buildProfileDetailsTitle(username, profileDetailsData[0].name);
+    // use 0- prefix for sort in preview
+    writeThemedCards(
+        '0-profile-details',
+        themeName => getProfileDetailsSVG(title, profileDetailsData[0].contributions, profileDetailsData[1], themeName),
+        options
+    );
 };
 /**
  * Generates the SVG for the Profile Details Card.

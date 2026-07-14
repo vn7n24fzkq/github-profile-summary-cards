@@ -73,7 +73,11 @@ export function createDetailCard(
     // prepare chart data
     const chartRightMargin = 30;
     const chartWidth = card.width - 2 * card.xPadding - chartRightMargin - 230;
-    const chartHeight = card.height - 2 * card.yPadding - 10;
+    // Keep the chart the same physical size regardless of a wrapped title: the extra
+    // canvas height is padding that pushes the chart down, not room for it to grow
+    // into (otherwise the taller chart's x-axis overruns the caption below it).
+    const extraTitleHeight = extraTitleLines * TITLE_LINE_HEIGHT;
+    const chartHeight = card.height - extraTitleHeight - 2 * card.yPadding - 10;
     const x = d3.scaleTime().range([0, chartWidth]);
 
     x.domain(

@@ -4,15 +4,12 @@ import {abbreviateNumber} from 'js-abbreviation-number';
 import {getProfileDetails} from '../github-api/profile-details';
 import {getContributionByYear} from '../github-api/contributions-by-year';
 import {createStatsCard as statsCard} from '../templates/stats-card';
-import {writeSVG} from '../utils/file-writer';
+import {CardGenerationOptions, writeThemedCards} from '../utils/card-generation';
 
-export const createStatsCard = async function (username: string, token: string) {
+export const createStatsCard = async function (username: string, token: string, options: CardGenerationOptions = {}) {
     const statsData = await getStatsData(username, token);
-    for (const themeName of ThemeMap.keys()) {
-        const svgString = getStatsSVG(statsData, themeName);
-        // output to folder, use 3- prefix for sort in preview
-        writeSVG(themeName, '3-stats', svgString);
-    }
+    // use 3- prefix for sort in preview
+    writeThemedCards('3-stats', themeName => getStatsSVG(statsData, themeName), options);
 };
 
 export const getStatsSVGWithThemeName = async function (

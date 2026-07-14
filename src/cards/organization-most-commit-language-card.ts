@@ -2,19 +2,21 @@ import {ThemeMap, ThemeColorOverride, resolveTheme} from '../const/theme';
 import {CommitLanguages} from '../github-api/commits-per-language';
 import {getOrganizationCommitLanguage} from '../github-api/organization-commits-per-language';
 import {createDonutChartCard} from '../templates/donut-chart-card';
-import {writeSVG} from '../utils/file-writer';
+import {CardGenerationOptions, writeThemedCards} from '../utils/card-generation';
 
 export const createOrganizationCommitsPerLanguageCard = async function (
     login: string,
     exclude: Array<string>,
-    token: string
+    token: string,
+    options: CardGenerationOptions = {}
 ) {
     const langData = await getOrganizationCommitsLanguageData(login, exclude, token);
-    for (const themeName of ThemeMap.keys()) {
-        const svgString = getOrganizationCommitsLanguageSVG(langData, themeName);
-        // output to folder, use 2- prefix for sort in preview
-        writeSVG(themeName, '2-most-commit-language', svgString);
-    }
+    // use 2- prefix for sort in preview
+    writeThemedCards(
+        '2-most-commit-language',
+        themeName => getOrganizationCommitsLanguageSVG(langData, themeName),
+        options
+    );
 };
 
 export const getOrganizationCommitsLanguageSVGWithThemeName = async function (
