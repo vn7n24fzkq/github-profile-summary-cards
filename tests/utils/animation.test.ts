@@ -115,8 +115,8 @@ describe('applyAnimation', () => {
     });
 
     it('clamps and ignores invalid duration overrides', () => {
-        // Out-of-range clamps to the [0.2, 5] bounds.
-        expect(applyAnimation(SVG, 'fade', '99')).toContain('gpsc-fade 5s');
+        // Out-of-range clamps to the [0.2, 10] bounds.
+        expect(applyAnimation(SVG, 'fade', '99')).toContain('gpsc-fade 10s');
         expect(applyAnimation(SVG, 'fade', '0.01')).toContain('gpsc-fade 0.2s');
         // Non-numeric / non-positive falls back to the preset default (3s).
         expect(applyAnimation(SVG, 'fade', 'abc')).toContain('gpsc-fade 3s');
@@ -140,7 +140,7 @@ describe('parseDuration', () => {
 
     it('accepts and clamps in-range values', () => {
         expect(parseDuration('2.5', 1.1)).toBe(2.5);
-        expect(parseDuration('99', 1.1)).toBe(5);
+        expect(parseDuration('99', 1.1)).toBe(10);
         expect(parseDuration('0.01', 1.1)).toBe(0.2);
     });
 });

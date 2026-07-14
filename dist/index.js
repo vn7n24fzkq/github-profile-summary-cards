@@ -3174,14 +3174,15 @@ const DEFAULT_DURATION = {
     sequence: 2.8,
     tint: 3,
     // rgb / rgb-soft are continuous loops; the duration is the colour-cycle period
-    // (slower = calmer). Default to the max so they're mellow out of the box.
+    // (slower = calmer). 5s is a mellow default; bump toward the 10s cap for calmer.
     rgb: 5,
     'rgb-soft': 5
 };
 // Bounds for the user-supplied `duration` override (seconds). Wide enough to go
-// snappy or slow-mo, clamped so a hostile value can't freeze or spin the card.
+// snappy or slow (e.g. a mellow 10s rgb colour cycle), clamped so a hostile value
+// can't freeze the card or spin it absurdly slowly.
 const MIN_DURATION = 0.2;
-const MAX_DURATION = 5;
+const MAX_DURATION = 10;
 // Whitelist the animation query parameter (enum). Unknown/absent values disable
 // animation, so a bad value can never inject anything into the SVG.
 function parseAnimation(value) {

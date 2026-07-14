@@ -83,7 +83,7 @@
 
 `http://github-profile-summary-cards.vercel.app/api/cards/stats?username=vn7n24fzkq&theme=default&animation=load`
 
-每種動畫都有預設速度。想更快或更慢,可加上 `duration`(秒,範圍 `0.2`–`5`)—— 它會等比例縮放整段動畫(含逐項/描繪的時間):
+每種動畫都有預設速度。想更快或更慢,可加上 `duration`(秒,範圍 `0.2`–`10`)—— 它會等比例縮放整段動畫(含逐項/描繪的時間):
 
 `http://github-profile-summary-cards.vercel.app/api/cards/stats?username=vn7n24fzkq&theme=default&animation=load&duration=3`
 

@@ -146,7 +146,7 @@ https://github-profile-summary-cards.vercel.app/api/cards/stats?username=vn7n24f
 ![](https://github-profile-summary-cards.vercel.app/api/cards/stats?username=vn7n24fzkq&theme=github_dark&animation=sequence)
 ![](https://github-profile-summary-cards.vercel.app/api/cards/repos-per-language?username=vn7n24fzkq&theme=github_dark&animation=sequence)
 
-**Speed:** every preset has a sensible default. Add `duration` (in seconds, `0.2`–`5`) to make it faster or slower — it scales the whole thing, including the staggered/draw-on timing (for the `rgb` presets it's the colour-cycle period):
+**Speed:** every preset has a sensible default. Add `duration` (in seconds, `0.2`–`10`) to make it faster or slower — it scales the whole thing, including the staggered/draw-on timing (for the `rgb` presets it's the colour-cycle period):
 
 ```
 https://github-profile-summary-cards.vercel.app/api/cards/stats?username=vn7n24fzkq&theme=default&animation=load&duration=3
@@ -365,7 +365,7 @@ jobs:
           THEME: ""
           # ANIMATION is optional; bake a CSS animation into the cards: none | fade | rise | draw | stagger | load | sequence | tint | rgb | rgb-soft. Empty = no animation.
           ANIMATION: ""
-          # DURATION is optional; animation speed in seconds (0.2–5). Only applies when ANIMATION is set. Empty = preset default.
+          # DURATION is optional; animation speed in seconds (0.2–10). Only applies when ANIMATION is set. Empty = preset default.
           DURATION: ""
           # NAME is optional; override the displayed name/title on the profile-details card (elided to ~22 chars). Empty = default "login (name)".
           NAME: ""

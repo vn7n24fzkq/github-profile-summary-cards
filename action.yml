@@ -41,7 +41,7 @@ inputs:
   DURATION:
     type: string
     required: false
-    description: 'Animation speed in seconds (0.2–5). Only applies when ANIMATION is set; leave empty for the preset default.'
+    description: 'Animation speed in seconds (0.2–10). Only applies when ANIMATION is set; leave empty for the preset default.'
     default: ''
   NAME:
     type: string
