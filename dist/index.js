@@ -3042,7 +3042,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.sendAnalytics = void 0;
+exports.sendAnalytics = exports.resolveSource = void 0;
 const crypto_1 = __importDefault(__nccwpck_require__(76982));
 const GA_MEASUREMENT_ID = process.env.GA_MEASUREMENT_ID;
 const GA_API_SECRET = process.env.GA_API_SECRET;
@@ -3056,8 +3056,37 @@ const GA_API_SECRET = process.env.GA_API_SECRET;
 const getClientId = (username) => {
     if (!username)
         return crypto_1.default.randomUUID();
-    return crypto_1.default.createHash('sha256').update(username).digest('hex');
+    // GitHub logins are case-insensitive, so normalise (lowercase + trim) before
+    // hashing — otherwise `Torvalds` and `torvalds` would count as two "users".
+    return crypto_1.default.createHash('sha256').update(username.trim().toLowerCase()).digest('hex');
 };
+// Obvious crawlers / scrapers / CLI tools. This deliberately does NOT match
+// GitHub's camo image proxy — camo is how legitimate README embeds fetch the
+// card, so that traffic must be classified as `embed`, not `bot`.
+const BOT_UA = /bot\b|crawl|spider|slurp|bingpreview|curl\/|wget\/|python-(?:requests|urllib)|scrapy|go-http-client|httpclient|headlesschrome|phantomjs/i;
+function isLikelyBot(userAgent) {
+    return BOT_UA.test(userAgent);
+}
+/**
+ * Classifies where a card request came from, so it can be segmented (and bots
+ * filtered out) in GA rather than silently dropped:
+ * - `demo`  — the demo/landing page (it tags its requests with `?source=demo`);
+ * - `bot`   — an obvious crawler/scraper/CLI by User-Agent (never camo);
+ * - `embed` — GitHub's camo image proxy, i.e. a README / Markdown embed;
+ * - `other` — anything else (direct hits, unknown clients).
+ *
+ * @param {unknown} sourceParam - The raw `source` query value, if any.
+ * @param {string} userAgent - The request User-Agent.
+ * @return {string} The resolved source label.
+ */
+function resolveSource(sourceParam, userAgent) {
+    if (typeof sourceParam === 'string' && sourceParam.toLowerCase() === 'demo')
+        return 'demo';
+    if (isLikelyBot(userAgent))
+        return 'bot';
+    return userAgent.toLowerCase().includes('camo') ? 'embed' : 'other';
+}
+exports.resolveSource = resolveSource;
 // ...
 /**
  * Sends an event to GA4 via the Measurement Protocol.
@@ -3078,10 +3107,12 @@ function sendAnalytics(eventName_1) {
         // Wrap the entire body so fire-and-forget callers (`void sendAnalytics(...)`)
         // can never produce an unhandled rejection, even if setup throws before fetch.
         try {
-            // Destructure to remove sensitive PII (username) from the final payload
+            // Destructure to remove sensitive PII (username) from the final payload.
+            // Bots aren't dropped here — the handler tags them `source=bot` (via
+            // resolveSource) so they stay visible in GA and can be filtered in reports.
             const { username } = params, cleanParams = __rest(params, ["username"]);
             const clientId = getClientId(username);
-            // Extract user IP and User-Agent from Vercel-injected headers
+            // Extract user IP + User-Agent from Vercel-injected headers
             // Vercel headers are plain objects (string | string[] | undefined)
             const forwardedFor = headers === null || headers === void 0 ? void 0 : headers['x-forwarded-for'];
             const ip = ((_a = (Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor)) === null || _a === void 0 ? void 0 : _a.split(',')[0]) || '';
