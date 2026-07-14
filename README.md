@@ -29,12 +29,12 @@
 </p>
 
 
-<!-- Live cards from the API with the `load` entrance animation — reload the page to replay. -->
-![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=solarized&animation=load)
-![](https://github-profile-summary-cards.vercel.app/api/cards/repos-per-language?username=vn7n24fzkq&theme=solarized&animation=load)
-![](https://github-profile-summary-cards.vercel.app/api/cards/most-commit-language?username=vn7n24fzkq&theme=solarized&animation=load)
-![](https://github-profile-summary-cards.vercel.app/api/cards/stats?username=vn7n24fzkq&theme=solarized&animation=load)
-![](https://github-profile-summary-cards.vercel.app/api/cards/productive-time?username=vn7n24fzkq&theme=solarized&animation=load&utcOffset=8)
+<!-- Sample cards (mock data, `load` animation baked in). Regenerate with `npm run generate:preview`. -->
+![](docs/preview/hero/0-profile-details.svg)
+![](docs/preview/hero/1-repos-per-language.svg)
+![](docs/preview/hero/2-most-commit-language.svg)
+![](docs/preview/hero/3-stats.svg)
+![](docs/preview/hero/4-productive-time.svg)
 
 </div>
 
@@ -43,19 +43,19 @@
 |   |   |   |   |   |
 |:---:|:---:|:---:|:---:|:---:|
 |default|2077|dracula|github|github_dark|
-|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=default)|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=2077)| ![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=dracula)|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=github)|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=github_dark)|
+|![](docs/preview/themes/default.svg)|![](docs/preview/themes/2077.svg)| ![](docs/preview/themes/dracula.svg)|![](docs/preview/themes/github.svg)|![](docs/preview/themes/github_dark.svg)|
 |gruvbox|monokai|nord_bright|nord_dark|radical|
-|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=gruvbox)|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=monokai)| ![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=nord_bright)|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=nord_dark)  |![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=radical)|
+|![](docs/preview/themes/gruvbox.svg)|![](docs/preview/themes/monokai.svg)| ![](docs/preview/themes/nord_bright.svg)|![](docs/preview/themes/nord_dark.svg)  |![](docs/preview/themes/radical.svg)|
 |solarized|solarized_dark|tokyonight|vue|zenburn|
-|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=solarized)|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=solarized_dark)| ![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=tokyonight)|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=vue)  |![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=zenburn)|
+|![](docs/preview/themes/solarized.svg)|![](docs/preview/themes/solarized_dark.svg)| ![](docs/preview/themes/tokyonight.svg)|![](docs/preview/themes/vue.svg)  |![](docs/preview/themes/zenburn.svg)|
 |transparent|
-|![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=transparent)|
+|![](docs/preview/themes/transparent.svg)|
 
 [More themes](https://github.com/vn7n24fzkq/github-profile-summary-cards-example/tree/master/profile-summary-card-output)
 
 ## How to use (API)
 ### Profile details card
-![](http://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=nord_bright)
+![](docs/preview/themes/nord_bright.svg)
 
 `http://github-profile-summary-cards.vercel.app/api/cards/profile-details?username={username}&theme={theme_name}`
 - Accept url parameters
@@ -66,7 +66,7 @@
   - name
     - Optional override for the displayed name/title (e.g. `name=Casper`). Defaults to `login (name)`; long values are elided to fit on one line (~22 chars).
 ### Top languages used in repository card
-![](http://github-profile-summary-cards.vercel.app/api/cards/repos-per-language?username=vn7n24fzkq&theme=nord_bright)
+![](docs/preview/api/repos-per-language.svg)
 
 `http://github-profile-summary-cards.vercel.app/api/cards/repos-per-language?username={username}&theme={theme_name}&exclude={exclude}`
 - Accept url parameters
@@ -80,7 +80,7 @@
     - You can found the supported languages in [here](https://github.com/github/linguist/blob/master/lib/linguist/languages.yml)
 
 ### Top languages in commits card
-![](http://github-profile-summary-cards.vercel.app/api/cards/most-commit-language?username=vn7n24fzkq&theme=nord_bright)
+![](docs/preview/api/most-commit-language.svg)
 
 `http://github-profile-summary-cards.vercel.app/api/cards/most-commit-language?username={username}&theme={theme_name}&exclude={exclude}`
 - Accept url parameters
@@ -94,7 +94,7 @@
     - You can found the supported languages in [here](https://github.com/github/linguist/blob/master/lib/linguist/languages.yml)
 
 ### GitHub stats card
-![](http://github-profile-summary-cards.vercel.app/api/cards/stats?username=vn7n24fzkq&theme=nord_bright&)
+![](docs/preview/api/stats.svg)
 
 `http://github-profile-summary-cards.vercel.app/api/cards/stats?username={username}&theme={theme_name}`
 - Accept url parameters
@@ -104,7 +104,7 @@
     - Username
 
 ### Productive time card
-![](http://github-profile-summary-cards.vercel.app/api/cards/productive-time?username=vn7n24fzkq&theme=nord_bright&utcOffset=8)
+![](docs/preview/api/productive-time.svg)
 
 `http://github-profile-summary-cards.vercel.app/api/cards/productive-time?username={username}&theme={theme_name}&utcOffset={utcOffset}`
 - accept url parameters
@@ -145,8 +145,11 @@ Cards can now **animate**! Add an optional `animation` parameter and the card pl
 https://github-profile-summary-cards.vercel.app/api/cards/stats?username=vn7n24fzkq&theme=default&animation=load
 ```
 
-![](https://github-profile-summary-cards.vercel.app/api/cards/stats?username=vn7n24fzkq&theme=github_dark&animation=sequence)
-![](https://github-profile-summary-cards.vercel.app/api/cards/repos-per-language?username=vn7n24fzkq&theme=github_dark&animation=sequence)
+<!-- Baked-in animation previews (mock data). Regenerate with `npm run generate:preview`. -->
+![](docs/preview/animations/load.svg)
+![](docs/preview/animations/sequence.svg)
+![](docs/preview/animations/draw.svg)
+![](docs/preview/animations/tint.svg)
 
 **Speed:** every preset has a sensible default. Add `duration` (in seconds, `0.2`–`10`) to make it faster or slower — it scales the whole thing, including the staggered/draw-on timing (for the `rgb` presets it's the colour-cycle period):
 
@@ -160,13 +163,13 @@ Any unrecognized `animation` value is treated as `none`, an invalid `duration` f
 
 Give your profile that gaming-keyboard glow. `rgb-soft` cycles your card's colours forever while the background stays put:
 
-![](https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=vn7n24fzkq&theme=github_dark&animation=rgb-soft)
+![](docs/preview/animations/rgb-soft.svg)
 
 ```
 https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=YOUR_NAME&theme=github_dark&animation=rgb-soft
 ```
 
-Want the whole card — border and all — in on it? Use `animation=rgb`. Too much? Slow it right down with `&duration=5`. 😎
+Want the whole card — border and all — in on it? Use `animation=rgb`. Too much? Slow it right down with `&duration=10`. 😎
 
 ---
 

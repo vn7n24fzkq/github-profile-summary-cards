@@ -14,6 +14,7 @@
         "typecheck": "tsc --noEmit -p tsconfig.test.json",
         "test:local": "ts-node scripts/local-test.ts",
         "test:action": "ts-node scripts/mock-action.ts",
+        "generate:preview": "ts-node scripts/generate-preview-assets.ts",
         "dev": "node --watch -r ts-node/register scripts/dev-server.ts",
         "run": "node -r dotenv/config lib/app.js",
         "all": "npm run build && npm run format && npm run lint && npm run package && npm test"
