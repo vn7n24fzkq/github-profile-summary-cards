@@ -2863,6 +2863,7 @@ function createDetailCard(title, userDetails, contributionsData, theme, chartCap
     // covers the whole plotting region (no visual change); a "reveal"/"sequence"
     // animation scales it in from the left so the area draws on along the x-axis.
     const REVEAL_CLIP_ID = 'gpsc-reveal-clip';
+    const revealWidth = chartWidth + chartRightMargin;
     chartPanel
         .append('clipPath')
         .attr('id', REVEAL_CLIP_ID)
@@ -2870,8 +2871,11 @@ function createDetailCard(title, userDetails, contributionsData, theme, chartCap
         .attr('class', 'gpsc-reveal')
         .attr('x', -chartRightMargin)
         .attr('y', 0)
-        .attr('width', chartWidth + chartRightMargin)
-        .attr('height', chartHeight);
+        .attr('width', revealWidth)
+        .attr('height', chartHeight)
+        // Full width available to the wipe animation, which grows the clip's width
+        // from 0 → this value (a reliably left-to-right reveal; no transform-origin).
+        .style('--gpsc-w', `${revealWidth}px`);
     // draw chart line (inside a transform-less, clipped wrapper so the reveal clip
     // lines up with the plotting area). The wrapper is an animatable item (revealed
     // after the detail rows) so it fades in for the non-drawing presets.
@@ -3141,13 +3145,13 @@ const ANIMATIONS = new Set(['fade', 'rise', 'draw', 'stagger', 'load', 'sequence
 // visible. Multi-step presets scale their parts off this base, so it doubles as
 // the overall "speed" knob — see `duration` below.
 const DEFAULT_DURATION = {
-    fade: 1.1,
-    rise: 1.1,
-    draw: 1.3,
-    stagger: 1.2,
-    load: 1.8,
-    sequence: 2,
-    hue: 1.4
+    fade: 3,
+    rise: 3,
+    draw: 2.5,
+    stagger: 2.6,
+    load: 3,
+    sequence: 2.8,
+    hue: 3
 };
 // Bounds for the user-supplied `duration` override (seconds). Wide enough to go
 // snappy or slow-mo, clamped so a hostile value can't freeze or spin the card.
@@ -3174,8 +3178,8 @@ const KEYFRAMES = `
 @keyframes gpsc-rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 @keyframes gpsc-grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
 @keyframes gpsc-pop{from{opacity:0;transform:scale(.55)}to{opacity:1;transform:scale(1)}}
-@keyframes gpsc-wipe{from{transform:scaleX(0)}to{transform:scaleX(1)}}
-@keyframes gpsc-hue{from{filter:hue-rotate(-35deg) saturate(1.6)}to{filter:hue-rotate(0) saturate(1)}}`;
+@keyframes gpsc-wipe{from{width:0}to{width:var(--gpsc-w,100%)}}
+@keyframes gpsc-hue{from{filter:sepia(.7) saturate(4) hue-rotate(-70deg)}to{filter:sepia(0) saturate(1) hue-rotate(0)}}`;
 // Trim floating-point noise from computed seconds (e.g. 0.44000000001 -> "0.44").
 const s = (seconds) => `${Number(seconds.toFixed(3))}s`;
 // Per-item stagger delay: index (`--gpsc-i`, default 0) times a base step.
@@ -3184,7 +3188,6 @@ const itemDelay = (step) => `calc(var(--gpsc-i,0) * ${s(step)})`;
 // from their centre, the reveal clip wipes from the left).
 const GROW = 'transform-box:fill-box;transform-origin:center bottom';
 const POP = 'transform-box:fill-box;transform-origin:center';
-const WIPE = 'transform-box:fill-box;transform-origin:left';
 // Each preset is a function of the base duration `d` (seconds). Presets never
 // touch `.gpsc-root` or its background `<rect>` (both stay put — the card frame
 // shows immediately); they animate the content atoms instead. Multi-step presets
@@ -3199,7 +3202,7 @@ const PRESETS = {
     draw: d => `.gpsc-item{animation:gpsc-fade ${s(d * 0.5)} ease both}` +
         `.arc{animation:gpsc-pop ${s(d * 0.6)} ease both;${POP}}` +
         `rect.bar{animation:gpsc-grow ${s(d)} cubic-bezier(.2,.7,.3,1) both;${GROW}}` +
-        `.gpsc-reveal{animation:gpsc-wipe ${s(d)} linear both;${WIPE}}`,
+        `.gpsc-reveal{animation:gpsc-wipe ${s(d)} linear both}`,
     // Every content atom fades in, one after another (background stays put).
     stagger: d => `.gpsc-item,.arc,rect.bar{animation:gpsc-fade ${s(d * 0.6)} ease both ${itemDelay(d * 0.08)}}`,
     // Coordinated "loading → loaded": atoms stagger in over the background, then
@@ -3207,13 +3210,13 @@ const PRESETS = {
     load: d => `.gpsc-item{animation:gpsc-fade ${s(d * 0.4)} ease both ${itemDelay(d * 0.06)}}` +
         `.arc{animation:gpsc-pop ${s(d * 0.4)} ease both ${s(d * 0.45)};${POP}}` +
         `rect.bar{animation:gpsc-grow ${s(d * 0.5)} cubic-bezier(.2,.7,.3,1) both ${s(d * 0.45)};${GROW}}` +
-        `.gpsc-reveal{animation:gpsc-wipe ${s(d * 0.6)} linear both ${s(d * 0.4)};${WIPE}}`,
+        `.gpsc-reveal{animation:gpsc-wipe ${s(d * 0.6)} linear both ${s(d * 0.4)}}`,
     // Strict one-by-one reveal: title lines and every row/language reveal in index
     // order, arcs pop and bars grow in order, and the line wipes in along the axis.
     sequence: d => `.gpsc-item{animation:gpsc-fade ${s(d * 0.3)} ease both ${itemDelay(d * 0.12)}}` +
         `.arc{animation:gpsc-pop ${s(d * 0.35)} ease both ${itemDelay(d * 0.12)};${POP}}` +
         `rect.bar{animation:gpsc-grow ${s(d * 0.3)} cubic-bezier(.2,.7,.3,1) both ${itemDelay(d * 0.035)};${GROW}}` +
-        `.gpsc-reveal{animation:gpsc-wipe ${s(d * 0.9)} linear both;${WIPE}}`,
+        `.gpsc-reveal{animation:gpsc-wipe ${s(d * 0.9)} linear both}`,
     // Atoms fade in while their colours sweep from a shifted, more saturated hue to
     // their final values — a soft gradient-like colour settle over the background.
     hue: d => `.gpsc-item,.arc,rect.bar{animation:gpsc-fade ${s(d * 0.5)} ease both,gpsc-hue ${s(d)} ease both}`

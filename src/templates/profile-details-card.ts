@@ -126,6 +126,7 @@ export function createDetailCard(
     // covers the whole plotting region (no visual change); a "reveal"/"sequence"
     // animation scales it in from the left so the area draws on along the x-axis.
     const REVEAL_CLIP_ID = 'gpsc-reveal-clip';
+    const revealWidth = chartWidth + chartRightMargin;
     chartPanel
         .append('clipPath')
         .attr('id', REVEAL_CLIP_ID)
@@ -133,8 +134,11 @@ export function createDetailCard(
         .attr('class', 'gpsc-reveal')
         .attr('x', -chartRightMargin)
         .attr('y', 0)
-        .attr('width', chartWidth + chartRightMargin)
-        .attr('height', chartHeight);
+        .attr('width', revealWidth)
+        .attr('height', chartHeight)
+        // Full width available to the wipe animation, which grows the clip's width
+        // from 0 → this value (a reliably left-to-right reveal; no transform-origin).
+        .style('--gpsc-w', `${revealWidth}px`);
 
     // draw chart line (inside a transform-less, clipped wrapper so the reveal clip
     // lines up with the plotting area). The wrapper is an animatable item (revealed

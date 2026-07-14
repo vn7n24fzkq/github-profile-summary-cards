@@ -84,8 +84,8 @@ describe('applyAnimation', () => {
     });
 
     it('uses the preset default duration when none is supplied', () => {
-        // "fade" default is 1.1s and drives the whole card in one shot.
-        expect(applyAnimation(SVG, 'fade')).toContain('gpsc-fade 1.1s');
+        // "fade" default is 3s.
+        expect(applyAnimation(SVG, 'fade')).toContain('gpsc-fade 3s');
     });
 
     it('applies a valid duration override', () => {
@@ -96,9 +96,9 @@ describe('applyAnimation', () => {
         // Out-of-range clamps to the [0.2, 5] bounds.
         expect(applyAnimation(SVG, 'fade', '99')).toContain('gpsc-fade 5s');
         expect(applyAnimation(SVG, 'fade', '0.01')).toContain('gpsc-fade 0.2s');
-        // Non-numeric / non-positive falls back to the preset default (1.1s).
-        expect(applyAnimation(SVG, 'fade', 'abc')).toContain('gpsc-fade 1.1s');
-        expect(applyAnimation(SVG, 'fade', '-3')).toContain('gpsc-fade 1.1s');
+        // Non-numeric / non-positive falls back to the preset default (3s).
+        expect(applyAnimation(SVG, 'fade', 'abc')).toContain('gpsc-fade 3s');
+        expect(applyAnimation(SVG, 'fade', '-3')).toContain('gpsc-fade 3s');
     });
 
     it('scales multi-step preset timing proportionally with duration', () => {
