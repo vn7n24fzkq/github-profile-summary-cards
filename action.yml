@@ -36,7 +36,12 @@ inputs:
   ANIMATION:
     type: string
     required: false
-    description: 'Bake a CSS animation into the cards: none | fade | rise | draw | stagger | load | sequence | hue | rgb | light-rgb. Leave empty for no animation.'
+    description: 'Bake a CSS animation into the cards: none | fade | rise | draw | stagger | load | sequence | tint | rgb | rgb-soft. Leave empty for no animation.'
+    default: ''
+  DURATION:
+    type: string
+    required: false
+    description: 'Animation speed in seconds (0.2–5). Only applies when ANIMATION is set; leave empty for the preset default.'
     default: ''
   NAME:
     type: string

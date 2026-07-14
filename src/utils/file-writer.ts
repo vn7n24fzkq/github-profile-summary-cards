@@ -1,5 +1,5 @@
 import * as core from '@actions/core';
-import {mkdirSync, writeFileSync, readdirSync} from 'fs';
+import {mkdirSync, writeFileSync, readdirSync, existsSync} from 'fs';
 import {ThemeMap} from '../const/theme';
 import {OwnerType} from '../github-api/owner-type';
 
@@ -26,6 +26,14 @@ function getAllFileInFolder(folder: string): string[] {
     return files;
 }
 
+// Theme folders that were actually generated this run, in ThemeMap order. When a
+// single THEME is requested only its folder exists, so the preview must iterate
+// what's on disk rather than every known theme (otherwise it reads a missing
+// folder and throws).
+function getGeneratedThemes(): string[] {
+    return [...ThemeMap.keys()].filter(themeName => existsSync(`${OUTPUT_PATH}${themeName}`));
+}
+
 export const generatePreviewMarkdown = function (isInGithubAction: boolean, ownerType: OwnerType = 'User') {
     const targetFolder = `${OUTPUT_PATH}`;
     let readmeContent = '';
@@ -33,8 +41,9 @@ export const generatePreviewMarkdown = function (isInGithubAction: boolean, owne
         ? `https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${GITHUB_BRANCH}/profile-summary-card-output`
         : `.`;
 
-    // First, we generate preview readme for each theme
-    for (const themeName of ThemeMap.keys()) {
+    // First, we generate preview readme for each generated theme
+    const generatedThemes = getGeneratedThemes();
+    for (const themeName of generatedThemes) {
         generateThemePreviewReadme(urlPrefix, themeName, ownerType);
     }
     readmeContent += `
@@ -46,7 +55,7 @@ Here are all cards with themes.
 
 `;
 
-    for (const themeName of ThemeMap.keys()) {
+    for (const themeName of generatedThemes) {
         readmeContent += `## [${themeName}](./${themeName}/README.md)`;
         readmeContent += getThemeMarkdown(`${urlPrefix}/${themeName}`, ownerType);
     }

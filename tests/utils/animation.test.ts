@@ -1,7 +1,7 @@
 import {parseAnimation, parseDuration, applyAnimation, AnimationName} from '../../src/utils/animation';
 
 describe('parseAnimation', () => {
-    it.each(['fade', 'rise', 'draw', 'stagger', 'load', 'sequence', 'hue', 'rgb', 'light-rgb'])(
+    it.each(['fade', 'rise', 'draw', 'stagger', 'load', 'sequence', 'tint', 'rgb', 'rgb-soft'])(
         'accepts the known preset "%s"',
         preset => {
             expect(parseAnimation(preset)).toBe(preset);
@@ -47,7 +47,7 @@ describe('applyAnimation', () => {
     // The entrance presets (everything except the continuous "rgb" loop) must leave
     // the card frame/background untouched so it shows immediately.
     it('entrance presets never animate the card frame (background shows immediately)', () => {
-        (['fade', 'rise', 'draw', 'stagger', 'load', 'sequence', 'hue'] as AnimationName[]).forEach(preset => {
+        (['fade', 'rise', 'draw', 'stagger', 'load', 'sequence', 'tint'] as AnimationName[]).forEach(preset => {
             const out = applyAnimation(SVG, preset);
             expect(out).not.toMatch(/\.gpsc-root\s*\{/);
             expect(out).not.toContain('.gpsc-root>rect');
@@ -61,8 +61,8 @@ describe('applyAnimation', () => {
         expect(out).toContain('infinite');
     });
 
-    it('light-rgb cycles the content but leaves the card frame fixed', () => {
-        const out = applyAnimation(SVG, 'light-rgb');
+    it('rgb-soft cycles the content but leaves the card frame fixed', () => {
+        const out = applyAnimation(SVG, 'rgb-soft');
         expect(out).toContain('gpsc-rgb');
         expect(out).toContain('infinite');
         // Content classes cycle; the whole root does not.
@@ -71,7 +71,7 @@ describe('applyAnimation', () => {
     });
 
     it('always emits a prefers-reduced-motion guard', () => {
-        (['fade', 'rise', 'draw', 'stagger', 'load', 'sequence', 'hue', 'rgb', 'light-rgb'] as AnimationName[]).forEach(
+        (['fade', 'rise', 'draw', 'stagger', 'load', 'sequence', 'tint', 'rgb', 'rgb-soft'] as AnimationName[]).forEach(
             preset => {
                 expect(applyAnimation(SVG, preset)).toContain('prefers-reduced-motion:reduce');
             }
@@ -94,10 +94,10 @@ describe('applyAnimation', () => {
         expect(out).toContain('@keyframes gpsc-wipe');
     });
 
-    it('sweeps colours for the "hue" preset', () => {
-        const out = applyAnimation(SVG, 'hue');
-        expect(out).toContain('@keyframes gpsc-hue');
-        expect(out).toContain('gpsc-hue');
+    it('sweeps colours for the "tint" preset', () => {
+        const out = applyAnimation(SVG, 'tint');
+        expect(out).toContain('@keyframes gpsc-tint');
+        expect(out).toContain('gpsc-tint');
     });
 
     it('scales sequence stagger step with duration', () => {

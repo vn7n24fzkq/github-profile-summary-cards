@@ -152,9 +152,10 @@ const action = async () => {
     const autoPush = core.getBooleanInput('AUTO_PUSH', {required: false});
     core.info(`You ${autoPush ? 'have' : "haven't"} set automatically push commits`);
 
-    // Optional generation controls. THEME pins output to a single theme (default:
-    // all themes). ANIMATION bakes a CSS entrance animation into the SVGs
-    // (default: none). Both are independent — any combination is valid.
+    // Optional generation controls, all independent: THEME pins output to a single
+    // theme (default: all themes); ANIMATION bakes a CSS animation into the SVGs
+    // (default: none); DURATION sets the animation speed; NAME overrides the
+    // profile-details title.
     const themeInput = core.getInput('THEME', {required: false}).trim();
     if (themeInput && !ThemeMap.has(themeInput)) {
         core.setFailed(`THEME "${themeInput}" does not exist. See the theme list in the README.`);
@@ -165,9 +166,12 @@ const action = async () => {
     if (animationInput && !animation) {
         core.warning(`ANIMATION "${animationInput}" is not a supported value; generating without animation.`);
     }
+    const duration = core.getInput('DURATION', {required: false}).trim() || undefined;
     const displayName = core.getInput('NAME', {required: false}).trim() || undefined;
-    const options: CardGenerationOptions = {theme: themeInput || undefined, animation, displayName};
-    core.info(`Theme: ${themeInput || 'all'}; Animation: ${animation ?? 'none'}; Name: ${displayName ?? '(default)'}`);
+    const options: CardGenerationOptions = {theme: themeInput || undefined, animation, duration, displayName};
+    core.info(
+        `Theme: ${themeInput || 'all'}; Animation: ${animation ?? 'none'}; Duration: ${duration ?? '(default)'}; Name: ${displayName ?? '(default)'}`
+    );
 
     try {
         // Remove old output

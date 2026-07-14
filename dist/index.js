@@ -173,9 +173,10 @@ const action = () => __awaiter(void 0, void 0, void 0, function* () {
     core.info(`Excluded languages: ${exclude}`);
     const autoPush = core.getBooleanInput('AUTO_PUSH', { required: false });
     core.info(`You ${autoPush ? 'have' : "haven't"} set automatically push commits`);
-    // Optional generation controls. THEME pins output to a single theme (default:
-    // all themes). ANIMATION bakes a CSS entrance animation into the SVGs
-    // (default: none). Both are independent — any combination is valid.
+    // Optional generation controls, all independent: THEME pins output to a single
+    // theme (default: all themes); ANIMATION bakes a CSS animation into the SVGs
+    // (default: none); DURATION sets the animation speed; NAME overrides the
+    // profile-details title.
     const themeInput = core.getInput('THEME', { required: false }).trim();
     if (themeInput && !theme_1.ThemeMap.has(themeInput)) {
         core.setFailed(`THEME "${themeInput}" does not exist. See the theme list in the README.`);
@@ -186,9 +187,10 @@ const action = () => __awaiter(void 0, void 0, void 0, function* () {
     if (animationInput && !animation) {
         core.warning(`ANIMATION "${animationInput}" is not a supported value; generating without animation.`);
     }
+    const duration = core.getInput('DURATION', { required: false }).trim() || undefined;
     const displayName = core.getInput('NAME', { required: false }).trim() || undefined;
-    const options = { theme: themeInput || undefined, animation, displayName };
-    core.info(`Theme: ${themeInput || 'all'}; Animation: ${animation !== null && animation !== void 0 ? animation : 'none'}; Name: ${displayName !== null && displayName !== void 0 ? displayName : '(default)'}`);
+    const options = { theme: themeInput || undefined, animation, duration, displayName };
+    core.info(`Theme: ${themeInput || 'all'}; Animation: ${animation !== null && animation !== void 0 ? animation : 'none'}; Duration: ${duration !== null && duration !== void 0 ? duration : '(default)'}; Name: ${displayName !== null && displayName !== void 0 ? displayName : '(default)'}`);
     try {
         // Remove old output
         core.info(`Remove old cards...`);
@@ -3156,9 +3158,9 @@ const ANIMATIONS = new Set([
     'stagger',
     'load',
     'sequence',
-    'hue',
+    'tint',
     'rgb',
-    'light-rgb'
+    'rgb-soft'
 ]);
 // Each preset has a default base duration (seconds), tuned to be comfortably
 // visible. Multi-step presets scale their parts off this base, so it doubles as
@@ -3170,11 +3172,11 @@ const DEFAULT_DURATION = {
     stagger: 2.6,
     load: 3,
     sequence: 2.8,
-    hue: 3,
-    // rgb / light-rgb are continuous loops; the duration is the colour-cycle period
+    tint: 3,
+    // rgb / rgb-soft are continuous loops; the duration is the colour-cycle period
     // (slower = calmer). Default to the max so they're mellow out of the box.
     rgb: 5,
-    'light-rgb': 5
+    'rgb-soft': 5
 };
 // Bounds for the user-supplied `duration` override (seconds). Wide enough to go
 // snappy or slow-mo, clamped so a hostile value can't freeze or spin the card.
@@ -3202,7 +3204,7 @@ const KEYFRAMES = `
 @keyframes gpsc-grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
 @keyframes gpsc-pop{from{opacity:0;transform:scale(.55)}to{opacity:1;transform:scale(1)}}
 @keyframes gpsc-wipe{from{transform:translateX(calc(-1 * var(--gpsc-w,420px)))}to{transform:translateX(0)}}
-@keyframes gpsc-hue{from{filter:sepia(.7) saturate(4) hue-rotate(-70deg)}to{filter:sepia(0) saturate(1) hue-rotate(0)}}
+@keyframes gpsc-tint{from{filter:sepia(.7) saturate(4) hue-rotate(-70deg)}to{filter:sepia(0) saturate(1) hue-rotate(0)}}
 @keyframes gpsc-rgb{0%{filter:hue-rotate(0deg) saturate(1)}50%{filter:hue-rotate(180deg) saturate(1.7)}100%{filter:hue-rotate(360deg) saturate(1)}}`;
 // Trim floating-point noise from computed seconds (e.g. 0.44000000001 -> "0.44").
 const s = (seconds) => `${Number(seconds.toFixed(3))}s`;
@@ -3244,17 +3246,18 @@ const PRESETS = {
         `.arc{animation:gpsc-pop ${s(d * 0.35)} ease both ${itemDelay(d * 0.12)};${POP}}` +
         `rect.bar{animation:gpsc-grow ${s(d * 0.3)} cubic-bezier(.2,.7,.3,1) both ${itemDelay(d * 0.035)};${GROW}}` +
         `.gpsc-reveal{animation:gpsc-wipe ${s(d * 0.9)} linear both ${itemDelay(d * 0.12)}}`,
-    // Atoms fade in while their colours sweep from a shifted, more saturated hue to
-    // their final values — a soft gradient-like colour settle over the background.
-    hue: d => `.gpsc-item,.gpsc-chart,.arc,rect.bar{animation:gpsc-fade ${s(d * 0.5)} ease both,gpsc-hue ${s(d)} ease both}`,
+    // "tint": a one-shot colour entrance — atoms fade in while their colours sweep
+    // from a shifted, more saturated hue to their final values (a soft colour settle
+    // over the background). Distinct from the looping rgb presets.
+    tint: d => `.gpsc-item,.gpsc-chart,.arc,rect.bar{animation:gpsc-fade ${s(d * 0.5)} ease both,gpsc-tint ${s(d)} ease both}`,
     // "rgb": a continuous "gaming RGB" loop — the whole card's colours cycle through
     // the spectrum and back (hue-rotate 0→360) with a mid-cycle saturation pulse for
     // depth, rotating the chosen theme's own colours. It intentionally animates the
     // whole `.gpsc-root` (border/background included).
     rgb: d => `.gpsc-root{animation:gpsc-rgb ${s(d)} linear infinite}`,
-    // "light-rgb": same continuous colour cycle, but only on the content — the
+    // "rgb-soft": the same continuous colour cycle, but only on the content — the
     // background/frame keeps its theme colour.
-    'light-rgb': d => `.gpsc-item,.gpsc-chart,.arc,rect.bar{animation:gpsc-rgb ${s(d)} linear infinite}`
+    'rgb-soft': d => `.gpsc-item,.gpsc-chart,.arc,rect.bar{animation:gpsc-rgb ${s(d)} linear infinite}`
 };
 // Respect users who prefer reduced motion — they get the final (un-animated) card.
 const REDUCED_MOTION = `@media (prefers-reduced-motion:reduce){.gpsc-root,.gpsc-root *,.gpsc-item,.gpsc-chart,rect.bar,.arc,.gpsc-reveal{animation:none!important}}`;
@@ -3302,7 +3305,7 @@ exports.resolveThemeNames = resolveThemeNames;
 // apply the optional entrance animation, and write it to the output folder.
 function writeThemedCards(fileName, buildSVG, options = {}) {
     for (const themeName of resolveThemeNames(options.theme)) {
-        (0, file_writer_1.writeSVG)(themeName, fileName, (0, animation_1.applyAnimation)(buildSVG(themeName), options.animation));
+        (0, file_writer_1.writeSVG)(themeName, fileName, (0, animation_1.applyAnimation)(buildSVG(themeName), options.animation, options.duration));
     }
 }
 exports.writeThemedCards = writeThemedCards;
@@ -3362,14 +3365,22 @@ function getAllFileInFolder(folder) {
     });
     return files;
 }
+// Theme folders that were actually generated this run, in ThemeMap order. When a
+// single THEME is requested only its folder exists, so the preview must iterate
+// what's on disk rather than every known theme (otherwise it reads a missing
+// folder and throws).
+function getGeneratedThemes() {
+    return [...theme_1.ThemeMap.keys()].filter(themeName => (0, fs_1.existsSync)(`${exports.OUTPUT_PATH}${themeName}`));
+}
 const generatePreviewMarkdown = function (isInGithubAction, ownerType = 'User') {
     const targetFolder = `${exports.OUTPUT_PATH}`;
     let readmeContent = '';
     const urlPrefix = isInGithubAction
         ? `https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${GITHUB_BRANCH}/profile-summary-card-output`
         : `.`;
-    // First, we generate preview readme for each theme
-    for (const themeName of theme_1.ThemeMap.keys()) {
+    // First, we generate preview readme for each generated theme
+    const generatedThemes = getGeneratedThemes();
+    for (const themeName of generatedThemes) {
         generateThemePreviewReadme(urlPrefix, themeName, ownerType);
     }
     readmeContent += `
@@ -3380,7 +3391,7 @@ Here are all cards with themes.
 | :-------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 
 `;
-    for (const themeName of theme_1.ThemeMap.keys()) {
+    for (const themeName of generatedThemes) {
         readmeContent += `## [${themeName}](./${themeName}/README.md)`;
         readmeContent += getThemeMarkdown(`${urlPrefix}/${themeName}`, ownerType);
     }

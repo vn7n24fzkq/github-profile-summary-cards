@@ -9,6 +9,9 @@ export interface CardGenerationOptions {
     theme?: string;
     // Bake an entrance animation into the generated SVGs; when unset, no animation.
     animation?: AnimationName;
+    // Animation speed (seconds), passed straight to applyAnimation; when unset the
+    // preset's default duration is used. Ignored when there's no animation.
+    duration?: string;
     // Override the displayed name/title on the profile-details card; when unset,
     // the default `login (name)` is used. Ignored by the other card types.
     displayName?: string;
@@ -35,6 +38,6 @@ export function writeThemedCards(
     options: CardGenerationOptions = {}
 ): void {
     for (const themeName of resolveThemeNames(options.theme)) {
-        writeSVG(themeName, fileName, applyAnimation(buildSVG(themeName), options.animation));
+        writeSVG(themeName, fileName, applyAnimation(buildSVG(themeName), options.animation, options.duration));
     }
 }

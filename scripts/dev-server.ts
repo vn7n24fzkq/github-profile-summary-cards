@@ -87,9 +87,9 @@ ${
     <option value="stagger">stagger</option>
     <option value="load">load</option>
     <option value="sequence">sequence</option>
-    <option value="hue">hue</option>
+    <option value="tint">tint</option>
     <option value="rgb">rgb</option>
-    <option value="light-rgb">light-rgb</option>
+    <option value="rgb-soft">rgb-soft</option>
   </select></label>
   <label>Duration (s)<input name="duration" type="number" step="0.1" min="0.2" max="5" placeholder="default" style="width:6rem"></label>
   <label>Name override<input name="name" type="text" placeholder="(profile-details title)" autocomplete="off" style="width:12rem"></label>
