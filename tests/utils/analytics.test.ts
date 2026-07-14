@@ -94,25 +94,14 @@ describe('Analytics Utils', () => {
         expect(id1).toBe(id2);
     });
 
-    it('skips obvious bots/scrapers (but not the camo image proxy)', async () => {
-        process.env.GA_MEASUREMENT_ID = 'G-TEST';
-        process.env.GA_API_SECRET = 'SECRET';
-        process.env.VERCEL = '1';
-        const {sendAnalytics} = require('../../src/utils/analytics');
-
-        await sendAnalytics('e', {username: 'u'}, {'user-agent': 'Googlebot/2.1'});
-        await sendAnalytics('e', {username: 'u'}, {'user-agent': 'curl/8.4.0'});
-        expect(global.fetch).not.toHaveBeenCalled();
-
-        // camo (README embed) must still be counted.
-        await sendAnalytics('e', {username: 'u'}, {'user-agent': 'github-camo (abc123)'});
-        expect(global.fetch).toHaveBeenCalledTimes(1);
-    });
-
-    it('resolveSource classifies demo / embed / other', () => {
+    it('resolveSource classifies demo / bot / embed / other', () => {
         const {resolveSource} = require('../../src/utils/analytics');
         expect(resolveSource('demo', 'Mozilla/5.0')).toBe('demo');
         expect(resolveSource('DEMO', 'Mozilla/5.0')).toBe('demo');
+        // Obvious bots/scrapers are tagged (not dropped) so they stay measurable.
+        expect(resolveSource(undefined, 'Googlebot/2.1')).toBe('bot');
+        expect(resolveSource(undefined, 'curl/8.4.0')).toBe('bot');
+        // GitHub's camo proxy is a real README embed, not a bot.
         expect(resolveSource(undefined, 'github-camo (abc)')).toBe('embed');
         expect(resolveSource(undefined, 'Mozilla/5.0')).toBe('other');
         expect(resolveSource(['x'], 'Mozilla/5.0')).toBe('other');

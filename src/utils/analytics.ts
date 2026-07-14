@@ -17,9 +17,9 @@ const getClientId = (username?: string): string => {
     return crypto.createHash('sha256').update(username.trim().toLowerCase()).digest('hex');
 };
 
-// Obvious crawlers / scrapers / CLI tools that would inflate the (already proxy-ish)
-// user count. This deliberately does NOT match GitHub's camo image proxy — camo is
-// how legitimate README embeds fetch the card, so that traffic must be kept.
+// Obvious crawlers / scrapers / CLI tools. This deliberately does NOT match
+// GitHub's camo image proxy — camo is how legitimate README embeds fetch the
+// card, so that traffic must be classified as `embed`, not `bot`.
 const BOT_UA =
     /bot\b|crawl|spider|slurp|bingpreview|curl\/|wget\/|python-(?:requests|urllib)|scrapy|go-http-client|httpclient|headlesschrome|phantomjs/i;
 function isLikelyBot(userAgent: string): boolean {
@@ -27,8 +27,10 @@ function isLikelyBot(userAgent: string): boolean {
 }
 
 /**
- * Classifies where a card request came from, for GA segmentation:
+ * Classifies where a card request came from, so it can be segmented (and bots
+ * filtered out) in GA rather than silently dropped:
  * - `demo`  — the demo/landing page (it tags its requests with `?source=demo`);
+ * - `bot`   — an obvious crawler/scraper/CLI by User-Agent (never camo);
  * - `embed` — GitHub's camo image proxy, i.e. a README / Markdown embed;
  * - `other` — anything else (direct hits, unknown clients).
  *
@@ -38,6 +40,7 @@ function isLikelyBot(userAgent: string): boolean {
  */
 export function resolveSource(sourceParam: unknown, userAgent: string): string {
     if (typeof sourceParam === 'string' && sourceParam.toLowerCase() === 'demo') return 'demo';
+    if (isLikelyBot(userAgent)) return 'bot';
     return userAgent.toLowerCase().includes('camo') ? 'embed' : 'other';
 }
 
@@ -65,20 +68,19 @@ export async function sendAnalytics(
     // Wrap the entire body so fire-and-forget callers (`void sendAnalytics(...)`)
     // can never produce an unhandled rejection, even if setup throws before fetch.
     try {
-        // Extract User-Agent first so we can drop obvious bots/scrapers before doing
-        // any work (they inflate the count without being real usage).
-        const userAgent = headers?.['user-agent'];
-        const ua = Array.isArray(userAgent) ? userAgent[0] : userAgent || '';
-        if (isLikelyBot(ua)) return;
-
-        // Destructure to remove sensitive PII (username) from the final payload
+        // Destructure to remove sensitive PII (username) from the final payload.
+        // Bots aren't dropped here — the handler tags them `source=bot` (via
+        // resolveSource) so they stay visible in GA and can be filtered in reports.
         const {username, ...cleanParams} = params;
         const clientId = getClientId(username);
 
-        // Extract user IP from Vercel-injected headers
+        // Extract user IP + User-Agent from Vercel-injected headers
         // Vercel headers are plain objects (string | string[] | undefined)
         const forwardedFor = headers?.['x-forwarded-for'];
         const ip = (Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor)?.split(',')[0] || '';
+
+        const userAgent = headers?.['user-agent'];
+        const ua = Array.isArray(userAgent) ? userAgent[0] : userAgent || '';
 
         const url = `https://www.google-analytics.com/mp/collect?measurement_id=${GA_MEASUREMENT_ID}&api_secret=${GA_API_SECRET}`;
 
