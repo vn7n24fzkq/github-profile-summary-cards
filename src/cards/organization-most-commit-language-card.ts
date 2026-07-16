@@ -8,9 +8,10 @@ export const createOrganizationCommitsPerLanguageCard = async function (
     login: string,
     exclude: Array<string>,
     token: string,
-    options: CardGenerationOptions = {}
+    options: CardGenerationOptions = {},
+    excludeRepos: Array<string> = []
 ) {
-    const langData = await getOrganizationCommitsLanguageData(login, exclude, token);
+    const langData = await getOrganizationCommitsLanguageData(login, exclude, token, excludeRepos);
     // use 2- prefix for sort in preview
     writeThemedCards(
         '2-most-commit-language',
@@ -24,10 +25,11 @@ export const getOrganizationCommitsLanguageSVGWithThemeName = async function (
     themeName: string,
     exclude: Array<string>,
     token: string,
-    override?: ThemeColorOverride
+    override?: ThemeColorOverride,
+    excludeRepos: Array<string> = []
 ): Promise<string> {
     if (!ThemeMap.has(themeName)) throw new Error('Theme does not exist');
-    const langData = await getOrganizationCommitsLanguageData(login, exclude, token);
+    const langData = await getOrganizationCommitsLanguageData(login, exclude, token, excludeRepos);
     return getOrganizationCommitsLanguageSVG(langData, themeName, override);
 };
 
@@ -57,9 +59,10 @@ const getOrganizationCommitsLanguageSVG = function (
 const getOrganizationCommitsLanguageData = async function (
     login: string,
     exclude: Array<string>,
-    token: string
+    token: string,
+    excludeRepos: Array<string> = []
 ): Promise<{name: string; value: number; color: string}[]> {
-    const commitLanguages: CommitLanguages = await getOrganizationCommitLanguage(login, exclude, token);
+    const commitLanguages: CommitLanguages = await getOrganizationCommitLanguage(login, exclude, token, excludeRepos);
     let langData = [];
 
     // make a pie data

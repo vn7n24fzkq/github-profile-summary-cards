@@ -79,6 +79,8 @@
     - A comma separated list of languages to exclude, e.g., exclude=java,rust,jupyter%20Notebook
       - You can represent a space in the language list by using '%20' when you want to include a space.
     - You can found the supported languages in [here](https://github.com/github/linguist/blob/master/lib/linguist/languages.yml)
+  - exclude_repos:
+    - A comma separated list of repository names to exclude (case-insensitive), e.g., exclude_repos=dotfiles,my-fork
 
 ### Top languages in commits card
 ![](docs/preview/api/most-commit-language.svg)
@@ -93,6 +95,9 @@
     - A comma separated list of languages to exclude, e.g., exclude=java,rust,jupyter%20Notebook
       - You can represent a space in the language list by using '%20' when you want to include a space.
     - You can found the supported languages in [here](https://github.com/github/linguist/blob/master/lib/linguist/languages.yml)
+  - exclude_repos:
+    - A comma separated list of repository names to exclude (case-insensitive), e.g., exclude_repos=dotfiles,my-fork
+    - Commits can come from other owners' repos, so `owner/repo` entries also match, e.g., exclude_repos=someorg/website
 
 ### GitHub stats card
 ![](docs/preview/api/stats.svg)

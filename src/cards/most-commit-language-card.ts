@@ -7,9 +7,10 @@ export const createCommitsPerLanguageCard = async function (
     username: string,
     exclude: Array<string>,
     token: string,
-    options: CardGenerationOptions = {}
+    options: CardGenerationOptions = {},
+    excludeRepos: Array<string> = []
 ) {
-    const statsData = await getCommitsLanguageData(username, exclude, token);
+    const statsData = await getCommitsLanguageData(username, exclude, token, excludeRepos);
     // use 2- prefix for sort in preview
     writeThemedCards('2-most-commit-language', themeName => getCommitsLanguageSVG(statsData, themeName), options);
 };
@@ -19,10 +20,11 @@ export const getCommitsLanguageSVGWithThemeName = async function (
     themeName: string,
     exclude: Array<string>,
     token: string,
-    override?: ThemeColorOverride
+    override?: ThemeColorOverride,
+    excludeRepos: Array<string> = []
 ): Promise<string> {
     if (!ThemeMap.has(themeName)) throw new Error('Theme does not exist');
-    const langData = await getCommitsLanguageData(username, exclude, token);
+    const langData = await getCommitsLanguageData(username, exclude, token, excludeRepos);
     return getCommitsLanguageSVG(langData, themeName, override);
 };
 
@@ -53,9 +55,10 @@ const getCommitsLanguageSVG = function (
 const getCommitsLanguageData = async function (
     username: string,
     exclude: Array<string>,
-    token: string
+    token: string,
+    excludeRepos: Array<string> = []
 ): Promise<{name: string; value: number; color: string}[]> {
-    const commitLanguages: CommitLanguages = await getCommitLanguage(username, exclude, token);
+    const commitLanguages: CommitLanguages = await getCommitLanguage(username, exclude, token, excludeRepos);
     let langData = [];
 
     // make a pie data

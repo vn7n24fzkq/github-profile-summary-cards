@@ -109,4 +109,47 @@ describe('commit contributions on github', () => {
             ])
         });
     });
+
+    it('excludes repos by name or owner/name (case-insensitive)', async () => {
+        const dataWithRepoNames = {
+            data: {
+                user: {
+                    contributionsCollection: {
+                        commitContributionsByRepository: [
+                            {
+                                repository: {
+                                    name: 'My-App',
+                                    nameWithOwner: 'vn7n24fzkq/My-App',
+                                    primaryLanguage: {name: 'Rust', color: '#dea584'}
+                                },
+                                contributions: {totalCount: 99}
+                            },
+                            {
+                                repository: {
+                                    name: 'website',
+                                    nameWithOwner: 'someorg/website',
+                                    primaryLanguage: {name: 'JavaScript', color: '#f1e05a'}
+                                },
+                                contributions: {totalCount: 84}
+                            },
+                            {
+                                repository: {
+                                    name: 'keeper',
+                                    nameWithOwner: 'vn7n24fzkq/keeper',
+                                    primaryLanguage: {name: 'Kotlin', color: '#f18e33'}
+                                },
+                                contributions: {totalCount: 10}
+                            }
+                        ]
+                    }
+                }
+            }
+        };
+        mock.onPost('https://api.github.com/graphql').reply(200, dataWithRepoNames);
+        // 'my-app' matches by plain name; 'someorg/website' matches by owner/name.
+        const repoData = await getCommitLanguage('vn7n24fzkq', [], 'token', ['my-app', 'someorg/website']);
+        expect(repoData).toEqual({
+            languageMap: new Map([['Kotlin', {color: '#f18e33', count: 10, name: 'Kotlin'}]])
+        });
+    });
 });

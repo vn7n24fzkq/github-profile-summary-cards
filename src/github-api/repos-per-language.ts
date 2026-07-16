@@ -43,6 +43,7 @@ const fetcher = (token: string, variables: any) => {
         user(login: $login) {
           repositories(isFork: false, first: 100, after: $endCursor, ownerAffiliations: OWNER, orderBy: {direction: DESC, field: STARGAZERS}) {
             nodes {
+              name
               primaryLanguage {
                 name
                 color
@@ -65,13 +66,14 @@ const fetcher = (token: string, variables: any) => {
 export async function getRepoLanguages(
     username: string,
     exclude: Array<string>,
-    token: string
+    token: string,
+    excludeRepos: Array<string> = []
 ): Promise<RepoLanguages> {
     // On Vercel (shared token + 10s function timeout) take only the top 100 repos
     // by stars in a single query. Run as a GitHub Action / CLI (the user's own
     // token, no timeout) paginate through every repo for a complete count.
     const repoLanguages = new RepoLanguages();
-    const nodes: {primaryLanguage: {name: string; color: string} | null}[] = [];
+    const nodes: {name: string; primaryLanguage: {name: string; color: string} | null}[] = [];
     let cursor: string | null = null;
     let hasNextPage = true;
 
@@ -84,7 +86,8 @@ export async function getRepoLanguages(
         hasNextPage = !process.env.VERCEL && !!repos.pageInfo?.hasNextPage;
     }
 
-    nodes.forEach((node: {primaryLanguage: {name: string; color: string} | null}) => {
+    nodes.forEach((node: {name: string; primaryLanguage: {name: string; color: string} | null}) => {
+        if (excludeRepos.includes((node.name ?? '').toLowerCase())) return;
         if (node.primaryLanguage) {
             const langName = node.primaryLanguage.name;
             const langColor = node.primaryLanguage.color;

@@ -23,6 +23,11 @@ inputs:
     required: false
     description: 'A comma separated list of languages to exclude'
     default: ''
+  EXCLUDE_REPOS:
+    type: string
+    required: false
+    description: 'A comma separated list of repository names to exclude from the language cards (case-insensitive; owner/repo also matches on the commits card)'
+    default: ''
   AUTO_PUSH:
     type: boolean
     required: false

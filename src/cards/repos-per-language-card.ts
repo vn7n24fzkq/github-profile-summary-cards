@@ -7,9 +7,10 @@ export const createReposPerLanguageCard = async function (
     username: string,
     exclude: Array<string>,
     token: string,
-    options: CardGenerationOptions = {}
+    options: CardGenerationOptions = {},
+    excludeRepos: Array<string> = []
 ) {
-    const langData = await getRepoLanguageData(username, exclude, token);
+    const langData = await getRepoLanguageData(username, exclude, token, excludeRepos);
     // use 1- prefix for sort in preview
     writeThemedCards('1-repos-per-language', themeName => getReposPerLanguageSVG(langData, themeName), options);
 };
@@ -19,10 +20,11 @@ export const getReposPerLanguageSVGWithThemeName = async function (
     themeName: string,
     exclude: Array<string>,
     token: string,
-    override?: ThemeColorOverride
+    override?: ThemeColorOverride,
+    excludeRepos: Array<string> = []
 ) {
     if (!ThemeMap.has(themeName)) throw new Error('Theme does not exist');
-    const langData = await getRepoLanguageData(username, exclude, token);
+    const langData = await getRepoLanguageData(username, exclude, token, excludeRepos);
     return getReposPerLanguageSVG(langData, themeName, override);
 };
 
@@ -41,8 +43,13 @@ const getReposPerLanguageSVG = function (
     return svgString;
 };
 
-const getRepoLanguageData = async function (username: string, exclude: Array<string>, token: string) {
-    const repoLanguages = await getRepoLanguages(username, exclude, token);
+const getRepoLanguageData = async function (
+    username: string,
+    exclude: Array<string>,
+    token: string,
+    excludeRepos: Array<string> = []
+) {
+    const repoLanguages = await getRepoLanguages(username, exclude, token, excludeRepos);
     let langData = [];
 
     // make a pie data

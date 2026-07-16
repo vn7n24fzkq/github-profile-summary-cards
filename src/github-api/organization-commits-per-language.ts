@@ -23,6 +23,7 @@ const fetcher = (token: string, variables: any) => {
           ... on Organization {
             repositories(first: $first, privacy: PUBLIC, isFork: false, ownerAffiliations: OWNER, orderBy: {direction: DESC, field: STARGAZERS}) {
               nodes {
+                name
                 primaryLanguage {
                   name
                   color
@@ -51,7 +52,8 @@ const fetcher = (token: string, variables: any) => {
 export async function getOrganizationCommitLanguage(
     login: string,
     exclude: Array<string>,
-    token: string
+    token: string,
+    excludeRepos: Array<string> = []
 ): Promise<CommitLanguages> {
     const commitLanguages = new CommitLanguages();
 
@@ -70,9 +72,13 @@ export async function getOrganizationCommitLanguage(
 
     org.repositories.nodes.forEach(
         (node: {
+            name: string;
             primaryLanguage: {name: string; color: string} | null;
             defaultBranchRef: {target: {history: {totalCount: number}}} | null;
         }) => {
+            if (excludeRepos.includes((node.name ?? '').toLowerCase())) {
+                return;
+            }
             if (node.primaryLanguage == null || node.defaultBranchRef == null) {
                 return;
             }

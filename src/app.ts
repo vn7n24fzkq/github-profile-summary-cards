@@ -48,7 +48,8 @@ const generateUserCards = async (
     utcOffset: number,
     exclude: Array<string>,
     token: string,
-    options: CardGenerationOptions = {}
+    options: CardGenerationOptions = {},
+    excludeRepos: Array<string> = []
 ) => {
     // ProfileDetailsCard
     try {
@@ -62,7 +63,7 @@ const generateUserCards = async (
     // ReposPerLanguageCard
     try {
         core.info(`Creating ReposPerLanguageCard...`);
-        await createReposPerLanguageCard(username, exclude, token, options);
+        await createReposPerLanguageCard(username, exclude, token, options, excludeRepos);
     } catch (error: any) {
         core.error(`Error when creating ReposPerLanguageCard \n${error.stack}`);
     }
@@ -70,7 +71,7 @@ const generateUserCards = async (
     // CommitsPerLanguageCard
     try {
         core.info(`Creating CommitsPerLanguageCard...`);
-        await createCommitsPerLanguageCard(username, exclude, token, options);
+        await createCommitsPerLanguageCard(username, exclude, token, options, excludeRepos);
     } catch (error: any) {
         core.error(`Error when creating CommitsPerLanguageCard \n${error.stack}`);
     }
@@ -96,7 +97,8 @@ const generateOrganizationCards = async (
     login: string,
     exclude: Array<string>,
     token: string,
-    options: CardGenerationOptions = {}
+    options: CardGenerationOptions = {},
+    excludeRepos: Array<string> = []
 ) => {
     // ProfileDetailsCard
     try {
@@ -110,7 +112,7 @@ const generateOrganizationCards = async (
     // ReposPerLanguageCard
     try {
         core.info(`Creating Organization ReposPerLanguageCard...`);
-        await createOrganizationReposPerLanguageCard(login, exclude, token, options);
+        await createOrganizationReposPerLanguageCard(login, exclude, token, options, excludeRepos);
     } catch (error: any) {
         core.error(`Error when creating Organization ReposPerLanguageCard \n${error.stack}`);
     }
@@ -118,7 +120,7 @@ const generateOrganizationCards = async (
     // CommitsPerLanguageCard
     try {
         core.info(`Creating Organization CommitsPerLanguageCard...`);
-        await createOrganizationCommitsPerLanguageCard(login, exclude, token, options);
+        await createOrganizationCommitsPerLanguageCard(login, exclude, token, options, excludeRepos);
     } catch (error: any) {
         core.error(`Error when creating Organization CommitsPerLanguageCard \n${error.stack}`);
     }
@@ -149,6 +151,11 @@ const action = async () => {
     core.info(`UTC offset: ${utcOffset}`);
     const exclude = parseExcludeLanguages(core.getInput('EXCLUDE', {required: false}));
     core.info(`Excluded languages: ${exclude}`);
+    const excludeRepos = core
+        .getInput('EXCLUDE_REPOS', {required: false})
+        .split(',')
+        .map(val => val.trim().toLowerCase());
+    core.info(`Excluded repos: ${excludeRepos}`);
     const autoPush = core.getBooleanInput('AUTO_PUSH', {required: false});
     core.info(`You ${autoPush ? 'have' : "haven't"} set automatically push commits`);
 
@@ -188,9 +195,9 @@ const action = async () => {
         }
 
         if (ownerType === 'Organization') {
-            await generateOrganizationCards(username, exclude, process.env.GITHUB_TOKEN!, options);
+            await generateOrganizationCards(username, exclude, process.env.GITHUB_TOKEN!, options, excludeRepos);
         } else {
-            await generateUserCards(username, utcOffset, exclude, process.env.GITHUB_TOKEN!, options);
+            await generateUserCards(username, utcOffset, exclude, process.env.GITHUB_TOKEN!, options, excludeRepos);
         }
 
         // generate markdown

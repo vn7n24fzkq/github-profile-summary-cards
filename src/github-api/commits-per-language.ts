@@ -43,6 +43,8 @@ const fetcher = (token: string, variables: any) => {
           contributionsCollection {
             commitContributionsByRepository(maxRepositories: 100) {
               repository {
+                name
+                nameWithOwner
                 primaryLanguage {
                   name
                   color
@@ -65,7 +67,8 @@ const fetcher = (token: string, variables: any) => {
 export async function getCommitLanguage(
     username: string,
     exclude: Array<string>,
-    token: string
+    token: string,
+    excludeRepos: Array<string> = []
 ): Promise<CommitLanguages> {
     const commitLanguages = new CommitLanguages();
 
@@ -77,9 +80,17 @@ export async function getCommitLanguage(
 
     res.data.data.user.contributionsCollection.commitContributionsByRepository.forEach(
         (node: {
-            repository: {primaryLanguage: {name: string; color: string} | null};
+            repository: {name: string; nameWithOwner: string; primaryLanguage: {name: string; color: string} | null};
             contributions: {totalCount: number};
         }) => {
+            // Commit contributions can live in other owners' repos, so match the
+            // exclusion list against both `repo` and `owner/repo` forms.
+            if (
+                excludeRepos.includes((node.repository.name ?? '').toLowerCase()) ||
+                excludeRepos.includes((node.repository.nameWithOwner ?? '').toLowerCase())
+            ) {
+                return;
+            }
             if (node.repository.primaryLanguage == null) {
                 return;
             }
