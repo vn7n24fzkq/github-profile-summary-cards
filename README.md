@@ -81,6 +81,7 @@
     - You can found the supported languages in [here](https://github.com/github/linguist/blob/master/lib/linguist/languages.yml)
   - exclude_repos:
     - A comma separated list of repository names to exclude (case-insensitive), e.g., exclude_repos=dotfiles,my-fork
+    - `owner/repo` entries also match, e.g., exclude_repos=vn7n24fzkq/dotfiles
 
 ### Top languages in commits card
 ![](docs/preview/api/most-commit-language.svg)

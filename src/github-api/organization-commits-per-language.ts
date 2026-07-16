@@ -24,6 +24,7 @@ const fetcher = (token: string, variables: any) => {
             repositories(first: $first, privacy: PUBLIC, isFork: false, ownerAffiliations: OWNER, orderBy: {direction: DESC, field: STARGAZERS}) {
               nodes {
                 name
+                nameWithOwner
                 primaryLanguage {
                   name
                   color
@@ -73,10 +74,14 @@ export async function getOrganizationCommitLanguage(
     org.repositories.nodes.forEach(
         (node: {
             name: string;
+            nameWithOwner: string;
             primaryLanguage: {name: string; color: string} | null;
             defaultBranchRef: {target: {history: {totalCount: number}}} | null;
         }) => {
-            if (excludeRepos.includes((node.name ?? '').toLowerCase())) {
+            if (
+                excludeRepos.includes((node.name ?? '').toLowerCase()) ||
+                excludeRepos.includes((node.nameWithOwner ?? '').toLowerCase())
+            ) {
                 return;
             }
             if (node.primaryLanguage == null || node.defaultBranchRef == null) {
