@@ -30,6 +30,13 @@ const userIdFetcher = (token: string, variables: any) => {
 // We use the authored datetime to calculate productive time: committedDate is
 // rewritten by squash/rebase merges (it becomes the merge-click time), while
 // authoredDate keeps the moment the code was actually written.
+//
+// The contributionsCollection window is pinned to the same since/until range
+// as the history sampling. Two reasons: the repo list should be "repos with
+// commits in the sampled window" (the default trailing-year window listed
+// repos with no commits in the window at all), and the trailing-year
+// collection is what GitHub's cost estimator rejects for very active accounts
+// ("Resource limits for this query exceeded") — the short window passes.
 const fetcher = (token: string, variables: any) => {
     return request(
         {
@@ -37,9 +44,9 @@ const fetcher = (token: string, variables: any) => {
         },
         {
             query: `
-      query ProductiveTime($login: String!,$userId: ID!,$until: GitTimestamp!,,$since: GitTimestamp!) {
+      query ProductiveTime($login: String!,$userId: ID!,$until: GitTimestamp!,$since: GitTimestamp!,$from: DateTime!,$to: DateTime!) {
         user(login: $login) {
-          contributionsCollection{
+          contributionsCollection(from: $from, to: $to){
             commitContributionsByRepository(maxRepositories:50) {
               repository {
                 defaultBranchRef {
@@ -80,7 +87,8 @@ export async function getProductiveTime(
 ): Promise<ProfuctiveTime> {
     // The since/until window shifts with the current date, so it's part of the
     // key — plain commit-date strings are cached, Date-like usage stays outside.
-    const authoredDates = await withDataCache(`v2:pt:${username.toLowerCase()}:${since}:${until}`, async () => {
+    // v3: the collection window is now pinned to since/until (repo list changed).
+    const authoredDates = await withDataCache(`v3:pt:${username.toLowerCase()}:${since}:${until}`, async () => {
         const userIdResponse = await userIdFetcher(token, {
             login: username
         });
@@ -94,7 +102,9 @@ export async function getProductiveTime(
             login: username,
             userId: userId,
             until: until,
-            since: since
+            since: since,
+            from: since,
+            to: until
         });
 
         assertNoGraphQLErrors(res, 'GetProductiveTime failed');
