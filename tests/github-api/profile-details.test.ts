@@ -289,3 +289,39 @@ describe('github api for profile details', () => {
         expect(profileDetails.totalStars).toBe(140);
     });
 });
+
+describe('compact profile cache payload', () => {
+    it('reconstructs consecutive daily contributions across a year boundary', async () => {
+        const consecutive = JSON.parse(JSON.stringify(data));
+        consecutive.data.user.contributionsCollection.contributionCalendar.weeks = [
+            {
+                contributionDays: [
+                    {date: '2025-12-30', contributionCount: 1},
+                    {date: '2025-12-31', contributionCount: 2},
+                    {date: '2026-01-01', contributionCount: 3},
+                    {date: '2026-01-02', contributionCount: 4}
+                ]
+            }
+        ];
+        mock.onPost('https://api.github.com/graphql').reply(200, consecutive);
+        const pd = await getProfileDetails('someone', 'token');
+        expect(pd.contributions.map(c => c.date.toISOString().slice(0, 10))).toEqual([
+            '2025-12-30',
+            '2025-12-31',
+            '2026-01-01',
+            '2026-01-02'
+        ]);
+        expect(pd.contributions.map(c => c.contributionCount)).toEqual([1, 2, 3, 4]);
+    });
+
+    it('keeps non-consecutive days intact via the explicit fallback', async () => {
+        // the base fixture has gaps (2019-09-06/07 then 2020-01-12)
+        mock.onPost('https://api.github.com/graphql').reply(200, data);
+        const pd = await getProfileDetails('someone', 'token');
+        expect(pd.contributions.map(c => c.date.toISOString().slice(0, 10))).toEqual([
+            '2019-09-06',
+            '2019-09-07',
+            '2020-01-12'
+        ]);
+    });
+});

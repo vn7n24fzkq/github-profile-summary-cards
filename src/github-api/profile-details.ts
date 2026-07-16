@@ -311,11 +311,85 @@ const starsFetcher = (token: string, variables: any) => {
     );
 };
 
+// ---- compact cache payload ----
+// The raw user object is dominated by the contribution calendar: ~365 verbose
+// day objects pushed the cached profile to ~19KB, and profile keys were the
+// biggest consumer of the Upstash free plan's 256MB. The calendar is a run of
+// consecutive days, so it compresses to a start date plus a counts array
+// (~1.5KB total — roughly 3x more accounts fit in the same storage). Days are
+// verified consecutive during compression; any gap falls back to explicit
+// [date, count] pairs rather than silently shifting dates.
+interface CompactProfilePayload {
+    core: {
+        id: number;
+        name: string;
+        email: string;
+        createdAt: string;
+        twitterUsername: string | null;
+        company: string | null;
+        location: string | null;
+        websiteUrl: string | null;
+    };
+    totalPublicRepos: number;
+    totalStars: number;
+    issues: number;
+    prs: number;
+    contributedTo: number;
+    years: number[];
+    cal: {start: string; counts: number[]} | {days: [string, number][]};
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function compressProfile(user: any, totalStars: number): CompactProfilePayload {
+    const days: {date: string; contributionCount: number}[] = [];
+    for (const week of user.contributionsCollection.contributionCalendar.weeks) {
+        for (const day of week.contributionDays) {
+            days.push(day);
+        }
+    }
+    let consecutive = days.length > 0;
+    for (let i = 1; i < days.length && consecutive; i++) {
+        if (new Date(days[i].date).getTime() - new Date(days[i - 1].date).getTime() !== DAY_MS) {
+            consecutive = false;
+        }
+    }
+    return {
+        core: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            createdAt: user.createdAt,
+            twitterUsername: user.twitterUsername,
+            company: user.company,
+            location: user.location,
+            websiteUrl: user.websiteUrl
+        },
+        totalPublicRepos: user.repositories.totalCount,
+        totalStars,
+        issues: user.issues.totalCount,
+        prs: user.pullRequests.totalCount,
+        contributedTo: user.repositoriesContributedTo.totalCount,
+        years: user.contributionsCollection.contributionYears,
+        cal: consecutive
+            ? {start: days[0].date, counts: days.map(d => d.contributionCount)}
+            : {days: days.map(d => [d.date, d.contributionCount] as [string, number])}
+    };
+}
+
+function expandContributions(cal: CompactProfilePayload['cal']): ProfileContribution[] {
+    if ('days' in cal) {
+        return cal.days.map(([date, count]) => new ProfileContribution(new Date(date), count));
+    }
+    const startMs = new Date(cal.start).getTime();
+    return cal.counts.map((count, i) => new ProfileContribution(new Date(startMs + i * DAY_MS), count));
+}
+
 export async function getProfileDetails(username: string, token: string): Promise<ProfileDetails> {
-    // Cache the raw user payload + the fully paginated star total per username.
-    // The ProfileDetails instance (with real Date objects) is built after the
+    // Cache a COMPACT payload per username (see compressProfile). The
+    // ProfileDetails instance (with real Date objects) is built after the
     // cache boundary so only plain JSON is ever stored.
-    const {user, totalStars} = await withDataCache(`v1:pd:${username.toLowerCase()}`, async () => {
+    const compact = await withDataCache(`v2:pd:${username.toLowerCase()}`, async () => {
         let fetchedUser: any;
         try {
             const res = await fetcher(token, {
@@ -364,27 +438,22 @@ export async function getProfileDetails(username: string, token: string): Promis
             );
         }
 
-        return {user: fetchedUser, totalStars: stars};
+        return compressProfile(fetchedUser, stars);
     });
 
-    const profileDetails = new ProfileDetails(user.id, user.name, user.email, user.createdAt);
-    profileDetails.totalPublicRepos = user.repositories.totalCount;
-    profileDetails.totalStars = totalStars;
-    profileDetails.websiteUrl = user.websiteUrl;
-    profileDetails.totalIssueContributions = user.issues.totalCount;
-    profileDetails.totalPullRequestContributions = user.pullRequests.totalCount;
-    profileDetails.totalRepositoryContributions = user.repositoriesContributedTo.totalCount;
-    profileDetails.company = user.company;
-    profileDetails.location = user.location;
-    profileDetails.twitterUsername = user.twitterUsername;
-    profileDetails.contributionYears = user.contributionsCollection.contributionYears;
-
-    // contributions into array
-    for (const week of user.contributionsCollection.contributionCalendar.weeks) {
-        for (const day of week.contributionDays) {
-            profileDetails.contributions.push(new ProfileContribution(new Date(day.date), day.contributionCount));
-        }
-    }
+    const {core} = compact;
+    const profileDetails = new ProfileDetails(core.id, core.name, core.email, core.createdAt);
+    profileDetails.totalPublicRepos = compact.totalPublicRepos;
+    profileDetails.totalStars = compact.totalStars;
+    profileDetails.websiteUrl = core.websiteUrl;
+    profileDetails.totalIssueContributions = compact.issues;
+    profileDetails.totalPullRequestContributions = compact.prs;
+    profileDetails.totalRepositoryContributions = compact.contributedTo;
+    profileDetails.company = core.company;
+    profileDetails.location = core.location;
+    profileDetails.twitterUsername = core.twitterUsername;
+    profileDetails.contributionYears = compact.years;
+    profileDetails.contributions = expandContributions(compact.cal);
 
     return profileDetails;
 }
