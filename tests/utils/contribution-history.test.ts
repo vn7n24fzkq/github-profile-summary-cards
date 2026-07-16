@@ -48,11 +48,14 @@ describe('getContributionTotals', () => {
         const nowSpy = jest.spyOn(Date, 'now');
         const base = 1_784_000_000_000;
         nowSpy.mockReturnValueOnce(base); // startedAt
-        nowSpy.mockReturnValue(base + 60_000); // later checks: budget blown
+        nowSpy.mockReturnValueOnce(base); // first budget check passes → chunk 1 runs
+        nowSpy.mockReturnValue(base + 60_000); // second check: budget blown mid-history
         try {
             await expect(getContributionTotals('user', [2026, 2025, 2024, 2023, 2022, 2021], 'token')).rejects.toThrow(
                 'timed out'
             );
+            // the first chunk of 5 years was actually fetched before the throw
+            expect(mock.history.post.length).toBe(5);
         } finally {
             nowSpy.mockRestore();
         }

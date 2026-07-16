@@ -101,14 +101,16 @@ describe('commit contributions on github (full history)', () => {
         process.env.VERCEL = '1';
         mock.onPost('https://api.github.com/graphql').reply(200, yearData([rust99]));
         const nowSpy = jest.spyOn(Date, 'now');
-        // first call establishes startedAt, later calls are past the budget
         const base = 1_784_000_000_000;
         nowSpy.mockReturnValueOnce(base); // startedAt
-        nowSpy.mockReturnValue(base + 60_000); // every later check: budget blown
+        nowSpy.mockReturnValueOnce(base); // first budget check passes → chunk 1 runs
+        nowSpy.mockReturnValue(base + 60_000); // second check: budget blown mid-history
         try {
             await expect(
                 getCommitLanguageAllYears('vn7n24fzkq', [], 'token', [], [2026, 2025, 2024, 2023, 2022, 2021])
             ).rejects.toThrow('timed out');
+            // the first chunk of 5 years was actually fetched before the throw
+            expect(mock.history.post.length).toBe(5);
         } finally {
             nowSpy.mockRestore();
         }

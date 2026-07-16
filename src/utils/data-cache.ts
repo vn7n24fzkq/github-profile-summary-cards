@@ -82,18 +82,25 @@ function kvConfigured(): boolean {
 }
 
 // ---- circuit breaker state (per lambda instance) ----
-let kvFailStreak = 0;
+// Reads and writes are tracked separately: during a write-only outage (e.g.
+// Redis out of memory) reads keep succeeding, and a shared streak would be
+// reset before every failing write — the breaker would never open and every
+// cold key would pay the full write timeout.
+let kvReadFailStreak = 0;
+let kvWriteFailStreak = 0;
 let kvUnhealthyUntil = 0;
 
-function recordKvSuccess(): void {
-    kvFailStreak = 0;
+function recordKvSuccess(kind: 'read' | 'write'): void {
+    if (kind === 'read') kvReadFailStreak = 0;
+    else kvWriteFailStreak = 0;
 }
 
-function recordKvFailure(): void {
-    kvFailStreak += 1;
-    if (kvFailStreak >= KV_FAIL_THRESHOLD) {
+function recordKvFailure(kind: 'read' | 'write'): void {
+    const streak = kind === 'read' ? ++kvReadFailStreak : ++kvWriteFailStreak;
+    if (streak >= KV_FAIL_THRESHOLD) {
         kvUnhealthyUntil = Date.now() + KV_UNHEALTHY_COOLDOWN_MS;
-        kvFailStreak = 0; // re-tripping after the cooldown takes a fresh streak
+        kvReadFailStreak = 0; // re-tripping after the cooldown takes a fresh streak
+        kvWriteFailStreak = 0;
         console.log(`data-cache: circuit opened for ${KV_UNHEALTHY_COOLDOWN_MS / 1000}s after repeated KV failures`);
     }
 }
@@ -113,7 +120,8 @@ export function isKvHealthy(): boolean {
  * Test hook: clears breaker state so suites don't leak failures into each other.
  */
 export function resetKvHealthForTests(): void {
-    kvFailStreak = 0;
+    kvReadFailStreak = 0;
+    kvWriteFailStreak = 0;
     kvUnhealthyUntil = 0;
 }
 
@@ -124,21 +132,24 @@ async function kvGet<T>(key: string): Promise<KvReadResult<T>> {
             signal: AbortSignal.timeout(KV_TIMEOUT_MS)
         });
         if (!res.ok) {
-            recordKvFailure();
+            recordKvFailure('read');
             return {kind: 'error'};
         }
         const body = await res.json();
-        recordKvSuccess();
+        recordKvSuccess('read');
         // A miss is a healthy answer, not a failure.
         if (typeof body?.result !== 'string') return {kind: 'miss'};
         return {kind: 'hit', envelope: JSON.parse(body.result) as Envelope<T>};
     } catch (e) {
-        recordKvFailure();
+        recordKvFailure('read');
         return {kind: 'error'};
     }
 }
 
 async function kvSet<T>(key: string, envelope: Envelope<T>, retentionSeconds: number): Promise<void> {
+    // A read that just opened the breaker shouldn't be followed by a doomed
+    // write paying another timeout.
+    if (!isKvHealthy()) return;
     try {
         const res = await fetch(
             `${process.env.KV_REST_API_URL}/set/${encodeURIComponent(key)}?EX=${retentionSeconds}`,
@@ -149,11 +160,11 @@ async function kvSet<T>(key: string, envelope: Envelope<T>, retentionSeconds: nu
                 signal: AbortSignal.timeout(KV_TIMEOUT_MS)
             }
         );
-        if (res.ok) recordKvSuccess();
-        else recordKvFailure();
+        if (res.ok) recordKvSuccess('write');
+        else recordKvFailure('write');
     } catch (e) {
         // Best-effort write; the card was already rendered from fresh data.
-        recordKvFailure();
+        recordKvFailure('write');
     }
 }
 

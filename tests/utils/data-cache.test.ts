@@ -299,6 +299,18 @@ describe('circuit breaker', () => {
         expect(isKvHealthy()).toBe(true);
     });
 
+    it('opens on a write-only outage (reads keep succeeding)', async () => {
+        // GET succeeds with a miss, SET fails — a shared streak would never trip.
+        fetchSpy.mockImplementation((url: RequestInfo | URL) =>
+            String(url).includes('/set/') ? Promise.reject(new Error('write failed')) : Promise.resolve(missResponse)
+        );
+        for (const key of ['a', 'b', 'c']) {
+            // eslint-disable-next-line no-await-in-loop
+            await withDataCache(key, jest.fn().mockResolvedValue('x'));
+        }
+        expect(isKvHealthy()).toBe(false);
+    });
+
     it('recovers after the cooldown', async () => {
         fetchSpy.mockRejectedValue(new Error('kv down'));
         for (const key of ['a', 'b', 'c']) {
