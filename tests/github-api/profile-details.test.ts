@@ -107,4 +107,27 @@ describe('github api for profile details', () => {
         mock.onPost('https://api.github.com/graphql').reply(200, error);
         await expect(getProfileDetails('vn7n24fzkq', 'token')).rejects.toThrow('GitHub api failed');
     });
+
+    it('sums stars across every repo page, not just the first 100', async () => {
+        const page1 = JSON.parse(JSON.stringify(data));
+        page1.data.user.repositories.pageInfo = {endCursor: 'C1', hasNextPage: true};
+        const starsPage2 = {
+            data: {
+                user: {
+                    repositories: {
+                        nodes: [{stargazers: {totalCount: 7}}, {stargazers: {totalCount: 3}}],
+                        pageInfo: {endCursor: null, hasNextPage: false}
+                    }
+                }
+            }
+        };
+        mock.onPost('https://api.github.com/graphql')
+            .replyOnce(200, page1)
+            .onPost('https://api.github.com/graphql')
+            .replyOnce(200, starsPage2)
+            .onAny();
+        const profileDetails = await getProfileDetails('vn7n24fzkq', 'token');
+        // 110 + 20 from page 1, 7 + 3 from the follow-up star query
+        expect(profileDetails.totalStars).toBe(140);
+    });
 });

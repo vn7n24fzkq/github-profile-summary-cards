@@ -1,4 +1,5 @@
 import request, {assertNoGraphQLErrors} from '../utils/request';
+import {shouldFetchNextPage} from '../const/pagination';
 
 export class ProfileDetails {
     id: number; // user id
@@ -59,6 +60,10 @@ const fetcher = (token: string, variables: any) => {
                   totalCount
                 }
               }
+              pageInfo {
+                endCursor
+                hasNextPage
+              }
             }
             contributionsCollection {
                 contributionCalendar {
@@ -89,6 +94,37 @@ const fetcher = (token: string, variables: any) => {
     );
 };
 
+// Lightweight follow-up query used only to finish the star count for accounts
+// with more than 100 repos — the heavy fields (contribution calendar etc.) all
+// come from the first page.
+const starsFetcher = (token: string, variables: any) => {
+    return request(
+        {
+            Authorization: `bearer ${token}`
+        },
+        {
+            query: `
+      query UserStars($login: String!, $endCursor: String!) {
+        user(login: $login) {
+            repositories(first: 100, after: $endCursor, privacy:PUBLIC, isFork: false, ownerAffiliations: OWNER, orderBy: {direction: DESC, field: STARGAZERS}) {
+              nodes {
+                stargazers {
+                  totalCount
+                }
+              }
+              pageInfo {
+                endCursor
+                hasNextPage
+              }
+            }
+        }
+      }
+      `,
+            variables
+        }
+    );
+};
+
 export async function getProfileDetails(username: string, token: string): Promise<ProfileDetails> {
     const res = await fetcher(token, {
         login: username
@@ -105,6 +141,25 @@ export async function getProfileDetails(username: string, token: string): Promis
         },
         0
     );
+
+    // The main query only covers the first 100 repos; accounts with more were
+    // undercounting stars (#164). Keep summing with the lightweight star-only
+    // query — unbounded off Vercel, bounded on it (see src/const/pagination.ts).
+    let starsCursor: string | null = user.repositories.pageInfo?.endCursor ?? null;
+    let starsPages = 1;
+    let starsHasNextPage = shouldFetchNextPage(!!user.repositories.pageInfo?.hasNextPage, starsPages);
+    while (starsHasNextPage && starsCursor) {
+        const starsRes: any = await starsFetcher(token, {login: username, endCursor: starsCursor});
+        assertNoGraphQLErrors(starsRes, 'GetProfileDetails failed');
+        const repos = starsRes.data.data.user.repositories;
+        profileDetails.totalStars += repos.nodes.reduce(
+            (stars: number, curr: {stargazers: {totalCount: number}}) => stars + curr.stargazers.totalCount,
+            0
+        );
+        starsCursor = repos.pageInfo?.endCursor ?? null;
+        starsPages += 1;
+        starsHasNextPage = shouldFetchNextPage(!!repos.pageInfo?.hasNextPage, starsPages);
+    }
     profileDetails.websiteUrl = user.websiteUrl;
     profileDetails.totalIssueContributions = user.issues.totalCount;
     profileDetails.totalPullRequestContributions = user.pullRequests.totalCount;

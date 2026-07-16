@@ -1,4 +1,5 @@
 import {getRepoLanguages} from '../../src/github-api/repos-per-language';
+import {VERCEL_MAX_REPO_PAGES} from '../../src/const/pagination';
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 const mock = new MockAdapter(axios);
@@ -138,7 +139,7 @@ describe('repos per language on github', () => {
         expect(repoData.getLanguageMap().has('Kotlin')).toBe(true);
     });
 
-    it('stops after the first page on Vercel', async () => {
+    it('paginates on Vercel too (accuracy fix)', async () => {
         process.env.VERCEL = '1';
         mock.onPost('https://api.github.com/graphql')
             .replyOnce(200, page1)
@@ -146,8 +147,32 @@ describe('repos per language on github', () => {
             .replyOnce(200, page2)
             .onAny();
         const repoData = await getRepoLanguages('vn7n24fzkq', [], 'token');
-        // only page 1 fetched → Kotlin (page 2) absent
-        expect(repoData.getLanguageMap().has('Kotlin')).toBe(false);
+        // page 2's Kotlin is included → Vercel no longer stops at 100 repos
+        expect(repoData.getLanguageMap().has('Kotlin')).toBe(true);
         expect(repoData.getLanguageMap().has('Java')).toBe(true);
+    });
+
+    it('caps pagination at VERCEL_MAX_REPO_PAGES on Vercel', async () => {
+        process.env.VERCEL = '1';
+        let requests = 0;
+        mock.onPost('https://api.github.com/graphql').reply(() => {
+            requests += 1;
+            // every page claims there is more data
+            return [
+                200,
+                {
+                    data: {
+                        user: {
+                            repositories: {
+                                nodes: [{name: `repo-${requests}`, primaryLanguage: {color: '#b07219', name: 'Java'}}],
+                                pageInfo: {endCursor: `C${requests}`, hasNextPage: true}
+                            }
+                        }
+                    }
+                }
+            ];
+        });
+        await getRepoLanguages('vn7n24fzkq', [], 'token');
+        expect(requests).toBe(VERCEL_MAX_REPO_PAGES);
     });
 });

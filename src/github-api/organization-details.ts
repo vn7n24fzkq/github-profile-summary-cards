@@ -1,4 +1,5 @@
 import request, {assertNoGraphQLErrors} from '../utils/request';
+import {shouldFetchNextPage} from '../const/pagination';
 
 export class OrganizationDetails {
     id: number;
@@ -83,6 +84,7 @@ export async function getOrganizationDetails(login: string, token: string): Prom
     let organizationDetails: OrganizationDetails | null = null;
     let cursor: string | null = null;
     let hasNextPage = true;
+    let pages = 0;
 
     while (hasNextPage) {
         const res: any = await fetcher(token, {login: login, endCursor: cursor});
@@ -114,7 +116,8 @@ export async function getOrganizationDetails(login: string, token: string): Prom
         }
 
         cursor = org.repositories.pageInfo?.endCursor ?? null;
-        hasNextPage = !process.env.VERCEL && !!org.repositories.pageInfo?.hasNextPage;
+        pages += 1;
+        hasNextPage = shouldFetchNextPage(!!org.repositories.pageInfo?.hasNextPage, pages);
     }
 
     return organizationDetails!;

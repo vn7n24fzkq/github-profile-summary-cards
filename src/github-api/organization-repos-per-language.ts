@@ -1,4 +1,5 @@
 import request, {assertNoGraphQLErrors} from '../utils/request';
+import {shouldFetchNextPage} from '../const/pagination';
 import {RepoLanguages} from './repos-per-language';
 
 const fetcher = (token: string, variables: any) => {
@@ -40,12 +41,12 @@ export async function getOrganizationRepoLanguages(
     exclude: Array<string>,
     token: string
 ): Promise<RepoLanguages> {
-    // Vercel: top-100 by stars in one query. Action/CLI: paginate all. See the
-    // note in the user repos-per-language module.
+    // Bounded pagination on Vercel, unbounded off it (see src/const/pagination.ts).
     const repoLanguages = new RepoLanguages();
     const nodes: {primaryLanguage: {name: string; color: string} | null}[] = [];
     let cursor: string | null = null;
     let hasNextPage = true;
+    let pages = 0;
 
     while (hasNextPage) {
         const res: any = await fetcher(token, {login: login, endCursor: cursor});
@@ -56,7 +57,8 @@ export async function getOrganizationRepoLanguages(
         }
         nodes.push(...owner.repositories.nodes);
         cursor = owner.repositories.pageInfo?.endCursor ?? null;
-        hasNextPage = !process.env.VERCEL && !!owner.repositories.pageInfo?.hasNextPage;
+        pages += 1;
+        hasNextPage = shouldFetchNextPage(!!owner.repositories.pageInfo?.hasNextPage, pages);
     }
 
     nodes.forEach((node: {primaryLanguage: {name: string; color: string} | null}) => {
