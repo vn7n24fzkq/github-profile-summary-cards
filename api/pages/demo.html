@@ -126,6 +126,13 @@
                 color: var(--accent-fg);
                 border-color: var(--accent);
             }
+            .btn .count {
+                font-size: 0.85em;
+                border: 1px solid var(--border);
+                border-radius: 999px;
+                padding: 0 0.5em;
+                background: var(--bg);
+            }
 
             .layout {
                 display: grid;
@@ -295,7 +302,7 @@
                         href="https://github.com/vn7n24fzkq/github-profile-summary-cards"
                         target="_blank"
                         rel="noopener"
-                        >★ Star on GitHub</a
+                        >★ Star on GitHub <span class="count" id="starCount" hidden></span></a
                     >
                 </div>
                 <p class="sub">
@@ -667,6 +674,37 @@
                     .catch(function () {
                         fillThemes(FALLBACK_THEMES);
                     });
+
+                // ---- Live star count on the GitHub button ----
+                // Unauthenticated GitHub API is limited to 60 req/h per client IP,
+                // so cache the count for an hour; on any failure just leave the
+                // badge hidden — the button works fine without it.
+                (function () {
+                    var el = document.getElementById('starCount');
+                    function show(n) {
+                        el.textContent = n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k' : String(n);
+                        el.hidden = false;
+                    }
+                    try {
+                        var cached = JSON.parse(sessionStorage.getItem('gpsc-stars') || 'null');
+                        if (cached && Date.now() - cached.at < 3600000) return show(cached.n);
+                    } catch (e) {}
+                    fetch('https://api.github.com/repos/vn7n24fzkq/github-profile-summary-cards')
+                        .then(function (r) {
+                            return r.ok ? r.json() : null;
+                        })
+                        .then(function (d) {
+                            if (!d || typeof d.stargazers_count !== 'number') return;
+                            show(d.stargazers_count);
+                            try {
+                                sessionStorage.setItem(
+                                    'gpsc-stars',
+                                    JSON.stringify({n: d.stargazers_count, at: Date.now()})
+                                );
+                            } catch (e) {}
+                        })
+                        .catch(function () {});
+                })();
             })();
         </script>
     </body>
