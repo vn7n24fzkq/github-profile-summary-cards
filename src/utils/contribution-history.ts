@@ -12,7 +12,8 @@
 // tokens, so cached values are consistently the public view; don't warm the
 // shared cache with a personal token — it writes the private-inclusive view.
 
-import {getContributionByYear} from '../github-api/contributions-by-year';
+import {getContributionByYear, contributionYearCacheKey} from '../github-api/contributions-by-year';
+import {primeDataCache} from './data-cache';
 import {VERCEL_PAGINATION_BUDGET_MS} from '../const/pagination';
 
 // Parallel chunk size for per-year queries: keeps a 15-year account to ~3
@@ -46,6 +47,10 @@ export async function getContributionTotals(
     const years = [...contributionYears].sort((a, b) => b - a);
     const startedAt = Date.now();
 
+    // One MGET for every year key (one billed command) instead of a GET per
+    // year — on a warm cache the whole history costs a single Redis command.
+    const primed = await primeDataCache(years.map(year => contributionYearCacheKey(username, year)));
+
     let totalCommitContributions = 0;
     let totalContributions = 0;
 
@@ -55,7 +60,7 @@ export async function getContributionTotals(
             throw new Error(`Contribution history for ${username} timed out before all years were fetched`);
         }
         const chunk = years.slice(i, i + YEAR_CHUNK_SIZE);
-        const results = await Promise.all(chunk.map(year => getContributionByYear(username, year, token)));
+        const results = await Promise.all(chunk.map(year => getContributionByYear(username, year, token, primed)));
         for (const result of results) {
             totalCommitContributions += result.totalCommitContributions;
             totalContributions += result.totalContributions;

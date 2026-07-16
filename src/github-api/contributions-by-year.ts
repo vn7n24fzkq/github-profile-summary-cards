@@ -1,5 +1,5 @@
 import request, {assertNoGraphQLErrors} from '../utils/request';
-import {withDataCache} from '../utils/data-cache';
+import {withDataCache, PrimedReads} from '../utils/data-cache';
 
 export class ConrtibutionByYear {
     year: number;
@@ -38,15 +38,28 @@ const fetcher = (token: string, variables: any) => {
     );
 };
 
+/**
+ * Cache key for one (user, year) contribution total — exported so callers
+ * iterating many years can batch-read them with primeDataCache.
+ *
+ * @param {string} username - The GitHub login.
+ * @param {number} year - The contribution year.
+ * @return {string} The cache key.
+ */
+export function contributionYearCacheKey(username: string, year: number): string {
+    return `v1:cy:${username.toLowerCase()}:${year}`;
+}
+
 export async function getContributionByYear(
     username: string,
     year: number,
-    token: string
+    token: string,
+    primed?: PrimedReads
 ): Promise<ConrtibutionByYear> {
     // Past years never change — cache them for much longer than the current one.
     const isPastYear = !!year && year < new Date().getFullYear();
     const raw = await withDataCache(
-        `v1:cy:${username.toLowerCase()}:${year}`,
+        contributionYearCacheKey(username, year),
         async () => {
             const res = await fetcher(token, {
                 login: username,
@@ -64,7 +77,7 @@ export async function getContributionByYear(
         },
         // Past years are immutable: long fresh window, retention slightly past it
         // so the fresh window is actually usable (retention is the Redis EX).
-        isPastYear ? {freshSeconds: 90 * 24 * 60 * 60, retentionSeconds: 100 * 24 * 60 * 60} : undefined
+        isPastYear ? {freshSeconds: 90 * 24 * 60 * 60, retentionSeconds: 100 * 24 * 60 * 60, primed} : {primed}
     );
 
     return new ConrtibutionByYear(year, raw.totalCommitContributions, raw.totalContributions);

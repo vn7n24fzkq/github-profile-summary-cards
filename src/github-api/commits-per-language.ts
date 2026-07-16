@@ -1,5 +1,5 @@
 import request, {assertNoGraphQLErrors} from '../utils/request';
-import {withDataCache} from '../utils/data-cache';
+import {withDataCache, primeDataCache, PrimedReads} from '../utils/data-cache';
 import {VERCEL_PAGINATION_BUDGET_MS} from '../const/pagination';
 
 export class CommitLanguageInfo {
@@ -112,14 +112,19 @@ const fetcher = (token: string, variables: any) => {
     );
 };
 
+function commitLanguageYearCacheKey(username: string, year: number): string {
+    return `v1:cly:${username.toLowerCase()}:${year}`;
+}
+
 async function getCommitContributionsForYear(
     username: string,
     year: number,
-    token: string
+    token: string,
+    primed?: PrimedReads
 ): Promise<CommitContributionNode[]> {
     const isPastYear = year < new Date().getFullYear();
     return withDataCache(
-        `v1:cly:${username.toLowerCase()}:${year}`,
+        commitLanguageYearCacheKey(username, year),
         async () => {
             const res = await fetcher(token, {
                 login: username,
@@ -130,7 +135,7 @@ async function getCommitContributionsForYear(
             return res.data.data.user.contributionsCollection.commitContributionsByRepository;
         },
         // Past years are immutable — cache long; the current year refreshes.
-        isPastYear ? {freshSeconds: 90 * 24 * 60 * 60, retentionSeconds: 100 * 24 * 60 * 60} : undefined
+        isPastYear ? {freshSeconds: 90 * 24 * 60 * 60, retentionSeconds: 100 * 24 * 60 * 60, primed} : {primed}
     );
 }
 
@@ -161,12 +166,18 @@ export async function getCommitLanguageAllYears(
     const sortedYears = [...years].sort((a, b) => b - a);
     const startedAt = Date.now();
 
+    // Batch-read every year key with one MGET; a warm render costs a single
+    // Redis command instead of one per year.
+    const primed = await primeDataCache(sortedYears.map(year => commitLanguageYearCacheKey(username, year)));
+
     for (let i = 0; i < sortedYears.length; i += YEAR_CHUNK_SIZE) {
         if (process.env.VERCEL && Date.now() - startedAt > VERCEL_PAGINATION_BUDGET_MS) {
             throw new Error(`Commit-language history for ${username} timed out before all years were fetched`);
         }
         const chunk = sortedYears.slice(i, i + YEAR_CHUNK_SIZE);
-        const yearlyNodes = await Promise.all(chunk.map(year => getCommitContributionsForYear(username, year, token)));
+        const yearlyNodes = await Promise.all(
+            chunk.map(year => getCommitContributionsForYear(username, year, token, primed))
+        );
         for (const nodes of yearlyNodes) {
             aggregate(nodes, exclude, excludeRepos, commitLanguages);
         }

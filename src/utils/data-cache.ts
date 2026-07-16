@@ -31,6 +31,9 @@ const KV_UNHEALTHY_COOLDOWN_MS = 60 * 1000;
 export interface DataCacheOptions {
     freshSeconds?: number;
     retentionSeconds?: number;
+    // Pre-read envelopes from primeDataCache — lets a card fetch all its keys
+    // with one MGET (one billed command) instead of one GET per key.
+    primed?: PrimedReads;
 }
 
 interface Envelope<T> {
@@ -39,6 +42,10 @@ interface Envelope<T> {
 }
 
 type KvReadResult<T> = {kind: 'hit'; envelope: Envelope<T>} | {kind: 'miss'} | {kind: 'error'};
+
+// Result of a batched MGET; consumed via DataCacheOptions.primed. Keys absent
+// from the map (MGET failed, key not requested) fall back to a per-key GET.
+export type PrimedReads = Map<string, KvReadResult<unknown>>;
 
 // Per-request cache-outcome collector. handleCard opens a context with
 // runWithCacheStats; every withDataCache call inside it records its outcome so
@@ -168,6 +175,51 @@ async function kvSet<T>(key: string, envelope: Envelope<T>, retentionSeconds: nu
     }
 }
 
+/**
+ * Reads many cache keys with a single MGET (Upstash bills per command, so this
+ * turns N reads into 1). The result feeds withDataCache via options.primed;
+ * per-key semantics (fresh/stale/miss, stale rescue) are unchanged. Fail-open:
+ * on any KV problem an empty map is returned and callers fall back to per-key
+ * reads (which the circuit breaker then short-circuits during an outage).
+ *
+ * @param {Array<string>} keys - Cache keys to read in one command.
+ * @return {Promise<PrimedReads>} Map of key → read result; empty on failure.
+ */
+export async function primeDataCache(keys: string[]): Promise<PrimedReads> {
+    const primed: PrimedReads = new Map();
+    if (keys.length === 0 || !kvConfigured() || !isKvHealthy()) return primed;
+    try {
+        const path = keys.map(encodeURIComponent).join('/');
+        const res = await fetch(`${process.env.KV_REST_API_URL}/mget/${path}`, {
+            headers: {Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`},
+            signal: AbortSignal.timeout(KV_TIMEOUT_MS)
+        });
+        if (!res.ok) {
+            recordKvFailure('read');
+            return primed;
+        }
+        const body = await res.json();
+        recordKvSuccess('read');
+        const values: unknown[] = Array.isArray(body?.result) ? body.result : [];
+        keys.forEach((key, i) => {
+            const value = values[i];
+            if (typeof value !== 'string') {
+                primed.set(key, {kind: 'miss'});
+                return;
+            }
+            try {
+                primed.set(key, {kind: 'hit', envelope: JSON.parse(value) as Envelope<unknown>});
+            } catch (e) {
+                // A corrupt entry re-fetches like a miss.
+                primed.set(key, {kind: 'miss'});
+            }
+        });
+    } catch (e) {
+        recordKvFailure('read');
+    }
+    return primed;
+}
+
 // In-flight coalescing: identical keys requested concurrently (Fluid serves
 // many requests per instance) share one lookup+fetch instead of stampeding.
 const inflight = new Map<string, Promise<unknown>>();
@@ -220,7 +272,8 @@ async function withDataCacheUncoalesced<T>(
         return fetcher();
     }
 
-    const read = await kvGet<T>(key);
+    // A primed (batch-MGET) result replaces the per-key GET when available.
+    const read = (opts.primed?.get(key) as KvReadResult<T> | undefined) ?? (await kvGet<T>(key));
     if (read.kind === 'hit' && Date.now() - read.envelope.at < freshSeconds * 1000) {
         recordCacheOutcome('fresh');
         return read.envelope.data;
@@ -256,17 +309,30 @@ export async function bumpRenderLeaderboard(username: string): Promise<void> {
     const month = new Date().toISOString().slice(0, 7); // e.g. 2026-07
     const monthlyKey = `leaderboard:renders:${month}`;
     try {
-        await fetch(`${process.env.KV_REST_API_URL}/pipeline`, {
+        const res = await fetch(`${process.env.KV_REST_API_URL}/pipeline`, {
             method: 'POST',
             headers: {Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`},
             body: JSON.stringify([
                 ['ZINCRBY', 'leaderboard:renders', '1', user],
-                ['ZINCRBY', monthlyKey, '1', user],
-                // Keep two months of monthly boards around, then let them expire.
-                ['EXPIRE', monthlyKey, String(62 * 24 * 60 * 60)]
+                ['ZINCRBY', monthlyKey, '1', user]
             ]),
             signal: AbortSignal.timeout(KV_TIMEOUT_MS)
         });
+        if (!res.ok) return;
+        const body = await res.json();
+        // Set the monthly board's TTL (two months, then expire) only on a
+        // user's first render of the month instead of on every render — the
+        // month's very first bump creates the key and stamps it, later ones
+        // just refresh the window. Saves one billed command per render.
+        if (String(body?.[1]?.result) === '1') {
+            await fetch(
+                `${process.env.KV_REST_API_URL}/expire/${encodeURIComponent(monthlyKey)}/${62 * 24 * 60 * 60}`,
+                {
+                    headers: {Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`},
+                    signal: AbortSignal.timeout(KV_TIMEOUT_MS)
+                }
+            );
+        }
     } catch (e) {
         // Best-effort statistics; never let them fail a request.
     }
