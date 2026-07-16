@@ -73,10 +73,26 @@ describe('Analytics Utils', () => {
 
         const event = body.events[0];
         expect(event.name).toBe('test_event');
-        expect(event.params.username).toBeUndefined(); // PII Removed
+        expect(event.params.username).toBeUndefined(); // raw param not forwarded
+        expect(event.params.card_username).toBe('testuser'); // reportable dimension
         expect(event.params.foo).toBe('bar');
         expect(event.params.session_id).toBeTruthy();
         expect(event.params.engagement_time_msec).toBe(100);
+    });
+
+    it('normalizes card_username and omits it when username is missing', async () => {
+        process.env.GA_MEASUREMENT_ID = 'G-TEST';
+        process.env.GA_API_SECRET = 'SECRET';
+        process.env.VERCEL = '1';
+        const {sendAnalytics} = require('../../src/utils/analytics');
+
+        await sendAnalytics('e', {username: '  Torvalds '});
+        let body = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
+        expect(body.events[0].params.card_username).toBe('torvalds');
+
+        await sendAnalytics('e', {});
+        body = JSON.parse((global.fetch as jest.Mock).mock.calls[1][1].body);
+        expect(body.events[0].params.card_username).toBeUndefined();
     });
 
     it('normalizes username casing/whitespace into the same client_id', async () => {

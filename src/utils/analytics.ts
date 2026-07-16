@@ -68,11 +68,14 @@ export async function sendAnalytics(
     // Wrap the entire body so fire-and-forget callers (`void sendAnalytics(...)`)
     // can never produce an unhandled rejection, even if setup throws before fetch.
     try {
-        // Destructure to remove sensitive PII (username) from the final payload.
-        // Bots aren't dropped here — the handler tags them `source=bot` (via
-        // resolveSource) so they stay visible in GA and can be filtered in reports.
+        // client_id stays a hash (stable "user" identity for GA), but the plain
+        // username is also sent as a card_username event param — GitHub logins
+        // are public, and this is what makes "which accounts get rendered most"
+        // reportable in GA. Bots aren't dropped here — the handler tags them
+        // `source=bot` (via resolveSource) so they can be filtered in reports.
         const {username, ...cleanParams} = params;
         const clientId = getClientId(username);
+        if (username) cleanParams.card_username = String(username).trim().toLowerCase();
 
         // Extract user IP + User-Agent from Vercel-injected headers
         // Vercel headers are plain objects (string | string[] | undefined)

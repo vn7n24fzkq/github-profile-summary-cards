@@ -17,7 +17,15 @@ export default (req: VercelRequest, res: VercelResponse) => {
     const excludeArr = parseExcludeLanguages(exclude);
     // Comma-separated repo names to skip (case-insensitive), e.g. exclude_repos=dotfiles,my-fork
     const excludeReposArr = excludeReposRaw.split(',').map(val => val.trim().toLowerCase());
-    return handleCard(req, res, 'repos_per_language_card', (username, theme, override, token) =>
-        dispatchReposPerLanguageSVG(username, theme, excludeArr, token, override, excludeReposArr)
+    return handleCard(
+        req,
+        res,
+        'repos_per_language_card',
+        (username, theme, override, token) =>
+            dispatchReposPerLanguageSVG(username, theme, excludeArr, token, override, excludeReposArr),
+        {
+            exclude_used: String(exclude.length > 0),
+            exclude_repos_used: String(excludeReposRaw.length > 0)
+        }
     );
 };

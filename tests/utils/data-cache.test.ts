@@ -1,4 +1,4 @@
-import {withDataCache} from '../../src/utils/data-cache';
+import {withDataCache, runWithCacheStats, bumpRenderLeaderboard} from '../../src/utils/data-cache';
 
 const KV_URL = 'https://fake-kv.upstash.io';
 
@@ -91,5 +91,96 @@ describe('withDataCache', () => {
         // 30s fresh window → the 1-minute-old entry counts as stale
         await expect(withDataCache('k', fetcher, 30)).resolves.toBe('fresh');
         expect(fetcher).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('runWithCacheStats', () => {
+    let fetchSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+        process.env.KV_REST_API_URL = KV_URL;
+        process.env.KV_REST_API_TOKEN = 'kv-token';
+        fetchSpy = jest.spyOn(global, 'fetch');
+    });
+
+    afterEach(() => {
+        fetchSpy.mockRestore();
+        delete process.env.KV_REST_API_URL;
+        delete process.env.KV_REST_API_TOKEN;
+    });
+
+    it('reports fresh when every lookup hit the cache', async () => {
+        fetchSpy.mockResolvedValue(envelopeResponse(Date.now(), 'cached'));
+        const {result, cacheStatus} = await runWithCacheStats(async () => {
+            await withDataCache('a', jest.fn());
+            await withDataCache('b', jest.fn());
+            return 'svg';
+        });
+        expect(result).toBe('svg');
+        expect(cacheStatus).toBe('fresh');
+    });
+
+    it('reports miss when data had to be fetched', async () => {
+        fetchSpy.mockResolvedValue(missResponse);
+        const {cacheStatus} = await runWithCacheStats(async () => {
+            await withDataCache('a', jest.fn().mockResolvedValue('x'));
+            return 'svg';
+        });
+        expect(cacheStatus).toBe('miss');
+    });
+
+    it('reports stale when a fallback copy was served', async () => {
+        const staleAt = Date.now() - 7 * 60 * 60 * 1000;
+        fetchSpy.mockResolvedValue(envelopeResponse(staleAt, 'stale'));
+        const {cacheStatus} = await runWithCacheStats(async () => {
+            await withDataCache('a', jest.fn().mockRejectedValue(new Error('rate limited')));
+            return 'svg';
+        });
+        expect(cacheStatus).toBe('stale');
+    });
+
+    it('reports disabled when KV is not configured', async () => {
+        delete process.env.KV_REST_API_URL;
+        const {cacheStatus} = await runWithCacheStats(async () => 'svg');
+        expect(cacheStatus).toBe('disabled');
+    });
+});
+
+describe('bumpRenderLeaderboard', () => {
+    let fetchSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+        process.env.KV_REST_API_URL = KV_URL;
+        process.env.KV_REST_API_TOKEN = 'kv-token';
+        fetchSpy = jest.spyOn(global, 'fetch');
+    });
+
+    afterEach(() => {
+        fetchSpy.mockRestore();
+        delete process.env.KV_REST_API_URL;
+        delete process.env.KV_REST_API_TOKEN;
+    });
+
+    it('sends a pipeline with all-time and monthly ZINCRBY', async () => {
+        fetchSpy.mockResolvedValueOnce({ok: true, json: async () => []} as Response);
+        await bumpRenderLeaderboard('Torvalds');
+        expect(fetchSpy).toHaveBeenCalledTimes(1);
+        const [url, init] = fetchSpy.mock.calls[0];
+        expect(String(url)).toContain('/pipeline');
+        const commands = JSON.parse(init.body);
+        expect(commands[0]).toEqual(['ZINCRBY', 'leaderboard:renders', '1', 'torvalds']);
+        expect(commands[1][0]).toBe('ZINCRBY');
+        expect(commands[1][1]).toMatch(/^leaderboard:renders:\d{4}-\d{2}$/);
+        expect(commands[2][0]).toBe('EXPIRE');
+    });
+
+    it('is a no-op without KV env and swallows Redis errors', async () => {
+        delete process.env.KV_REST_API_URL;
+        await expect(bumpRenderLeaderboard('a')).resolves.toBeUndefined();
+        expect(fetchSpy).not.toHaveBeenCalled();
+
+        process.env.KV_REST_API_URL = KV_URL;
+        fetchSpy.mockRejectedValueOnce(new Error('kv down'));
+        await expect(bumpRenderLeaderboard('a')).resolves.toBeUndefined();
     });
 });

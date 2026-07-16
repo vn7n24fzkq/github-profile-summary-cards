@@ -18,7 +18,15 @@ export default (req: VercelRequest, res: VercelResponse) => {
     // Comma-separated repo names to skip (case-insensitive). Entries may be
     // `repo` or `owner/repo` — commit contributions can live in others' repos.
     const excludeReposArr = excludeReposRaw.split(',').map(val => val.trim().toLowerCase());
-    return handleCard(req, res, 'most_commit_language_card', (username, theme, override, token) =>
-        dispatchMostCommitLanguageSVG(username, theme, excludeArr, token, override, excludeReposArr)
+    return handleCard(
+        req,
+        res,
+        'most_commit_language_card',
+        (username, theme, override, token) =>
+            dispatchMostCommitLanguageSVG(username, theme, excludeArr, token, override, excludeReposArr),
+        {
+            exclude_used: String(exclude.length > 0),
+            exclude_repos_used: String(excludeReposRaw.length > 0)
+        }
     );
 };

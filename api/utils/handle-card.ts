@@ -2,6 +2,7 @@ import {getGitHubToken} from './github-token-updater';
 import {getErrorMsgCard} from './error-card';
 import {waitUntil} from '@vercel/functions';
 import {sendAnalytics, resolveSource} from '../../src/utils/analytics';
+import {runWithCacheStats, bumpRenderLeaderboard} from '../../src/utils/data-cache';
 import {CONST_CACHE_CONTROL} from '../../src/const/cache';
 import {resolveThemeName, parseThemeColorOverride, ThemeColorOverride} from '../../src/const/theme';
 import {parseAnimation, applyAnimation} from '../../src/utils/animation';
@@ -26,25 +27,29 @@ function isRotatableError(err: any): boolean {
     return status === 401 || status === 403 || status === 429 || err?.isRateLimit === true;
 }
 
-// Map an internal error to a generic, user-facing message. The raw error (e.g.
-// "API rate limit already exceeded for user ID 20241522") can leak the backing
-// account/implementation, so it's logged server-side but never shown on the card
-// — the card only ever shows one of these safe, actionable messages.
-function safeErrorMessage(err: any): string {
+// Classify an internal error into a type (GA dimension) + a generic user-facing
+// message. The raw error (e.g. "API rate limit already exceeded for user ID
+// 20241522") can leak the backing account/implementation, so it's logged
+// server-side but never shown on the card — the card only ever shows one of
+// these safe, actionable messages.
+function classifyError(err: any): {type: string; message: string} {
     const raw = String(err?.message ?? '').toLowerCase();
     const status = err?.response?.status;
     // Rate limited: only on explicit evidence (429, our GraphQL isRateLimit flag, or
     // message text). Note 403 alone is NOT rate limiting — it's usually auth/permission.
     if (err?.isRateLimit === true || status === 429 || raw.includes('rate limit')) {
-        return 'Cards are temporarily rate limited. Please try again in a few minutes.';
+        return {
+            type: 'rate_limited',
+            message: 'Cards are temporarily rate limited. Please try again in a few minutes.'
+        };
     }
     // Not found: explicit 404, or GitHub's "could not resolve to a User/Organization".
     if (status === 404 || raw.includes('could not resolve') || raw.includes('not found') || raw.includes('not exist')) {
-        return 'Could not find that user or organization — please check the username.';
+        return {type: 'not_found', message: 'Could not find that user or organization — please check the username.'};
     }
     // Everything else (auth/permission incl. 401/403, token/config problems): stay
     // generic so we don't hint at the backing setup.
-    return 'This card is temporarily unavailable. Please try again later.';
+    return {type: 'unavailable', message: 'This card is temporarily unavailable. Please try again later.'};
 }
 
 // Shared request handler for every card endpoint: validates username/theme,
@@ -71,6 +76,8 @@ export async function handleCard(
     const override = parseThemeColorOverride(req.query);
     const animation = parseAnimation(req.query.animation);
 
+    const source = resolveSource(req.query.source, String(req.headers['user-agent'] ?? ''));
+
     try {
         let tokenIndex = 0;
         let token = getGitHubToken(tokenIndex);
@@ -78,17 +85,34 @@ export async function handleCard(
         // throws (no token at the next index).
         while (true) {
             try {
-                const cardSVG = await render(username, theme, override, token);
+                // Collect the data-cache outcome of this render so GA gets a
+                // cache_status dimension (fresh / miss / stale / mixed).
+                const {result: cardSVG, cacheStatus} = await runWithCacheStats(() =>
+                    render(username, theme, override, token)
+                );
                 res.setHeader('Content-Type', 'image/svg+xml');
                 res.setHeader('Cache-Control', CONST_CACHE_CONTROL);
                 res.send(applyAnimation(cardSVG, animation, req.query.duration));
                 // Don't block the response on analytics, but keep the invocation
-                // alive until the GA call settles — a bare `void` promise gets
+                // alive until the calls settle — a bare `void` promise gets
                 // frozen with the lambda after res.send and aborts on the next
                 // thaw. Tag the source (demo page vs README embed vs other) for
                 // GA segmentation.
-                const source = resolveSource(req.query.source, String(req.headers['user-agent'] ?? ''));
-                waitUntil(sendAnalytics(eventName, {username, theme, source, ...extraAnalytics}, req.headers));
+                waitUntil(
+                    sendAnalytics(
+                        eventName,
+                        {
+                            username,
+                            theme,
+                            source,
+                            cache_status: cacheStatus,
+                            animation: animation ?? 'none',
+                            ...extraAnalytics
+                        },
+                        req.headers
+                    )
+                );
+                waitUntil(bumpRenderLeaderboard(username));
                 return;
             } catch (err: any) {
                 console.log(err.message);
@@ -105,12 +129,18 @@ export async function handleCard(
         // Log only a redacted summary — never the raw error object, which for axios
         // failures carries the request config/headers (incl. the Authorization token)
         // and response body.
+        const {type: errorType, message} = classifyError(err);
         console.log(`card error [${eventName}] status=${err?.response?.status ?? 'n/a'}: ${err?.message ?? 'unknown'}`);
         res.setHeader('Content-Type', 'image/svg+xml');
         // Cache errors long enough that repeat views don't re-invoke the function
         // while we're rate limited (GitHub's GraphQL window is a full hour), but
         // short enough to recover promptly once the quota resets.
         res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=300');
-        res.send(getErrorMsgCard(safeErrorMessage(err), theme));
+        res.send(getErrorMsgCard(message, theme));
+        // Errors used to be invisible in GA — report them with a type dimension
+        // so incidents (rate limits, token scope problems) show up immediately.
+        waitUntil(
+            sendAnalytics('card_error', {username, theme, source, card: eventName, error_type: errorType}, req.headers)
+        );
     }
 }
