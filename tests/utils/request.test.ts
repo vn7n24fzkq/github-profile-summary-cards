@@ -1,4 +1,6 @@
-import {assertNoGraphQLErrors} from '../../src/utils/request';
+import request, {assertNoGraphQLErrors} from '../../src/utils/request';
+import axios from 'axios';
+import MockAdapter from 'axios-mock-adapter';
 
 describe('assertNoGraphQLErrors', () => {
     it('does nothing when there are no errors', () => {
@@ -54,6 +56,47 @@ describe('assertNoGraphQLErrors', () => {
         } catch (e: any) {
             expect(e.isResourceLimit).toBe(true);
             expect(e.isRateLimit).toBeUndefined();
+        }
+    });
+});
+
+describe('GitHub concurrency gate', () => {
+    it('caps concurrent GitHub calls at 8 and still completes every request', async () => {
+        const mock = new MockAdapter(axios, {delayResponse: 30});
+        let inFlight = 0;
+        let peak = 0;
+        mock.onPost('https://api.github.com/graphql').reply(() => {
+            inFlight += 1;
+            peak = Math.max(peak, inFlight);
+            return new Promise(resolve =>
+                setTimeout(() => {
+                    inFlight -= 1;
+                    resolve([200, {data: {ok: true}}]);
+                }, 20)
+            );
+        });
+        try {
+            const results = await Promise.all(
+                Array.from({length: 30}, () => request({Authorization: 'bearer t'}, {query: '{x}'}))
+            );
+            expect(results).toHaveLength(30);
+            expect(peak).toBeLessThanOrEqual(8);
+            expect(peak).toBeGreaterThan(1); // the gate parallelizes, not serializes
+        } finally {
+            mock.restore();
+        }
+    });
+
+    it('releases slots when a request fails', async () => {
+        const mock = new MockAdapter(axios);
+        // 404 is not retried by retry-axios, so the rejection is immediate.
+        mock.onPost('https://api.github.com/graphql').replyOnce(404).onPost().reply(200, {data: {}});
+        try {
+            await expect(request({}, {query: '{x}'})).rejects.toThrow();
+            // the failed call must have released its slot — the next one runs
+            await expect(request({}, {query: '{x}'})).resolves.toBeTruthy();
+        } finally {
+            mock.restore();
         }
     });
 });

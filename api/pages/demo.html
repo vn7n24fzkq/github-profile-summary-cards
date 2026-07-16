@@ -382,77 +382,79 @@
                         ⚙️ Customize <span class="chev" aria-hidden="true">▾</span>
                     </button>
                     <div class="controls-body" id="controlsBody">
-                    <div class="field">
-                        <label for="username">GitHub username / organization</label>
-                        <input id="username" name="username" value="vn7n24fzkq" required />
-                    </div>
-
-                    <div class="row">
                         <div class="field">
-                            <label for="theme">Theme</label>
-                            <select id="theme" name="theme"></select>
+                            <label for="username">GitHub username / organization</label>
+                            <input id="username" name="username" value="vn7n24fzkq" required />
                         </div>
+
+                        <div class="row">
+                            <div class="field">
+                                <label for="theme">Theme</label>
+                                <select id="theme" name="theme"></select>
+                            </div>
+                            <div class="field">
+                                <label for="animation">Animation</label>
+                                <select id="animation" name="animation">
+                                    <option value="">none</option>
+                                    <option value="fade">fade</option>
+                                    <option value="rise">rise</option>
+                                    <option value="draw">draw</option>
+                                    <option value="stagger">stagger</option>
+                                    <option value="load">load</option>
+                                    <option value="sequence">sequence</option>
+                                    <option value="tint">tint</option>
+                                    <option value="rgb">rgb</option>
+                                    <option value="rgb-soft">rgb-soft</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="field">
+                                <label for="duration">Duration (s)</label>
+                                <input
+                                    id="duration"
+                                    name="duration"
+                                    type="number"
+                                    min="0.2"
+                                    max="10"
+                                    step="0.1"
+                                    placeholder="default"
+                                />
+                            </div>
+                            <div class="field">
+                                <label for="utcOffset">UTC offset</label>
+                                <input
+                                    id="utcOffset"
+                                    name="utcOffset"
+                                    type="number"
+                                    min="-12"
+                                    max="14"
+                                    step="1"
+                                    value="0"
+                                />
+                            </div>
+                        </div>
+
                         <div class="field">
-                            <label for="animation">Animation</label>
-                            <select id="animation" name="animation">
-                                <option value="">none</option>
-                                <option value="fade">fade</option>
-                                <option value="rise">rise</option>
-                                <option value="draw">draw</option>
-                                <option value="stagger">stagger</option>
-                                <option value="load">load</option>
-                                <option value="sequence">sequence</option>
-                                <option value="tint">tint</option>
-                                <option value="rgb">rgb</option>
-                                <option value="rgb-soft">rgb-soft</option>
-                            </select>
+                            <label for="name">Display name (profile card)</label>
+                            <input id="name" name="name" placeholder="default: login (name)" />
                         </div>
-                    </div>
 
-                    <div class="row">
                         <div class="field">
-                            <label for="duration">Duration (s)</label>
-                            <input
-                                id="duration"
-                                name="duration"
-                                type="number"
-                                min="0.2"
-                                max="10"
-                                step="0.1"
-                                placeholder="default"
-                            />
+                            <label for="exclude">Exclude languages (comma separated)</label>
+                            <input id="exclude" name="exclude" placeholder="e.g. html,css" />
                         </div>
-                        <div class="field">
-                            <label for="utcOffset">UTC offset</label>
-                            <input
-                                id="utcOffset"
-                                name="utcOffset"
-                                type="number"
-                                min="-12"
-                                max="14"
-                                step="1"
-                                value="0"
-                            />
-                        </div>
-                    </div>
 
-                    <div class="field">
-                        <label for="name">Display name (profile card)</label>
-                        <input id="name" name="name" placeholder="default: login (name)" />
-                    </div>
+                        <details class="colors">
+                            <summary>Custom colours</summary>
+                            <div class="colorgrid" id="colorgrid"></div>
+                            <p class="hint">Leave a colour unticked to use the theme's default.</p>
+                        </details>
 
-                    <div class="field">
-                        <label for="exclude">Exclude languages (comma separated)</label>
-                        <input id="exclude" name="exclude" placeholder="e.g. html,css" />
-                    </div>
-
-                    <details class="colors">
-                        <summary>Custom colours</summary>
-                        <div class="colorgrid" id="colorgrid"></div>
-                        <p class="hint">Leave a colour unticked to use the theme's default.</p>
-                    </details>
-
-                    <button class="btn primary" id="copyAll" type="button" style="width: 100%">📋 Copy all Markdown</button>
+                        <button class="btn primary" id="copyAll" type="button" style="width: 100%">
+                            📋 Copy all Markdown
+                        </button>
                     </div>
                 </form>
 
@@ -605,7 +607,8 @@
                         return;
                     }
                     var bust = Date.now(); // cache-buster so animations replay on re-render
-                    CARDS.forEach(function (c) {
+                    var pending = []; // stagger queue — see below
+                    CARDS.forEach(function (c, idx) {
                         var endpoint = c[0],
                             label = c[1],
                             wide = c[2];
@@ -616,7 +619,12 @@
                         var img = document.createElement('img');
                         img.loading = 'lazy';
                         img.alt = label + ' card preview';
-                        img.src = cardUrl(endpoint, true) + '&_t=' + bust;
+                        // Stagger the five requests: for an uncached heavyweight
+                        // account, firing them simultaneously can burst dozens of
+                        // parallel GitHub queries server-side and trip secondary
+                        // rate limits. Each card starts when the previous one
+                        // settles (or after a short timeout).
+                        pending.push({img: img, src: cardUrl(endpoint, true) + '&_t=' + bust});
                         fig.appendChild(img);
 
                         var meta = document.createElement('div');
@@ -637,6 +645,24 @@
                         card.appendChild(meta);
                         cardsEl.appendChild(card);
                     });
+
+                    // Kick off the staggered loads: next card starts when the
+                    // previous settles, with a 4s safety timeout so one slow
+                    // card never stalls the rest.
+                    (function loadNext(i) {
+                        if (i >= pending.length) return;
+                        var item = pending[i];
+                        var advanced = false;
+                        var advance = function () {
+                            if (advanced) return;
+                            advanced = true;
+                            loadNext(i + 1);
+                        };
+                        item.img.addEventListener('load', advance);
+                        item.img.addEventListener('error', advance);
+                        setTimeout(advance, 4000);
+                        item.img.src = item.src;
+                    })(0);
                 }
 
                 function copyText(text, btn) {

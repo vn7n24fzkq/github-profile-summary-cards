@@ -40,7 +40,47 @@ export function assertNoGraphQLErrors(res: any, fallbackMessage: string): void {
     }
 }
 
-export default function request(header: any, data: any): AxiosPromise<any> {
+// ---- per-instance concurrency gate ----
+// A cold heavy account renders 5 cards at once (README embeds / the demo page
+// load all five images simultaneously), each firing chunks of parallel
+// per-year queries plus fallbacks — bursts of 25-40 concurrent GraphQL calls
+// trip GitHub's SECONDARY rate limit (403 with points to spare; observed in
+// production 2026-07-17). Capping concurrent GitHub calls per lambda instance
+// keeps the burst shape polite: excess calls queue for a moment instead of
+// turning into an hour of 403s. Fluid routes many requests onto one instance,
+// so the gate covers cross-card and cross-request bursts alike.
+const MAX_CONCURRENT_GITHUB_CALLS = 8;
+let activeGithubCalls = 0;
+const githubCallWaiters: Array<() => void> = [];
+
+async function acquireGithubSlot(): Promise<void> {
+    if (activeGithubCalls < MAX_CONCURRENT_GITHUB_CALLS) {
+        activeGithubCalls += 1;
+        return;
+    }
+    await new Promise<void>(resolve => githubCallWaiters.push(resolve));
+}
+
+function releaseGithubSlot(): void {
+    const next = githubCallWaiters.shift();
+    if (next) {
+        // hand the slot straight to the next waiter — activeGithubCalls stays put
+        next();
+    } else {
+        activeGithubCalls -= 1;
+    }
+}
+
+export default async function request(header: any, data: any): Promise<any> {
+    await acquireGithubSlot();
+    try {
+        return await rawRequest(header, data);
+    } finally {
+        releaseGithubSlot();
+    }
+}
+
+function rawRequest(header: any, data: any): AxiosPromise<any> {
     // GitHub's API requires a User-Agent header; without it the edge returns 502.
     // Callers can override via `header`, but we provide a sensible default.
     const headersWithUA = {'User-Agent': 'github-profile-summary-cards', ...header};
