@@ -79,9 +79,11 @@ const fetcher = (token: string, variables: any) => {
 };
 
 export async function getOrganizationDetails(login: string, token: string): Promise<OrganizationDetails> {
-    // On Vercel (shared token + 10s timeout) fetch only the top 100 repos by stars
-    // in one query. Run as a GitHub Action / CLI (own token, no timeout) paginate
-    // every repo for accurate totals. totalPublicRepos is always exact (totalCount).
+    // On Vercel, totals are sampled from the first pages of repos (natural order,
+    // capped by VERCEL_MAX_ORG_DETAIL_PAGES and the pagination time budget — star
+    // ordering 502s GitHub-side for mega orgs). Run as a GitHub Action / CLI (own
+    // token, no limits) every repo is paginated for exact totals. totalPublicRepos
+    // is always exact (totalCount).
     // Raw org info + node list are cached per login; the OrganizationDetails
     // instance (with real Date objects) is assembled after the cache boundary.
     const {org, nodes} = await withDataCache(`v1:od:${login.toLowerCase()}`, async () => {
