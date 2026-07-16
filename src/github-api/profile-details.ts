@@ -54,7 +54,7 @@ const fetcher = (token: string, variables: any) => {
             company
             location
             websiteUrl
-            repositories(first: 100,privacy:PUBLIC, isFork: false, ownerAffiliations: OWNER, orderBy: {direction: DESC, field: STARGAZERS}) {
+            repositories(first: 100,privacy:PUBLIC, isFork: false, ownerAffiliations: OWNER) {
               totalCount
               nodes {
                 stargazers {
@@ -107,7 +107,7 @@ const starsFetcher = (token: string, variables: any) => {
             query: `
       query UserStars($login: String!, $endCursor: String!) {
         user(login: $login) {
-            repositories(first: 100, after: $endCursor, privacy:PUBLIC, isFork: false, ownerAffiliations: OWNER, orderBy: {direction: DESC, field: STARGAZERS}) {
+            repositories(first: 100, after: $endCursor, privacy:PUBLIC, isFork: false, ownerAffiliations: OWNER) {
               nodes {
                 stargazers {
                   totalCount
@@ -146,9 +146,15 @@ export async function getProfileDetails(username: string, token: string): Promis
         // The main query only covers the first 100 repos; accounts with more were
         // undercounting stars (#164). Keep summing with the lightweight star-only
         // query — unbounded off Vercel, bounded on it (see src/const/pagination.ts).
+        const starsStartedAt = Date.now();
         let starsCursor: string | null = fetchedUser.repositories.pageInfo?.endCursor ?? null;
         let starsPages = 1;
-        let starsHasNextPage = shouldFetchNextPage(!!fetchedUser.repositories.pageInfo?.hasNextPage, starsPages);
+        let starsHasNextPage = shouldFetchNextPage(
+            !!fetchedUser.repositories.pageInfo?.hasNextPage,
+            starsPages,
+            undefined,
+            starsStartedAt
+        );
         while (starsHasNextPage && starsCursor) {
             const starsRes: any = await starsFetcher(token, {login: username, endCursor: starsCursor});
             assertNoGraphQLErrors(starsRes, 'GetProfileDetails failed');
@@ -159,7 +165,12 @@ export async function getProfileDetails(username: string, token: string): Promis
             );
             starsCursor = repos.pageInfo?.endCursor ?? null;
             starsPages += 1;
-            starsHasNextPage = shouldFetchNextPage(!!repos.pageInfo?.hasNextPage, starsPages);
+            starsHasNextPage = shouldFetchNextPage(
+                !!repos.pageInfo?.hasNextPage,
+                starsPages,
+                undefined,
+                starsStartedAt
+            );
         }
 
         return {user: fetchedUser, totalStars: stars};

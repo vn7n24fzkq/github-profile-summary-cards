@@ -43,7 +43,7 @@ const fetcher = (token: string, variables: any) => {
             query: `
       query ReposPerLanguage($login: String!, $endCursor: String) {
         user(login: $login) {
-          repositories(isFork: false, first: 100, after: $endCursor, ownerAffiliations: OWNER, orderBy: {direction: DESC, field: STARGAZERS}) {
+          repositories(isFork: false, first: 100, after: $endCursor, ownerAffiliations: OWNER) {
             nodes {
               name
               nameWithOwner
@@ -83,6 +83,7 @@ export async function getRepoLanguages(
             nameWithOwner: string;
             primaryLanguage: {name: string; color: string} | null;
         }[] = [];
+        const startedAt = Date.now();
         let cursor: string | null = null;
         let hasNextPage = true;
         let pages = 0;
@@ -94,7 +95,7 @@ export async function getRepoLanguages(
             collected.push(...repos.nodes);
             cursor = repos.pageInfo?.endCursor ?? null;
             pages += 1;
-            hasNextPage = shouldFetchNextPage(!!repos.pageInfo?.hasNextPage, pages);
+            hasNextPage = shouldFetchNextPage(!!repos.pageInfo?.hasNextPage, pages, undefined, startedAt);
         }
         return collected;
     });
