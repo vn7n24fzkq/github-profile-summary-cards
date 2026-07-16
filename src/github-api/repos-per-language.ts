@@ -1,5 +1,6 @@
 import request, {assertNoGraphQLErrors} from '../utils/request';
 import {shouldFetchNextPage} from '../const/pagination';
+import {withDataCache} from '../utils/data-cache';
 
 export class RepoLanguageInfo {
     name: string;
@@ -73,21 +74,30 @@ export async function getRepoLanguages(
 ): Promise<RepoLanguages> {
     // Ordered by stars DESC; pagination is unbounded off Vercel and bounded to
     // VERCEL_MAX_REPO_PAGES on Vercel (see src/const/pagination.ts).
+    // The raw node list is cached per username (filters apply after the cache
+    // boundary, so exclude lists don't fragment it).
     const repoLanguages = new RepoLanguages();
-    const nodes: {name: string; nameWithOwner: string; primaryLanguage: {name: string; color: string} | null}[] = [];
-    let cursor: string | null = null;
-    let hasNextPage = true;
-    let pages = 0;
+    const nodes = await withDataCache(`v1:rl:${username.toLowerCase()}`, async () => {
+        const collected: {
+            name: string;
+            nameWithOwner: string;
+            primaryLanguage: {name: string; color: string} | null;
+        }[] = [];
+        let cursor: string | null = null;
+        let hasNextPage = true;
+        let pages = 0;
 
-    while (hasNextPage) {
-        const res: any = await fetcher(token, {login: username, endCursor: cursor});
-        assertNoGraphQLErrors(res, 'GetRepoLanguage fail');
-        const repos = res.data.data.user.repositories;
-        nodes.push(...repos.nodes);
-        cursor = repos.pageInfo?.endCursor ?? null;
-        pages += 1;
-        hasNextPage = shouldFetchNextPage(!!repos.pageInfo?.hasNextPage, pages);
-    }
+        while (hasNextPage) {
+            const res: any = await fetcher(token, {login: username, endCursor: cursor});
+            assertNoGraphQLErrors(res, 'GetRepoLanguage fail');
+            const repos = res.data.data.user.repositories;
+            collected.push(...repos.nodes);
+            cursor = repos.pageInfo?.endCursor ?? null;
+            pages += 1;
+            hasNextPage = shouldFetchNextPage(!!repos.pageInfo?.hasNextPage, pages);
+        }
+        return collected;
+    });
 
     nodes.forEach(
         (node: {name: string; nameWithOwner: string; primaryLanguage: {name: string; color: string} | null}) => {

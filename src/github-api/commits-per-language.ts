@@ -1,4 +1,5 @@
 import request, {assertNoGraphQLErrors} from '../utils/request';
+import {withDataCache} from '../utils/data-cache';
 
 export class CommitLanguageInfo {
     name: string;
@@ -72,13 +73,18 @@ export async function getCommitLanguage(
 ): Promise<CommitLanguages> {
     const commitLanguages = new CommitLanguages();
 
-    const res = await fetcher(token, {
-        login: username
+    // Raw contribution list cached per username; filters apply after the cache.
+    const contributionsByRepository = await withDataCache(`v1:cl:${username.toLowerCase()}`, async () => {
+        const res = await fetcher(token, {
+            login: username
+        });
+
+        assertNoGraphQLErrors(res, 'GetCommitLanguage failed');
+
+        return res.data.data.user.contributionsCollection.commitContributionsByRepository;
     });
 
-    assertNoGraphQLErrors(res, 'GetCommitLanguage failed');
-
-    res.data.data.user.contributionsCollection.commitContributionsByRepository.forEach(
+    contributionsByRepository.forEach(
         (node: {
             repository: {name: string; nameWithOwner: string; primaryLanguage: {name: string; color: string} | null};
             contributions: {totalCount: number};

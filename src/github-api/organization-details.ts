@@ -1,5 +1,6 @@
 import request, {assertNoGraphQLErrors} from '../utils/request';
 import {shouldFetchNextPage} from '../const/pagination';
+import {withDataCache} from '../utils/data-cache';
 
 export class OrganizationDetails {
     id: number;
@@ -81,44 +82,65 @@ export async function getOrganizationDetails(login: string, token: string): Prom
     // On Vercel (shared token + 10s timeout) fetch only the top 100 repos by stars
     // in one query. Run as a GitHub Action / CLI (own token, no timeout) paginate
     // every repo for accurate totals. totalPublicRepos is always exact (totalCount).
-    let organizationDetails: OrganizationDetails | null = null;
-    let cursor: string | null = null;
-    let hasNextPage = true;
-    let pages = 0;
+    // Raw org info + node list are cached per login; the OrganizationDetails
+    // instance (with real Date objects) is assembled after the cache boundary.
+    const {org, nodes} = await withDataCache(`v1:od:${login.toLowerCase()}`, async () => {
+        let orgInfo: any = null;
+        const collected: any[] = [];
+        let cursor: string | null = null;
+        let hasNextPage = true;
+        let pages = 0;
 
-    while (hasNextPage) {
-        const res: any = await fetcher(token, {login: login, endCursor: cursor});
+        while (hasNextPage) {
+            const res: any = await fetcher(token, {login: login, endCursor: cursor});
 
-        assertNoGraphQLErrors(res, 'GetOrganizationDetails failed');
+            assertNoGraphQLErrors(res, 'GetOrganizationDetails failed');
 
-        const owner = res.data.data.repositoryOwner;
-        if (!owner || owner.__typename !== 'Organization') {
-            throw Error(`Organization not found: ${login}`);
+            const owner = res.data.data.repositoryOwner;
+            if (!owner || owner.__typename !== 'Organization') {
+                throw Error(`Organization not found: ${login}`);
+            }
+
+            if (orgInfo === null) {
+                orgInfo = {
+                    id: owner.id,
+                    login: owner.login,
+                    name: owner.name,
+                    createdAt: owner.createdAt,
+                    description: owner.description,
+                    email: owner.email,
+                    location: owner.location,
+                    websiteUrl: owner.websiteUrl,
+                    twitterUsername: owner.twitterUsername,
+                    isVerified: owner.isVerified,
+                    totalPublicRepos: owner.repositories.totalCount
+                };
+            }
+            collected.push(...owner.repositories.nodes);
+
+            cursor = owner.repositories.pageInfo?.endCursor ?? null;
+            pages += 1;
+            hasNextPage = shouldFetchNextPage(!!owner.repositories.pageInfo?.hasNextPage, pages);
         }
-        const org = owner;
 
-        if (organizationDetails === null) {
-            organizationDetails = new OrganizationDetails(org.id, org.login, org.name, org.createdAt);
-            organizationDetails.description = org.description;
-            organizationDetails.email = org.email || null;
-            organizationDetails.location = org.location;
-            organizationDetails.websiteUrl = org.websiteUrl;
-            organizationDetails.twitterUsername = org.twitterUsername;
-            organizationDetails.isVerified = !!org.isVerified;
-            organizationDetails.totalPublicRepos = org.repositories.totalCount;
-        }
+        return {org: orgInfo, nodes: collected};
+    });
 
-        for (const node of org.repositories.nodes) {
-            organizationDetails.totalStars += node.stargazers.totalCount;
-            organizationDetails.totalForks += node.forkCount;
-            organizationDetails.totalOpenIssues += node.issues.totalCount;
-            organizationDetails.repoCreatedAt.push(new Date(node.createdAt));
-        }
+    const organizationDetails = new OrganizationDetails(org.id, org.login, org.name, org.createdAt);
+    organizationDetails.description = org.description;
+    organizationDetails.email = org.email || null;
+    organizationDetails.location = org.location;
+    organizationDetails.websiteUrl = org.websiteUrl;
+    organizationDetails.twitterUsername = org.twitterUsername;
+    organizationDetails.isVerified = !!org.isVerified;
+    organizationDetails.totalPublicRepos = org.totalPublicRepos;
 
-        cursor = org.repositories.pageInfo?.endCursor ?? null;
-        pages += 1;
-        hasNextPage = shouldFetchNextPage(!!org.repositories.pageInfo?.hasNextPage, pages);
+    for (const node of nodes) {
+        organizationDetails.totalStars += node.stargazers.totalCount;
+        organizationDetails.totalForks += node.forkCount;
+        organizationDetails.totalOpenIssues += node.issues.totalCount;
+        organizationDetails.repoCreatedAt.push(new Date(node.createdAt));
     }
 
-    return organizationDetails!;
+    return organizationDetails;
 }

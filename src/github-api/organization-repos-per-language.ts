@@ -1,5 +1,6 @@
 import request, {assertNoGraphQLErrors} from '../utils/request';
 import {shouldFetchNextPage} from '../const/pagination';
+import {withDataCache} from '../utils/data-cache';
 import {RepoLanguages} from './repos-per-language';
 
 const fetcher = (token: string, variables: any) => {
@@ -45,24 +46,32 @@ export async function getOrganizationRepoLanguages(
     excludeRepos: Array<string> = []
 ): Promise<RepoLanguages> {
     // Bounded pagination on Vercel, unbounded off it (see src/const/pagination.ts).
+    // Raw node list cached per login; filters apply after the cache boundary.
     const repoLanguages = new RepoLanguages();
-    const nodes: {name: string; nameWithOwner: string; primaryLanguage: {name: string; color: string} | null}[] = [];
-    let cursor: string | null = null;
-    let hasNextPage = true;
-    let pages = 0;
+    const nodes = await withDataCache(`v1:orl:${login.toLowerCase()}`, async () => {
+        const collected: {
+            name: string;
+            nameWithOwner: string;
+            primaryLanguage: {name: string; color: string} | null;
+        }[] = [];
+        let cursor: string | null = null;
+        let hasNextPage = true;
+        let pages = 0;
 
-    while (hasNextPage) {
-        const res: any = await fetcher(token, {login: login, endCursor: cursor});
-        assertNoGraphQLErrors(res, 'GetOrganizationRepoLanguage fail');
-        const owner = res.data.data.repositoryOwner;
-        if (!owner || owner.__typename !== 'Organization') {
-            throw Error(`Organization not found: ${login}`);
+        while (hasNextPage) {
+            const res: any = await fetcher(token, {login: login, endCursor: cursor});
+            assertNoGraphQLErrors(res, 'GetOrganizationRepoLanguage fail');
+            const owner = res.data.data.repositoryOwner;
+            if (!owner || owner.__typename !== 'Organization') {
+                throw Error(`Organization not found: ${login}`);
+            }
+            collected.push(...owner.repositories.nodes);
+            cursor = owner.repositories.pageInfo?.endCursor ?? null;
+            pages += 1;
+            hasNextPage = shouldFetchNextPage(!!owner.repositories.pageInfo?.hasNextPage, pages);
         }
-        nodes.push(...owner.repositories.nodes);
-        cursor = owner.repositories.pageInfo?.endCursor ?? null;
-        pages += 1;
-        hasNextPage = shouldFetchNextPage(!!owner.repositories.pageInfo?.hasNextPage, pages);
-    }
+        return collected;
+    });
 
     nodes.forEach(
         (node: {name: string; nameWithOwner: string; primaryLanguage: {name: string; color: string} | null}) => {

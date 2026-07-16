@@ -1,5 +1,6 @@
 import request, {assertNoGraphQLErrors} from '../utils/request';
 import {shouldFetchNextPage} from '../const/pagination';
+import {withDataCache} from '../utils/data-cache';
 
 export class ProfileDetails {
     id: number; // user id
@@ -126,40 +127,47 @@ const starsFetcher = (token: string, variables: any) => {
 };
 
 export async function getProfileDetails(username: string, token: string): Promise<ProfileDetails> {
-    const res = await fetcher(token, {
-        login: username
-    });
+    // Cache the raw user payload + the fully paginated star total per username.
+    // The ProfileDetails instance (with real Date objects) is built after the
+    // cache boundary so only plain JSON is ever stored.
+    const {user, totalStars} = await withDataCache(`v1:pd:${username.toLowerCase()}`, async () => {
+        const res = await fetcher(token, {
+            login: username
+        });
 
-    assertNoGraphQLErrors(res, 'GetProfileDetails failed');
+        assertNoGraphQLErrors(res, 'GetProfileDetails failed');
 
-    const user = res.data.data.user;
-    const profileDetails = new ProfileDetails(user.id, user.name, user.email, user.createdAt);
-    profileDetails.totalPublicRepos = user.repositories.totalCount;
-    profileDetails.totalStars = user.repositories.nodes.reduce(
-        (stars: number, curr: {stargazers: {totalCount: number}}) => {
-            return stars + curr.stargazers.totalCount;
-        },
-        0
-    );
-
-    // The main query only covers the first 100 repos; accounts with more were
-    // undercounting stars (#164). Keep summing with the lightweight star-only
-    // query — unbounded off Vercel, bounded on it (see src/const/pagination.ts).
-    let starsCursor: string | null = user.repositories.pageInfo?.endCursor ?? null;
-    let starsPages = 1;
-    let starsHasNextPage = shouldFetchNextPage(!!user.repositories.pageInfo?.hasNextPage, starsPages);
-    while (starsHasNextPage && starsCursor) {
-        const starsRes: any = await starsFetcher(token, {login: username, endCursor: starsCursor});
-        assertNoGraphQLErrors(starsRes, 'GetProfileDetails failed');
-        const repos = starsRes.data.data.user.repositories;
-        profileDetails.totalStars += repos.nodes.reduce(
-            (stars: number, curr: {stargazers: {totalCount: number}}) => stars + curr.stargazers.totalCount,
+        const fetchedUser = res.data.data.user;
+        let stars: number = fetchedUser.repositories.nodes.reduce(
+            (acc: number, curr: {stargazers: {totalCount: number}}) => acc + curr.stargazers.totalCount,
             0
         );
-        starsCursor = repos.pageInfo?.endCursor ?? null;
-        starsPages += 1;
-        starsHasNextPage = shouldFetchNextPage(!!repos.pageInfo?.hasNextPage, starsPages);
-    }
+
+        // The main query only covers the first 100 repos; accounts with more were
+        // undercounting stars (#164). Keep summing with the lightweight star-only
+        // query — unbounded off Vercel, bounded on it (see src/const/pagination.ts).
+        let starsCursor: string | null = fetchedUser.repositories.pageInfo?.endCursor ?? null;
+        let starsPages = 1;
+        let starsHasNextPage = shouldFetchNextPage(!!fetchedUser.repositories.pageInfo?.hasNextPage, starsPages);
+        while (starsHasNextPage && starsCursor) {
+            const starsRes: any = await starsFetcher(token, {login: username, endCursor: starsCursor});
+            assertNoGraphQLErrors(starsRes, 'GetProfileDetails failed');
+            const repos = starsRes.data.data.user.repositories;
+            stars += repos.nodes.reduce(
+                (acc: number, curr: {stargazers: {totalCount: number}}) => acc + curr.stargazers.totalCount,
+                0
+            );
+            starsCursor = repos.pageInfo?.endCursor ?? null;
+            starsPages += 1;
+            starsHasNextPage = shouldFetchNextPage(!!repos.pageInfo?.hasNextPage, starsPages);
+        }
+
+        return {user: fetchedUser, totalStars: stars};
+    });
+
+    const profileDetails = new ProfileDetails(user.id, user.name, user.email, user.createdAt);
+    profileDetails.totalPublicRepos = user.repositories.totalCount;
+    profileDetails.totalStars = totalStars;
     profileDetails.websiteUrl = user.websiteUrl;
     profileDetails.totalIssueContributions = user.issues.totalCount;
     profileDetails.totalPullRequestContributions = user.pullRequests.totalCount;

@@ -1,4 +1,5 @@
 import request, {assertNoGraphQLErrors} from '../utils/request';
+import {withDataCache} from '../utils/data-cache';
 
 export class ProfuctiveTime {
     productiveDate: Date[] = [];
@@ -75,38 +76,45 @@ export async function getProductiveTime(
     since: string,
     token: string
 ): Promise<ProfuctiveTime> {
-    const userIdResponse = await userIdFetcher(token, {
-        login: username
+    // The since/until window shifts with the current date, so it's part of the
+    // key — plain commit-date strings are cached, Date-like usage stays outside.
+    const committedDates = await withDataCache(`v1:pt:${username.toLowerCase()}:${since}:${until}`, async () => {
+        const userIdResponse = await userIdFetcher(token, {
+            login: username
+        });
+
+        if (userIdResponse.data.errors) {
+            throw Error(userIdResponse.data.errors[0].message || 'GetProductiveTime failed');
+        }
+
+        const userId = userIdResponse.data.data.user.id;
+        const res = await fetcher(token, {
+            login: username,
+            userId: userId,
+            until: until,
+            since: since
+        });
+
+        assertNoGraphQLErrors(res, 'GetProductiveTime failed');
+
+        const dates: Date[] = [];
+        res.data.data.user.contributionsCollection.commitContributionsByRepository.forEach(
+            (node: {
+                repository: {
+                    defaultBranchRef: {target: {history: {edges: any[]}}} | null;
+                };
+            }) => {
+                if (node.repository.defaultBranchRef != null) {
+                    node.repository.defaultBranchRef.target.history.edges.forEach(edge => {
+                        dates.push(edge.node.committedDate);
+                    });
+                }
+            }
+        );
+        return dates;
     });
-
-    if (userIdResponse.data.errors) {
-        throw Error(userIdResponse.data.errors[0].message || 'GetProductiveTime failed');
-    }
-
-    const userId = userIdResponse.data.data.user.id;
-    const res = await fetcher(token, {
-        login: username,
-        userId: userId,
-        until: until,
-        since: since
-    });
-
-    assertNoGraphQLErrors(res, 'GetProductiveTime failed');
 
     const productiveTime = new ProfuctiveTime();
-    res.data.data.user.contributionsCollection.commitContributionsByRepository.forEach(
-        (node: {
-            repository: {
-                defaultBranchRef: {target: {history: {edges: any[]}}} | null;
-            };
-        }) => {
-            if (node.repository.defaultBranchRef != null) {
-                node.repository.defaultBranchRef.target.history.edges.forEach(node => {
-                    productiveTime.addProductiveDate(node.node.committedDate);
-                });
-            }
-        }
-    );
-
+    committedDates.forEach(date => productiveTime.addProductiveDate(date));
     return productiveTime;
 }
