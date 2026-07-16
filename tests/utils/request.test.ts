@@ -87,14 +87,31 @@ describe('GitHub concurrency gate', () => {
         }
     });
 
-    it('releases slots when a request fails', async () => {
+    it("hands a failed request's slot to queued waiters under saturation", async () => {
         const mock = new MockAdapter(axios);
-        // 404 is not retried by retry-axios, so the rejection is immediate.
-        mock.onPost('https://api.github.com/graphql').replyOnce(404).onPost().reply(200, {data: {}});
+        // 404 is not retried by retry-axios, so rejections are immediate. The
+        // gate is saturated (8 slow calls), then extra calls QUEUE — two of
+        // them fail once they run. If a failure ever dropped its slot instead
+        // of handing it down, the remaining waiters would deadlock and this
+        // test would time out.
+        let served = 0;
+        mock.onPost('https://api.github.com/graphql').reply(config => {
+            served += 1;
+            const body = JSON.parse(config.data);
+            if (body.query.includes('FAIL')) return [404, {}];
+            return new Promise(resolve => setTimeout(() => resolve([200, {data: {ok: true}}]), 15));
+        });
         try {
-            await expect(request({}, {query: '{x}'})).rejects.toThrow();
-            // the failed call must have released its slot — the next one runs
-            await expect(request({}, {query: '{x}'})).resolves.toBeTruthy();
+            const calls = [
+                ...Array.from({length: 8}, () => request({}, {query: '{slow}'})), // saturate every slot
+                request({}, {query: '{FAIL_1}'}), // queued, then fails
+                request({}, {query: '{FAIL_2}'}), // queued, then fails
+                ...Array.from({length: 4}, () => request({}, {query: '{slow}'})) // queued behind the failures
+            ];
+            const settled = await Promise.allSettled(calls);
+            expect(settled.filter(s => s.status === 'fulfilled')).toHaveLength(12);
+            expect(settled.filter(s => s.status === 'rejected')).toHaveLength(2);
+            expect(served).toBe(14); // every queued call actually ran — no lost slots
         } finally {
             mock.restore();
         }
