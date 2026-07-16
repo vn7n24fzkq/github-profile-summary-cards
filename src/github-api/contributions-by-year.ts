@@ -1,4 +1,4 @@
-import request, {assertNoGraphQLErrors} from '../utils/request';
+import request, {assertNoGraphQLErrors, GraphQLError} from '../utils/request';
 import {withDataCache, PrimedReads} from '../utils/data-cache';
 
 export class ConrtibutionByYear {
@@ -38,6 +38,52 @@ const fetcher = (token: string, variables: any) => {
     );
 };
 
+// Split variants of the query above. GitHub's cost estimator rejects the
+// combined query with "Resource limits for this query exceeded" for some
+// mega-contribution user-years (e.g. gaearon 2017: >10k commits) while each
+// field queried on its own succeeds — same data, two cheaper documents.
+const commitCountFetcher = (token: string, variables: any) => {
+    return request(
+        {
+            Authorization: `bearer ${token}`
+        },
+        {
+            query: `
+      query ContributionsByYearCommits($login: String!, $from: DateTime, $to: DateTime) {
+        user(login: $login) {
+            contributionsCollection(from: $from, to: $to) {
+                totalCommitContributions
+            }
+        }
+      }
+      `,
+            variables
+        }
+    );
+};
+
+const calendarTotalFetcher = (token: string, variables: any) => {
+    return request(
+        {
+            Authorization: `bearer ${token}`
+        },
+        {
+            query: `
+      query ContributionsByYearCalendar($login: String!, $from: DateTime, $to: DateTime) {
+        user(login: $login) {
+            contributionsCollection(from: $from, to: $to) {
+                contributionCalendar {
+                    totalContributions
+                }
+            }
+        }
+      }
+      `,
+            variables
+        }
+    );
+};
+
 /**
  * Cache key for one (user, year) contribution total — exported so callers
  * iterating many years can batch-read them with primeDataCache.
@@ -61,19 +107,36 @@ export async function getContributionByYear(
     const raw = await withDataCache(
         contributionYearCacheKey(username, year),
         async () => {
-            const res = await fetcher(token, {
+            const variables = {
                 login: username,
                 from: year ? `${year}-01-01T00:00:00Z` : null,
                 to: year ? `${year}-12-31T23:59:59Z` : null
-            });
-
-            assertNoGraphQLErrors(res, 'GetContributionByYear failed');
-
-            const user = res.data.data.user;
-            return {
-                totalCommitContributions: user.contributionsCollection.totalCommitContributions as number,
-                totalContributions: user.contributionsCollection.contributionCalendar.totalContributions as number
             };
+            try {
+                const res = await fetcher(token, variables);
+                assertNoGraphQLErrors(res, 'GetContributionByYear failed');
+                const user = res.data.data.user;
+                return {
+                    totalCommitContributions: user.contributionsCollection.totalCommitContributions as number,
+                    totalContributions: user.contributionsCollection.contributionCalendar.totalContributions as number
+                };
+            } catch (err) {
+                if (!(err as GraphQLError).isResourceLimit) throw err;
+                // Combined document rejected for this mega-contribution year —
+                // fetch the same two numbers with one query each.
+                const [commitsRes, calendarRes] = await Promise.all([
+                    commitCountFetcher(token, variables),
+                    calendarTotalFetcher(token, variables)
+                ]);
+                assertNoGraphQLErrors(commitsRes, 'GetContributionByYear (split commits) failed');
+                assertNoGraphQLErrors(calendarRes, 'GetContributionByYear (split calendar) failed');
+                return {
+                    totalCommitContributions: commitsRes.data.data.user.contributionsCollection
+                        .totalCommitContributions as number,
+                    totalContributions: calendarRes.data.data.user.contributionsCollection.contributionCalendar
+                        .totalContributions as number
+                };
+            }
         },
         // Past years are immutable: long fresh window, retention slightly past it
         // so the fresh window is actually usable (retention is the Redis EX).

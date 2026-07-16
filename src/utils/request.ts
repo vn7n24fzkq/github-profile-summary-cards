@@ -5,9 +5,11 @@ import axios, {AxiosPromise} from 'axios';
 rax.attach();
 
 // An error thrown from the GraphQL layer, optionally flagged as a rate-limit so
-// callers can rotate to another token.
+// callers can rotate to another token, or as a resource-limit rejection so
+// callers can retry with a cheaper query shape.
 export interface GraphQLError extends Error {
     isRateLimit?: boolean;
+    isResourceLimit?: boolean;
 }
 
 // GitHub's GraphQL API returns rate-limit failures as HTTP 200 with an `errors`
@@ -21,6 +23,13 @@ export function assertNoGraphQLErrors(res: any, fallbackMessage: string): void {
         const err: GraphQLError = new Error(errors[0].message || fallbackMessage);
         if (errors.some((e: any) => e?.type === 'RATE_LIMITED')) {
             err.isRateLimit = true;
+        }
+        // "Resource limits for this query exceeded" — GitHub's cost estimator
+        // rejecting the query document. For mega-contribution accounts a
+        // combined query can trip it while each field alone stays under the
+        // limit, so callers may retry with a split query.
+        if (errors.some((e: any) => /resource limits/i.test(e?.message ?? ''))) {
+            err.isResourceLimit = true;
         }
         throw err;
     }

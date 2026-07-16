@@ -31,4 +31,17 @@ describe('assertNoGraphQLErrors', () => {
             expect(e.isRateLimit).toBeUndefined();
         }
     });
+
+    it('flags resource-limit errors with isResourceLimit so callers can split the query', () => {
+        expect.assertions(2);
+        try {
+            assertNoGraphQLErrors(
+                {data: {errors: [{message: 'Resource limits for this query exceeded.'}]}},
+                'fallback'
+            );
+        } catch (e: any) {
+            expect(e.isResourceLimit).toBe(true);
+            expect(e.isRateLimit).toBeUndefined();
+        }
+    });
 });
