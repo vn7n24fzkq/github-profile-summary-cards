@@ -224,16 +224,24 @@ async function fetchCalendarWeeks(username: string, token: string): Promise<Cale
         if (!(err as GraphQLError).isResourceLimit) throw err;
         // Even the trailing-year calendar alone is rejected for the most active
         // accounts — two disjoint half-windows score low enough to pass, and
-        // their days concatenate into the same daily series.
-        const now = Date.now();
-        const mid = new Date(now - 182 * 24 * 60 * 60 * 1000);
-        const start = new Date(now - 364 * 24 * 60 * 60 * 1000);
+        // their days concatenate into the same daily series. The seam sits on a
+        // UTC day boundary: the calendar buckets by day, so a mid-day cut would
+        // put the boundary date into both halves.
+        const DAY_MS = 24 * 60 * 60 * 1000;
+        const now = new Date();
+        const todayStartUtc = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+        const midStart = new Date(todayStartUtc - 182 * DAY_MS); // 00:00:00Z — first day of H2
+        const start = new Date(todayStartUtc - 364 * DAY_MS);
         const [h1, h2] = await Promise.all([
-            calendarFetcher(token, {login: username, from: start.toISOString(), to: mid.toISOString()}),
             calendarFetcher(token, {
                 login: username,
-                from: new Date(mid.getTime() + 1000).toISOString(),
-                to: new Date(now).toISOString()
+                from: start.toISOString(),
+                to: new Date(midStart.getTime() - 1).toISOString() // 23:59:59.999Z of H1's last day
+            }),
+            calendarFetcher(token, {
+                login: username,
+                from: midStart.toISOString(),
+                to: now.toISOString()
             })
         ]);
         assertNoGraphQLErrors(h1, 'GetProfileDetails (calendar H1) failed');

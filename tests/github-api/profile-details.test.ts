@@ -181,6 +181,7 @@ describe('github api for profile details', () => {
         const resourceLimit = {errors: [{message: 'Resource limits for this query exceeded.'}]};
         const u = data.data.user;
         const week = (date: string, count: number) => ({contributionDays: [{date, contributionCount: count}]});
+        const calendarWindows: {from: string; to: string}[] = [];
         mock.onPost('https://api.github.com/graphql').reply(config => {
             const body = JSON.parse(config.data);
             const vars = body.variables ?? {};
@@ -188,6 +189,7 @@ describe('github api for profile details', () => {
             if (body.query.includes('UserDetailsCalendar')) {
                 // full trailing-year window (null from/to) rejected; halves pass
                 if (!vars.from) return [200, resourceLimit];
+                calendarWindows.push({from: vars.from, to: vars.to});
                 const isFirstHalf = new Date(vars.from).getTime() < Date.now() - 200 * 24 * 3600 * 1000;
                 return [
                     200,
@@ -247,6 +249,21 @@ describe('github api for profile details', () => {
         const profileDetails = await getProfileDetails('antfu', 'token');
         // both half-window days present, in order
         expect(profileDetails.contributions.map(c => c.contributionCount)).toEqual([4, 6]);
+
+        // The two windows must be adjacent on a UTC day boundary — a mid-day
+        // seam would put the boundary date into both halves' calendars.
+        expect(calendarWindows).toHaveLength(2);
+        const [w1, w2] = calendarWindows.sort((a, b) => a.from.localeCompare(b.from));
+        expect(new Date(w1.to).getTime() + 1).toBe(new Date(w2.from).getTime());
+        expect(w2.from.endsWith('T00:00:00.000Z')).toBe(true);
+        expect(w1.from.endsWith('T00:00:00.000Z')).toBe(true);
+        // ~1 year covered end to end
+        const spanDays = (new Date(w2.to).getTime() - new Date(w1.from).getTime()) / (24 * 3600 * 1000);
+        expect(spanDays).toBeGreaterThanOrEqual(363);
+        expect(spanDays).toBeLessThanOrEqual(366);
+        // merged daily series has no duplicate dates
+        const dates = profileDetails.contributions.map(c => c.date.toISOString());
+        expect(new Set(dates).size).toBe(dates.length);
     });
 
     it('sums stars across every repo page, not just the first 100', async () => {
