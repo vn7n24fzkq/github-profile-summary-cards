@@ -23,6 +23,18 @@ describe('assertNoGraphQLErrors', () => {
         }
     });
 
+    it('flags typeless "rate limit already exceeded" errors too (production outage 2026-07-17)', () => {
+        expect.assertions(1);
+        try {
+            assertNoGraphQLErrors(
+                {data: {errors: [{message: 'API rate limit already exceeded for user ID 305432014.'}]}},
+                'fallback'
+            );
+        } catch (e: any) {
+            expect(e.isRateLimit).toBe(true);
+        }
+    });
+
     it('does not flag non-rate-limit errors', () => {
         expect.assertions(1);
         try {

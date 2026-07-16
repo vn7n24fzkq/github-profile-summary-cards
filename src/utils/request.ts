@@ -21,7 +21,12 @@ export function assertNoGraphQLErrors(res: any, fallbackMessage: string): void {
     const errors = res?.data?.errors;
     if (Array.isArray(errors) && errors.length > 0) {
         const err: GraphQLError = new Error(errors[0].message || fallbackMessage);
-        if (errors.some((e: any) => e?.type === 'RATE_LIMITED')) {
+        // GitHub reports GraphQL rate limiting two ways: type RATE_LIMITED, and
+        // (once the quota is fully spent) a typeless error reading "API rate
+        // limit already exceeded for user ID ...". Matching only the type missed
+        // the second form, so token rotation never engaged during a real
+        // exhaustion — exactly when it matters most.
+        if (errors.some((e: any) => e?.type === 'RATE_LIMITED' || /rate limit/i.test(e?.message ?? ''))) {
             err.isRateLimit = true;
         }
         // "Resource limits for this query exceeded" — GitHub's cost estimator
