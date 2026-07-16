@@ -62,7 +62,7 @@ describe('withDataCache', () => {
     });
 
     it('re-fetches when the cached value is stale', async () => {
-        const staleAt = Date.now() - 7 * 60 * 60 * 1000; // older than the 6h fresh window
+        const staleAt = Date.now() - 13 * 60 * 60 * 1000; // older than the 12h fresh window
         fetchSpy
             .mockResolvedValueOnce(envelopeResponse(staleAt, 'stale'))
             .mockResolvedValueOnce({ok: true, json: async () => ({})} as Response);
@@ -71,7 +71,7 @@ describe('withDataCache', () => {
     });
 
     it('serves the stale value when the fetcher fails (rate limited)', async () => {
-        const staleAt = Date.now() - 7 * 60 * 60 * 1000;
+        const staleAt = Date.now() - 13 * 60 * 60 * 1000;
         fetchSpy.mockResolvedValueOnce(envelopeResponse(staleAt, 'stale'));
         const fetcher = jest.fn().mockRejectedValue(new Error('rate limited'));
         await expect(withDataCache('k', fetcher)).resolves.toBe('stale');
@@ -138,7 +138,7 @@ describe('runWithCacheStats', () => {
     });
 
     it('reports stale when a fallback copy was served', async () => {
-        const staleAt = Date.now() - 7 * 60 * 60 * 1000;
+        const staleAt = Date.now() - 13 * 60 * 60 * 1000;
         fetchSpy.mockResolvedValue(envelopeResponse(staleAt, 'stale'));
         const {cacheStatus} = await runWithCacheStats(async () => {
             await withDataCache('a', jest.fn().mockRejectedValue(new Error('rate limited')));

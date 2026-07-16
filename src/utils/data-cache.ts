@@ -18,7 +18,10 @@
 
 import {AsyncLocalStorage} from 'async_hooks';
 
-const FRESH_SECONDS_DEFAULT = 6 * 60 * 60; // serve without re-fetching
+// 12h: with the CDN already serving most viewers up-to-48h-old cards, a
+// shorter Redis fresh window buys little visible freshness while doubling the
+// GitHub refresh traffic. Halving that traffic is a free-tier budget lever.
+const FRESH_SECONDS_DEFAULT = 12 * 60 * 60; // serve without re-fetching
 const RETENTION_SECONDS_DEFAULT = 7 * 24 * 60 * 60; // Redis EX — stale kept as a rate-limit fallback
 const KV_TIMEOUT_MS = 1500; // never let a slow Redis block a card render
 
