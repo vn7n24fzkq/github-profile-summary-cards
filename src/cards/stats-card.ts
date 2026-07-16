@@ -2,7 +2,7 @@ import {ThemeMap, ThemeColorOverride, resolveTheme} from '../const/theme';
 import {Icon} from '../const/icon';
 import {abbreviateNumber} from 'js-abbreviation-number';
 import {getProfileDetails} from '../github-api/profile-details';
-import {getContributionByYear} from '../github-api/contributions-by-year';
+import {getContributionTotals} from '../utils/contribution-history';
 import {createStatsCard as statsCard} from '../templates/stats-card';
 import {CardGenerationOptions, writeThemedCards} from '../utils/card-generation';
 
@@ -41,26 +41,13 @@ const getStatsData = async function (
 ): Promise<{index: number; icon: string; name: string; value: string}[]> {
     const profileDetails = await getProfileDetails(username, token);
     const totalStars = profileDetails.totalStars;
-    let totalCommitContributions = 0;
     const totalPullRequestContributions = profileDetails.totalPullRequestContributions;
     const totalIssueContributions = profileDetails.totalIssueContributions;
-
     const totalRepositoryContributions = profileDetails.totalRepositoryContributions;
-    if (process.env.VERCEL) {
-        // If running on vercel, we only calculate for last 1 year to avoid Vercel timeout limit.
-        // Sort descending first so we take the latest year (GitHub's order isn't guaranteed).
-        profileDetails.contributionYears.sort((a, b) => b - a);
-        profileDetails.contributionYears = profileDetails.contributionYears.slice(0, 1);
-        for (const year of profileDetails.contributionYears) {
-            const contributions = await getContributionByYear(username, year, token);
-            totalCommitContributions += contributions.totalCommitContributions;
-        }
-    } else {
-        for (const year of profileDetails.contributionYears) {
-            const contributions = await getContributionByYear(username, year, token);
-            totalCommitContributions += contributions.totalCommitContributions;
-        }
-    }
+
+    // Full history everywhere — per-year results are cached (past years are
+    // immutable), so the web service can afford the same semantics as the Action.
+    const {totalCommitContributions} = await getContributionTotals(username, profileDetails.contributionYears, token);
 
     const statsData = [
         {
@@ -69,22 +56,12 @@ const getStatsData = async function (
             name: 'Total Stars:',
             value: `${abbreviateNumber(totalStars, 1)}`
         },
-        // If running on vercel, we only display for last 1 year commits count
-        !process.env.VERCEL
-            ? {
-                  index: 1,
-                  icon: Icon.COMMIT,
-                  name: 'Total Commits:',
-                  value: `${abbreviateNumber(totalCommitContributions, 1)}`
-              }
-            : {
-                  index: 1,
-                  icon: Icon.COMMIT,
-                  name: profileDetails.contributionYears[0]
-                      ? `${profileDetails.contributionYears[0]} Commits:`
-                      : 'Total Commits:',
-                  value: `${abbreviateNumber(totalCommitContributions, 1)}`
-              },
+        {
+            index: 1,
+            icon: Icon.COMMIT,
+            name: 'Total Commits:',
+            value: `${abbreviateNumber(totalCommitContributions, 1)}`
+        },
         {
             index: 2,
             icon: Icon.PULL_REQUEST,

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
@@ -68,8 +68,7 @@
                 margin: 0;
                 background: var(--bg);
                 color: var(--fg);
-                font-family:
-                    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif,
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif,
                     'Apple Color Emoji', 'Segoe UI Emoji';
                 line-height: 1.5;
             }
@@ -317,18 +316,20 @@
             <header>
                 <h1>GitHub Profile Summary Cards</h1>
                 <div class="toolbar">
-                    <button class="btn" id="themeToggle" type="button" aria-label="Toggle colour theme">🌓 Theme</button>
+                    <button class="btn" id="themeToggle" type="button" aria-label="Toggle colour theme">
+                        🌓 Theme
+                    </button>
                     <a
                         class="btn"
                         href="https://github.com/vn7n24fzkq/github-profile-summary-cards"
                         target="_blank"
                         rel="noopener"
-                        >★ Star on GitHub <span class="count" id="starCount" hidden></span></a
-                    >
+                        >★ Star on GitHub <span class="count" id="starCount" hidden></span
+                    ></a>
                 </div>
                 <p class="sub">
-                    Generate summary cards for your profile README — pick a theme, tweak colours and animation, then copy
-                    the Markdown.
+                    Generate summary cards for your profile README — pick a theme, tweak colours and animation, then
+                    copy the Markdown.
                 </p>
             </header>
 
@@ -365,11 +366,27 @@
                     <div class="row">
                         <div class="field">
                             <label for="duration">Duration (s)</label>
-                            <input id="duration" name="duration" type="number" min="0.2" max="10" step="0.1" placeholder="default" />
+                            <input
+                                id="duration"
+                                name="duration"
+                                type="number"
+                                min="0.2"
+                                max="10"
+                                step="0.1"
+                                placeholder="default"
+                            />
                         </div>
                         <div class="field">
                             <label for="utcOffset">UTC offset</label>
-                            <input id="utcOffset" name="utcOffset" type="number" min="-12" max="14" step="1" value="0" />
+                            <input
+                                id="utcOffset"
+                                name="utcOffset"
+                                type="number"
+                                min="-12"
+                                max="14"
+                                step="1"
+                                value="0"
+                            />
                         </div>
                     </div>
 
@@ -389,7 +406,9 @@
                         <p class="hint">Leave a colour unticked to use the theme's default.</p>
                     </details>
 
-                    <button class="btn primary" id="copyAll" type="button" style="width: 100%">📋 Copy all Markdown</button>
+                    <button class="btn primary" id="copyAll" type="button" style="width: 100%">
+                        📋 Copy all Markdown
+                    </button>
                 </form>
 
                 <!-- ---------------- Preview ---------------- -->
@@ -406,7 +425,12 @@
                     </div>
                     <footer>
                         Cards update as you type. Markdown you copy points at this site's API —
-                        <a href="https://github.com/vn7n24fzkq/github-profile-summary-cards" target="_blank" rel="noopener">docs &amp; self-hosting</a>.
+                        <a
+                            href="https://github.com/vn7n24fzkq/github-profile-summary-cards"
+                            target="_blank"
+                            rel="noopener"
+                            >docs &amp; self-hosting</a
+                        >.
                     </footer>
                 </div>
             </div>
@@ -434,7 +458,16 @@
                     ['icon_color', 'Icon'],
                     ['chart_color', 'Chart']
                 ];
-                var FALLBACK_THEMES = ['default', 'github_dark', 'dracula', 'tokyonight', 'solarized', 'gruvbox', 'nord_dark', 'transparent'];
+                var FALLBACK_THEMES = [
+                    'default',
+                    'github_dark',
+                    'dracula',
+                    'tokyonight',
+                    'solarized',
+                    'gruvbox',
+                    'nord_dark',
+                    'transparent'
+                ];
 
                 var form = document.getElementById('form');
                 var cardsEl = document.getElementById('cards');
@@ -450,9 +483,15 @@
                     var row = document.createElement('label');
                     row.className = 'colorrow';
                     row.innerHTML =
-                        '<input type="checkbox" data-enable="' + key + '"> ' +
-                        '<input type="color" data-color="' + key + '" value="#000000"> ' +
-                        '<span>' + c[1] + '</span>';
+                        '<input type="checkbox" data-enable="' +
+                        key +
+                        '"> ' +
+                        '<input type="color" data-color="' +
+                        key +
+                        '" value="#000000"> ' +
+                        '<span>' +
+                        c[1] +
+                        '</span>';
                     colorGrid.appendChild(row);
                 });
 
@@ -492,7 +531,10 @@
                         var off = clampNum(els.utcOffset.value, -12, 14);
                         if (off !== null) p.set('utcOffset', String(off));
                     }
-                    if ((endpoint === 'repos-per-language' || endpoint === 'most-commit-language') && els.exclude.value.trim())
+                    if (
+                        (endpoint === 'repos-per-language' || endpoint === 'most-commit-language') &&
+                        els.exclude.value.trim()
+                    )
                         p.set('exclude', els.exclude.value.trim());
                     colorParams().forEach(function (kv) {
                         p.set(kv[0], kv[1]);

@@ -2,7 +2,7 @@ import {ThemeMap, ThemeColorOverride, resolveTheme} from '../const/theme';
 import {Icon} from '../const/icon';
 import {abbreviateNumber} from 'js-abbreviation-number';
 import {getProfileDetails, ProfileDetails, ProfileContribution} from '../github-api/profile-details';
-import {getContributionByYear} from '../github-api/contributions-by-year';
+import {getContributionTotals} from '../utils/contribution-history';
 import {createDetailCard} from '../templates/profile-details-card';
 import {CardGenerationOptions, writeThemedCards} from '../utils/card-generation';
 import {buildProfileTitle} from '../utils/profile-title';
@@ -86,40 +86,17 @@ const getProfileDetailsData = async function (
     token: string
 ): Promise<[ProfileDetails, {index: number; icon: string; name: string; value: string}[]]> {
     const profileDetails = await getProfileDetails(username, token);
-    let totalContributions = 0;
-    if (process.env.VERCEL) {
-        // If running on vercel, we only calculate for last 1 year to avoid hobby timeout limit
-        // Sort years descending to ensure we get the latest
-        profileDetails.contributionYears.sort((a, b) => b - a);
-        const latestYear = profileDetails.contributionYears[0];
-
-        if (latestYear !== undefined) {
-            profileDetails.contributionYears = [latestYear];
-            totalContributions += (await getContributionByYear(username, latestYear, token)).totalContributions;
-        }
-    } else {
-        for (const year of profileDetails.contributionYears) {
-            totalContributions += (await getContributionByYear(username, year, token)).totalContributions;
-        }
-    }
+    // Full history everywhere — per-year results are cached (past years are
+    // immutable), so the web service can afford the same semantics as the Action.
+    const {totalContributions} = await getContributionTotals(username, profileDetails.contributionYears, token);
 
     const userDetails: {index: number; icon: string; name: string; value: string}[] = [
-        // If running on vercel, we only display for last 1 year contributions count
-        !process.env.VERCEL
-            ? {
-                  index: 0,
-                  icon: Icon.GITHUB,
-                  name: 'Contributions',
-                  value: `${abbreviateNumber(totalContributions, 2)} Contributions on GitHub`
-              }
-            : {
-                  index: 0,
-                  icon: Icon.GITHUB,
-                  name: 'Contributions',
-                  value: profileDetails.contributionYears[0]
-                      ? `${abbreviateNumber(totalContributions, 2)} Contributions in ${profileDetails.contributionYears[0]}`
-                      : `${abbreviateNumber(totalContributions, 2)} Contributions on GitHub`
-              },
+        {
+            index: 0,
+            icon: Icon.GITHUB,
+            name: 'Contributions',
+            value: `${abbreviateNumber(totalContributions, 2)} Contributions on GitHub`
+        },
         {
             index: 1,
             icon: Icon.REPOS,

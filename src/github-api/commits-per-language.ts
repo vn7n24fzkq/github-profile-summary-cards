@@ -1,5 +1,6 @@
 import request, {assertNoGraphQLErrors} from '../utils/request';
 import {withDataCache} from '../utils/data-cache';
+import {VERCEL_PAGINATION_BUDGET_MS} from '../const/pagination';
 
 export class CommitLanguageInfo {
     name: string;
@@ -32,16 +33,63 @@ export class CommitLanguages {
     }
 }
 
-const fetcher = (token: string, variables: any) => {
+interface CommitContributionNode {
+    repository: {name: string; nameWithOwner: string; primaryLanguage: {name: string; color: string} | null};
+    contributions: {totalCount: number};
+}
+
+// Parallel chunk size for per-year queries — matches contribution-history.
+const YEAR_CHUNK_SIZE = 5;
+
+const yearsFetcher = (token: string, variables: any) => {
     return request(
         {
             Authorization: `bearer ${token}`
         },
         {
             query: `
-      query CommitLanguages($login: String!) {
+      query ContributionYears($login: String!) {
         user(login: $login) {
           contributionsCollection {
+            contributionYears
+          }
+        }
+      }
+      `,
+            variables
+        }
+    );
+};
+
+/**
+ * Fetches the list of years the user has contributions in. A dedicated tiny
+ * query (cached) so callers don't have to drag the heavy profile-details
+ * query (star pagination and all) into their path.
+ *
+ * @param {string} username - The GitHub login.
+ * @param {string} token - GitHub token.
+ * @return {Promise<Array<number>>} Contribution years, e.g. [2026, 2025, ...].
+ */
+export async function getContributionYears(username: string, token: string): Promise<number[]> {
+    return withDataCache(`v1:cys:${username.toLowerCase()}`, async () => {
+        const res = await yearsFetcher(token, {login: username});
+        assertNoGraphQLErrors(res, 'GetContributionYears failed');
+        return res.data.data.user.contributionsCollection.contributionYears as number[];
+    });
+}
+
+const fetcher = (token: string, variables: any) => {
+    // The $from/$to window selects one calendar year (GitHub allows at most a
+    // 1-year contributionsCollection range).
+    return request(
+        {
+            Authorization: `bearer ${token}`
+        },
+        {
+            query: `
+      query CommitLanguages($login: String!, $from: DateTime, $to: DateTime) {
+        user(login: $login) {
+          contributionsCollection(from: $from, to: $to) {
             commitContributionsByRepository(maxRepositories: 100) {
               repository {
                 name
@@ -64,50 +112,92 @@ const fetcher = (token: string, variables: any) => {
     );
 };
 
-// repos per language
-export async function getCommitLanguage(
+async function getCommitContributionsForYear(
+    username: string,
+    year: number,
+    token: string
+): Promise<CommitContributionNode[]> {
+    const isPastYear = year < new Date().getFullYear();
+    return withDataCache(
+        `v1:cly:${username.toLowerCase()}:${year}`,
+        async () => {
+            const res = await fetcher(token, {
+                login: username,
+                from: `${year}-01-01T00:00:00Z`,
+                to: `${year}-12-31T23:59:59Z`
+            });
+            assertNoGraphQLErrors(res, 'GetCommitLanguage failed');
+            return res.data.data.user.contributionsCollection.commitContributionsByRepository;
+        },
+        // Past years are immutable — cache long; the current year refreshes.
+        isPastYear ? {freshSeconds: 90 * 24 * 60 * 60, retentionSeconds: 100 * 24 * 60 * 60} : undefined
+    );
+}
+
+/**
+ * Full-history commit-language distribution: per-year queries merged across
+ * every contribution year. Raw per-year data is cached (past years long-term);
+ * language/repo exclusion filters apply after the cache boundary so they don't
+ * fragment keys. Semantics are identical with or without a working cache —
+ * Redis only buffers the GitHub quota. On Vercel, blowing the time budget
+ * throws (error card) rather than returning a partial distribution; already
+ * fetched years are cached so the next render completes.
+ *
+ * @param {string} username - The GitHub login.
+ * @param {Array<string>} exclude - Lowercased language names to skip.
+ * @param {string} token - GitHub token.
+ * @param {Array<string>} excludeRepos - Lowercased repo / owner-repo names to skip.
+ * @param {Array<number>} years - Contribution years (see getContributionYears).
+ * @return {Promise<CommitLanguages>} Aggregated language → commit counts.
+ */
+export async function getCommitLanguageAllYears(
     username: string,
     exclude: Array<string>,
     token: string,
-    excludeRepos: Array<string> = []
+    excludeRepos: Array<string> = [],
+    years: number[]
 ): Promise<CommitLanguages> {
     const commitLanguages = new CommitLanguages();
+    const sortedYears = [...years].sort((a, b) => b - a);
+    const startedAt = Date.now();
 
-    // Raw contribution list cached per username; filters apply after the cache.
-    const contributionsByRepository = await withDataCache(`v1:cl:${username.toLowerCase()}`, async () => {
-        const res = await fetcher(token, {
-            login: username
-        });
-
-        assertNoGraphQLErrors(res, 'GetCommitLanguage failed');
-
-        return res.data.data.user.contributionsCollection.commitContributionsByRepository;
-    });
-
-    contributionsByRepository.forEach(
-        (node: {
-            repository: {name: string; nameWithOwner: string; primaryLanguage: {name: string; color: string} | null};
-            contributions: {totalCount: number};
-        }) => {
-            // Commit contributions can live in other owners' repos, so match the
-            // exclusion list against both `repo` and `owner/repo` forms.
-            if (
-                excludeRepos.includes((node.repository.name ?? '').toLowerCase()) ||
-                excludeRepos.includes((node.repository.nameWithOwner ?? '').toLowerCase())
-            ) {
-                return;
-            }
-            if (node.repository.primaryLanguage == null) {
-                return;
-            }
-            const langName = node.repository.primaryLanguage.name;
-            const langColor = node.repository.primaryLanguage.color;
-            const totalCount = node.contributions.totalCount;
-            if (!exclude.includes(langName.toLowerCase())) {
-                commitLanguages.addLanguageCount(langName, langColor, totalCount);
-            }
+    for (let i = 0; i < sortedYears.length; i += YEAR_CHUNK_SIZE) {
+        if (process.env.VERCEL && Date.now() - startedAt > VERCEL_PAGINATION_BUDGET_MS) {
+            throw new Error(`Commit-language history for ${username} timed out before all years were fetched`);
         }
-    );
+        const chunk = sortedYears.slice(i, i + YEAR_CHUNK_SIZE);
+        const yearlyNodes = await Promise.all(chunk.map(year => getCommitContributionsForYear(username, year, token)));
+        for (const nodes of yearlyNodes) {
+            aggregate(nodes, exclude, excludeRepos, commitLanguages);
+        }
+    }
 
     return commitLanguages;
+}
+
+function aggregate(
+    nodes: CommitContributionNode[],
+    exclude: Array<string>,
+    excludeRepos: Array<string>,
+    commitLanguages: CommitLanguages
+): void {
+    nodes.forEach(node => {
+        // Commit contributions can live in other owners' repos, so match the
+        // exclusion list against both `repo` and `owner/repo` forms.
+        if (
+            excludeRepos.includes((node.repository.name ?? '').toLowerCase()) ||
+            excludeRepos.includes((node.repository.nameWithOwner ?? '').toLowerCase())
+        ) {
+            return;
+        }
+        if (node.repository.primaryLanguage == null) {
+            return;
+        }
+        const langName = node.repository.primaryLanguage.name;
+        const langColor = node.repository.primaryLanguage.color;
+        const totalCount = node.contributions.totalCount;
+        if (!exclude.includes(langName.toLowerCase())) {
+            commitLanguages.addLanguageCount(langName, langColor, totalCount);
+        }
+    });
 }

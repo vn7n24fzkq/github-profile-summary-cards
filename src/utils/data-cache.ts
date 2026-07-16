@@ -11,17 +11,34 @@
 //   errors/times out, callers behave exactly as without the cache.
 // - Only cache plain-JSON payloads (raw API data), never class instances —
 //   aggregation into Maps/Dates happens after the cache boundary.
+// - A per-instance circuit breaker stops paying KV timeouts during an outage,
+//   and lets features (full-history stats) decide to degrade via isKvHealthy().
+// - Concurrent lookups of the same key are coalesced in-instance so a cold
+//   cache plus a burst of identical requests fires one fetch, not N.
 
 import {AsyncLocalStorage} from 'async_hooks';
 
 const FRESH_SECONDS_DEFAULT = 6 * 60 * 60; // serve without re-fetching
-const STALE_SECONDS = 7 * 24 * 60 * 60; // keep as a rate-limit fallback
+const RETENTION_SECONDS_DEFAULT = 7 * 24 * 60 * 60; // Redis EX — stale kept as a rate-limit fallback
 const KV_TIMEOUT_MS = 1500; // never let a slow Redis block a card render
+
+// Circuit breaker: after this many consecutive KV failures (timeouts/errors —
+// cache misses are successes), skip all KV I/O for the cooldown period so an
+// outage costs ~0ms per key instead of a 1.5s timeout each.
+const KV_FAIL_THRESHOLD = 3;
+const KV_UNHEALTHY_COOLDOWN_MS = 60 * 1000;
+
+export interface DataCacheOptions {
+    freshSeconds?: number;
+    retentionSeconds?: number;
+}
 
 interface Envelope<T> {
     at: number; // epoch ms when the data was fetched
     data: T;
 }
+
+type KvReadResult<T> = {kind: 'hit'; envelope: Envelope<T>} | {kind: 'miss'} | {kind: 'error'};
 
 // Per-request cache-outcome collector. handleCard opens a context with
 // runWithCacheStats; every withDataCache call inside it records its outcome so
@@ -64,33 +81,85 @@ function kvConfigured(): boolean {
     return !!process.env.KV_REST_API_URL && !!process.env.KV_REST_API_TOKEN;
 }
 
-async function kvGet<T>(key: string): Promise<Envelope<T> | null> {
+// ---- circuit breaker state (per lambda instance) ----
+let kvFailStreak = 0;
+let kvUnhealthyUntil = 0;
+
+function recordKvSuccess(): void {
+    kvFailStreak = 0;
+}
+
+function recordKvFailure(): void {
+    kvFailStreak += 1;
+    if (kvFailStreak >= KV_FAIL_THRESHOLD) {
+        kvUnhealthyUntil = Date.now() + KV_UNHEALTHY_COOLDOWN_MS;
+        kvFailStreak = 0; // re-tripping after the cooldown takes a fresh streak
+        console.log(`data-cache: circuit opened for ${KV_UNHEALTHY_COOLDOWN_MS / 1000}s after repeated KV failures`);
+    }
+}
+
+/**
+ * Whether the data cache is usable right now: configured and not in a
+ * circuit-breaker cooldown. Features that are only affordable WITH a cache
+ * (full-history stats) consult this to pick their degraded mode.
+ *
+ * @return {boolean} True when KV is configured and believed healthy.
+ */
+export function isKvHealthy(): boolean {
+    return kvConfigured() && Date.now() >= kvUnhealthyUntil;
+}
+
+/**
+ * Test hook: clears breaker state so suites don't leak failures into each other.
+ */
+export function resetKvHealthForTests(): void {
+    kvFailStreak = 0;
+    kvUnhealthyUntil = 0;
+}
+
+async function kvGet<T>(key: string): Promise<KvReadResult<T>> {
     try {
         const res = await fetch(`${process.env.KV_REST_API_URL}/get/${encodeURIComponent(key)}`, {
             headers: {Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`},
             signal: AbortSignal.timeout(KV_TIMEOUT_MS)
         });
-        if (!res.ok) return null;
+        if (!res.ok) {
+            recordKvFailure();
+            return {kind: 'error'};
+        }
         const body = await res.json();
-        if (typeof body?.result !== 'string') return null;
-        return JSON.parse(body.result) as Envelope<T>;
+        recordKvSuccess();
+        // A miss is a healthy answer, not a failure.
+        if (typeof body?.result !== 'string') return {kind: 'miss'};
+        return {kind: 'hit', envelope: JSON.parse(body.result) as Envelope<T>};
     } catch (e) {
-        return null;
+        recordKvFailure();
+        return {kind: 'error'};
     }
 }
 
-async function kvSet<T>(key: string, envelope: Envelope<T>): Promise<void> {
+async function kvSet<T>(key: string, envelope: Envelope<T>, retentionSeconds: number): Promise<void> {
     try {
-        await fetch(`${process.env.KV_REST_API_URL}/set/${encodeURIComponent(key)}?EX=${STALE_SECONDS}`, {
-            method: 'POST',
-            headers: {Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`},
-            body: JSON.stringify(envelope),
-            signal: AbortSignal.timeout(KV_TIMEOUT_MS)
-        });
+        const res = await fetch(
+            `${process.env.KV_REST_API_URL}/set/${encodeURIComponent(key)}?EX=${retentionSeconds}`,
+            {
+                method: 'POST',
+                headers: {Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`},
+                body: JSON.stringify(envelope),
+                signal: AbortSignal.timeout(KV_TIMEOUT_MS)
+            }
+        );
+        if (res.ok) recordKvSuccess();
+        else recordKvFailure();
     } catch (e) {
         // Best-effort write; the card was already rendered from fresh data.
+        recordKvFailure();
     }
 }
+
+// In-flight coalescing: identical keys requested concurrently (Fluid serves
+// many requests per instance) share one lookup+fetch instead of stampeding.
+const inflight = new Map<string, Promise<unknown>>();
 
 /**
  * Returns cached data for `key` when fresh; otherwise runs `fetcher` and
@@ -99,33 +168,64 @@ async function kvSet<T>(key: string, envelope: Envelope<T>): Promise<void> {
  *
  * @param {string} key - Cache key; include every input that changes the data (never the token).
  * @param {Function} fetcher - Fetches the raw, JSON-serialisable data.
- * @param {number} [freshSeconds] - How long a cached copy is served without re-fetching.
- * @return {Promise<T>} The fresh or cached data.
+ * @param {number|DataCacheOptions} [options] - Fresh window seconds (number,
+ *     back-compat) or {freshSeconds, retentionSeconds}.
+ * @return {Promise} The fresh or cached data.
  */
 export async function withDataCache<T>(
     key: string,
     fetcher: () => Promise<T>,
-    freshSeconds: number = FRESH_SECONDS_DEFAULT
+    options?: number | DataCacheOptions
 ): Promise<T> {
-    if (!kvConfigured()) return fetcher();
-
-    const cached = await kvGet<T>(key);
-    if (cached && Date.now() - cached.at < freshSeconds * 1000) {
+    const existing = inflight.get(key);
+    if (existing) {
+        // Followers get data without doing any work — report it as a hit.
         recordCacheOutcome('fresh');
-        return cached.data;
+        return existing as Promise<T>;
+    }
+    const promise = withDataCacheUncoalesced(key, fetcher, options);
+    inflight.set(key, promise);
+    try {
+        return await promise;
+    } finally {
+        inflight.delete(key);
+    }
+}
+
+async function withDataCacheUncoalesced<T>(
+    key: string,
+    fetcher: () => Promise<T>,
+    options?: number | DataCacheOptions
+): Promise<T> {
+    const opts: DataCacheOptions = typeof options === 'number' ? {freshSeconds: options} : options ?? {};
+    const freshSeconds = opts.freshSeconds ?? FRESH_SECONDS_DEFAULT;
+    const retentionSeconds = opts.retentionSeconds ?? RETENTION_SECONDS_DEFAULT;
+
+    if (!kvConfigured()) return fetcher();
+    // Breaker open: skip KV I/O entirely so an outage doesn't cost a timeout
+    // per key. Callers keep working straight against GitHub.
+    if (!isKvHealthy()) {
+        recordCacheOutcome('miss');
+        return fetcher();
+    }
+
+    const read = await kvGet<T>(key);
+    if (read.kind === 'hit' && Date.now() - read.envelope.at < freshSeconds * 1000) {
+        recordCacheOutcome('fresh');
+        return read.envelope.data;
     }
 
     try {
         const data = await fetcher();
-        await kvSet(key, {at: Date.now(), data});
+        await kvSet(key, {at: Date.now(), data}, retentionSeconds);
         recordCacheOutcome('miss');
         return data;
     } catch (err) {
         // Rate limited / GitHub down: a stale answer beats an error card.
-        if (cached) {
+        if (read.kind === 'hit') {
             recordCacheOutcome('stale');
             console.log(`data-cache: serving stale ${key} after fetch error: ${(err as Error)?.message}`);
-            return cached.data;
+            return read.envelope.data;
         }
         throw err;
     }
@@ -140,7 +240,7 @@ export async function withDataCache<T>(
  * @return {Promise<void>} Resolves once the pipeline call settles.
  */
 export async function bumpRenderLeaderboard(username: string): Promise<void> {
-    if (!kvConfigured()) return;
+    if (!kvConfigured() || !isKvHealthy()) return;
     const user = username.toLowerCase();
     const month = new Date().toISOString().slice(0, 7); // e.g. 2026-07
     const monthlyKey = `leaderboard:renders:${month}`;

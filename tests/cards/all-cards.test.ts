@@ -10,7 +10,7 @@ import {createOrganizationStatsCard} from '../../src/cards/organization-stats-ca
 import {writeSVG} from '../../src/utils/file-writer';
 import {getProfileDetails} from '../../src/github-api/profile-details';
 import {getRepoLanguages} from '../../src/github-api/repos-per-language';
-import {getCommitLanguage} from '../../src/github-api/commits-per-language';
+import {getCommitLanguageAllYears, getContributionYears} from '../../src/github-api/commits-per-language';
 import {getProductiveTime} from '../../src/github-api/productive-time';
 import {getContributionByYear} from '../../src/github-api/contributions-by-year';
 import {getOrganizationDetails} from '../../src/github-api/organization-details';
@@ -57,7 +57,8 @@ describe('Cards Generation (Integration)', () => {
         (getRepoLanguages as jest.Mock).mockResolvedValue({
             getLanguageMap: () => new Map([['TypeScript', {count: 100, color: '#abcdef'}]])
         });
-        (getCommitLanguage as jest.Mock).mockResolvedValue({
+        (getContributionYears as jest.Mock).mockResolvedValue([2024]);
+        (getCommitLanguageAllYears as jest.Mock).mockResolvedValue({
             getLanguageMap: () => new Map([['TypeScript', {count: 500, color: '#abcdef'}]])
         });
         (getProductiveTime as jest.Mock).mockResolvedValue({

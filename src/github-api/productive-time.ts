@@ -27,7 +27,9 @@ const userIdFetcher = (token: string, variables: any) => {
     );
 };
 
-// We use commit datetime to calculate productive time
+// We use the authored datetime to calculate productive time: committedDate is
+// rewritten by squash/rebase merges (it becomes the merge-click time), while
+// authoredDate keeps the moment the code was actually written.
 const fetcher = (token: string, variables: any) => {
     return request(
         {
@@ -50,7 +52,7 @@ const fetcher = (token: string, variables: any) => {
                             author{
                               email
                             }
-                            committedDate
+                            authoredDate
                           }
                         }
                       }
@@ -78,7 +80,7 @@ export async function getProductiveTime(
 ): Promise<ProfuctiveTime> {
     // The since/until window shifts with the current date, so it's part of the
     // key — plain commit-date strings are cached, Date-like usage stays outside.
-    const committedDates = await withDataCache(`v1:pt:${username.toLowerCase()}:${since}:${until}`, async () => {
+    const authoredDates = await withDataCache(`v2:pt:${username.toLowerCase()}:${since}:${until}`, async () => {
         const userIdResponse = await userIdFetcher(token, {
             login: username
         });
@@ -106,7 +108,7 @@ export async function getProductiveTime(
             }) => {
                 if (node.repository.defaultBranchRef != null) {
                     node.repository.defaultBranchRef.target.history.edges.forEach(edge => {
-                        dates.push(edge.node.committedDate);
+                        dates.push(edge.node.authoredDate);
                     });
                 }
             }
@@ -115,6 +117,6 @@ export async function getProductiveTime(
     });
 
     const productiveTime = new ProfuctiveTime();
-    committedDates.forEach(date => productiveTime.addProductiveDate(date));
+    authoredDates.forEach(date => productiveTime.addProductiveDate(date));
     return productiveTime;
 }

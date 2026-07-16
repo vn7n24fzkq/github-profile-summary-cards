@@ -1,5 +1,5 @@
 import {ThemeMap, ThemeColorOverride, resolveTheme} from '../const/theme';
-import {getCommitLanguage, CommitLanguages} from '../github-api/commits-per-language';
+import {getCommitLanguageAllYears, getContributionYears, CommitLanguages} from '../github-api/commits-per-language';
 import {createDonutChartCard} from '../templates/donut-chart-card';
 import {CardGenerationOptions, writeThemedCards} from '../utils/card-generation';
 
@@ -58,7 +58,15 @@ const getCommitsLanguageData = async function (
     token: string,
     excludeRepos: Array<string> = []
 ): Promise<{name: string; value: number; color: string}[]> {
-    const commitLanguages: CommitLanguages = await getCommitLanguage(username, exclude, token, excludeRepos);
+    // Full history: every contribution year, web and Action alike.
+    const years = await getContributionYears(username, token);
+    const commitLanguages: CommitLanguages = await getCommitLanguageAllYears(
+        username,
+        exclude,
+        token,
+        excludeRepos,
+        years
+    );
     let langData = [];
 
     // make a pie data

@@ -1,69 +1,39 @@
-import {getCommitLanguage} from '../../src/github-api/commits-per-language';
+import {getCommitLanguageAllYears, getContributionYears} from '../../src/github-api/commits-per-language';
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 const mock = new MockAdapter(axios);
 
-const data = {
-    data: {
-        user: {
-            contributionsCollection: {
-                commitContributionsByRepository: [
-                    {
-                        repository: {
-                            primaryLanguage: {
-                                name: 'Rust',
-                                color: '#dea584'
-                            }
-                        },
-                        contributions: {
-                            totalCount: 99
-                        }
-                    },
-                    {
-                        repository: {
-                            primaryLanguage: {
-                                name: 'JavaScript',
-                                color: '#f1e05a'
-                            }
-                        },
-                        contributions: {
-                            totalCount: 84
-                        }
-                    },
-                    {
-                        repository: {
-                            primaryLanguage: {
-                                name: 'Rust',
-                                color: '#dea584'
-                            }
-                        },
-                        contributions: {
-                            totalCount: 100
-                        }
-                    },
-                    {
-                        repository: {
-                            primaryLanguage: {
-                                name: 'Jupyter Notebook',
-                                color: '#f18e33'
-                            }
-                        },
-                        contributions: {
-                            totalCount: 75
-                        }
-                    },
-                    {
-                        repository: {
-                            primaryLanguage: null
-                        },
-                        contributions: {
-                            totalCount: 100
-                        }
-                    }
-                ]
+function yearData(nodes: unknown[]) {
+    return {
+        data: {
+            user: {
+                contributionsCollection: {
+                    commitContributionsByRepository: nodes
+                }
             }
         }
-    }
+    };
+}
+
+const rust99 = {
+    repository: {name: 'a', nameWithOwner: 'u/a', primaryLanguage: {name: 'Rust', color: '#dea584'}},
+    contributions: {totalCount: 99}
+};
+const js84 = {
+    repository: {name: 'b', nameWithOwner: 'u/b', primaryLanguage: {name: 'JavaScript', color: '#f1e05a'}},
+    contributions: {totalCount: 84}
+};
+const rust100 = {
+    repository: {name: 'c', nameWithOwner: 'u/c', primaryLanguage: {name: 'Rust', color: '#dea584'}},
+    contributions: {totalCount: 100}
+};
+const jupyter75 = {
+    repository: {name: 'd', nameWithOwner: 'u/d', primaryLanguage: {name: 'Jupyter Notebook', color: '#f18e33'}},
+    contributions: {totalCount: 75}
+};
+const noLang = {
+    repository: {name: 'e', nameWithOwner: 'u/e', primaryLanguage: null},
+    contributions: {totalCount: 100}
 };
 
 const error = {
@@ -79,13 +49,14 @@ const error = {
 
 afterEach(() => {
     mock.reset();
+    delete process.env.VERCEL;
 });
 
-describe('commit contributions on github', () => {
-    it('should get correct commit contributions', async () => {
-        mock.onPost('https://api.github.com/graphql').reply(200, data);
-        const totalContributions = await getCommitLanguage('vn7n24fzkq', [], 'token');
-        expect(totalContributions).toEqual({
+describe('commit contributions on github (full history)', () => {
+    it('should get correct commit contributions for a single year', async () => {
+        mock.onPost('https://api.github.com/graphql').reply(200, yearData([rust99, js84, rust100, jupyter75, noLang]));
+        const langs = await getCommitLanguageAllYears('vn7n24fzkq', [], 'token', [], [2026]);
+        expect(langs).toEqual({
             languageMap: new Map([
                 ['Rust', {color: '#dea584', count: 199, name: 'Rust'}],
                 ['JavaScript', {color: '#f1e05a', count: 84, name: 'JavaScript'}],
@@ -94,62 +65,66 @@ describe('commit contributions on github', () => {
         });
     });
 
+    it('merges language counts across years', async () => {
+        mock.onPost('https://api.github.com/graphql')
+            .replyOnce(200, yearData([rust99, js84]))
+            .onPost('https://api.github.com/graphql')
+            .replyOnce(200, yearData([rust100, jupyter75]))
+            .onAny();
+        const langs = await getCommitLanguageAllYears('vn7n24fzkq', [], 'token', [], [2026, 2025]);
+        const map = langs.getLanguageMap();
+        expect(map.get('Rust')?.count).toBe(199);
+        expect(map.get('JavaScript')?.count).toBe(84);
+        expect(map.get('Jupyter Notebook')?.count).toBe(75);
+    });
+
     it('should throw error when api failed', async () => {
         mock.onPost('https://api.github.com/graphql').reply(200, error);
-        await expect(getCommitLanguage('vn7n24fzkq', [], 'token')).rejects.toThrow('GitHub api failed');
+        await expect(getCommitLanguageAllYears('vn7n24fzkq', [], 'token', [], [2026])).rejects.toThrow(
+            'GitHub api failed'
+        );
     });
 
     it('should do a case-insensitive comparison for language exclusion', async () => {
-        mock.onPost('https://api.github.com/graphql').reply(200, data);
-        const repoData = await getCommitLanguage('vn7n24fzkq', ['jupyter notebook'], 'token');
-        expect(repoData).toEqual({
-            languageMap: new Map([
-                ['Rust', {color: '#dea584', count: 199, name: 'Rust'}],
-                ['JavaScript', {color: '#f1e05a', count: 84, name: 'JavaScript'}]
-            ])
-        });
+        mock.onPost('https://api.github.com/graphql').reply(200, yearData([rust99, js84, jupyter75]));
+        const langs = await getCommitLanguageAllYears('vn7n24fzkq', ['jupyter notebook'], 'token', [], [2026]);
+        expect([...langs.getLanguageMap().keys()]).toEqual(['Rust', 'JavaScript']);
     });
 
     it('excludes repos by name or owner/name (case-insensitive)', async () => {
-        const dataWithRepoNames = {
-            data: {
-                user: {
-                    contributionsCollection: {
-                        commitContributionsByRepository: [
-                            {
-                                repository: {
-                                    name: 'My-App',
-                                    nameWithOwner: 'vn7n24fzkq/My-App',
-                                    primaryLanguage: {name: 'Rust', color: '#dea584'}
-                                },
-                                contributions: {totalCount: 99}
-                            },
-                            {
-                                repository: {
-                                    name: 'website',
-                                    nameWithOwner: 'someorg/website',
-                                    primaryLanguage: {name: 'JavaScript', color: '#f1e05a'}
-                                },
-                                contributions: {totalCount: 84}
-                            },
-                            {
-                                repository: {
-                                    name: 'keeper',
-                                    nameWithOwner: 'vn7n24fzkq/keeper',
-                                    primaryLanguage: {name: 'Kotlin', color: '#f18e33'}
-                                },
-                                contributions: {totalCount: 10}
-                            }
-                        ]
-                    }
-                }
-            }
-        };
-        mock.onPost('https://api.github.com/graphql').reply(200, dataWithRepoNames);
-        // 'my-app' matches by plain name; 'someorg/website' matches by owner/name.
-        const repoData = await getCommitLanguage('vn7n24fzkq', [], 'token', ['my-app', 'someorg/website']);
-        expect(repoData).toEqual({
-            languageMap: new Map([['Kotlin', {color: '#f18e33', count: 10, name: 'Kotlin'}]])
+        mock.onPost('https://api.github.com/graphql').reply(200, yearData([rust99, js84, jupyter75]));
+        const langs = await getCommitLanguageAllYears('vn7n24fzkq', [], 'token', ['a', 'u/b'], [2026]);
+        expect([...langs.getLanguageMap().keys()]).toEqual(['Jupyter Notebook']);
+    });
+
+    it('throws on Vercel when the time budget is exhausted mid-history', async () => {
+        process.env.VERCEL = '1';
+        mock.onPost('https://api.github.com/graphql').reply(200, yearData([rust99]));
+        const nowSpy = jest.spyOn(Date, 'now');
+        // first call establishes startedAt, later calls are past the budget
+        const base = 1_784_000_000_000;
+        nowSpy.mockReturnValueOnce(base); // startedAt
+        nowSpy.mockReturnValue(base + 60_000); // every later check: budget blown
+        try {
+            await expect(
+                getCommitLanguageAllYears('vn7n24fzkq', [], 'token', [], [2026, 2025, 2024, 2023, 2022, 2021])
+            ).rejects.toThrow('timed out');
+        } finally {
+            nowSpy.mockRestore();
+        }
+    });
+});
+
+describe('getContributionYears', () => {
+    it('returns the contribution years', async () => {
+        mock.onPost('https://api.github.com/graphql').reply(200, {
+            data: {user: {contributionsCollection: {contributionYears: [2026, 2025, 2021]}}}
         });
+        await expect(getContributionYears('vn7n24fzkq', 'token')).resolves.toEqual([2026, 2025, 2021]);
+    });
+
+    it('throws when the api fails', async () => {
+        mock.onPost('https://api.github.com/graphql').reply(200, error);
+        await expect(getContributionYears('vn7n24fzkq', 'token')).rejects.toThrow('GitHub api failed');
     });
 });

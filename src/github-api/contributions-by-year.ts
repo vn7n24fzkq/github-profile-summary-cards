@@ -62,7 +62,9 @@ export async function getContributionByYear(
                 totalContributions: user.contributionsCollection.contributionCalendar.totalContributions as number
             };
         },
-        isPastYear ? 30 * 24 * 60 * 60 : undefined
+        // Past years are immutable: long fresh window, retention slightly past it
+        // so the fresh window is actually usable (retention is the Redis EX).
+        isPastYear ? {freshSeconds: 90 * 24 * 60 * 60, retentionSeconds: 100 * 24 * 60 * 60} : undefined
     );
 
     return new ConrtibutionByYear(year, raw.totalCommitContributions, raw.totalContributions);

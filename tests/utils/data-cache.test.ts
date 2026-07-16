@@ -1,4 +1,10 @@
-import {withDataCache, runWithCacheStats, bumpRenderLeaderboard} from '../../src/utils/data-cache';
+import {
+    withDataCache,
+    runWithCacheStats,
+    bumpRenderLeaderboard,
+    isKvHealthy,
+    resetKvHealthForTests
+} from '../../src/utils/data-cache';
 
 const KV_URL = 'https://fake-kv.upstash.io';
 
@@ -20,6 +26,7 @@ describe('withDataCache', () => {
     beforeEach(() => {
         process.env.KV_REST_API_URL = KV_URL;
         process.env.KV_REST_API_TOKEN = 'kv-token';
+        resetKvHealthForTests();
         fetchSpy = jest.spyOn(global, 'fetch');
     });
 
@@ -100,6 +107,7 @@ describe('runWithCacheStats', () => {
     beforeEach(() => {
         process.env.KV_REST_API_URL = KV_URL;
         process.env.KV_REST_API_TOKEN = 'kv-token';
+        resetKvHealthForTests();
         fetchSpy = jest.spyOn(global, 'fetch');
     });
 
@@ -152,6 +160,7 @@ describe('bumpRenderLeaderboard', () => {
     beforeEach(() => {
         process.env.KV_REST_API_URL = KV_URL;
         process.env.KV_REST_API_TOKEN = 'kv-token';
+        resetKvHealthForTests();
         fetchSpy = jest.spyOn(global, 'fetch');
     });
 
@@ -182,5 +191,127 @@ describe('bumpRenderLeaderboard', () => {
         process.env.KV_REST_API_URL = KV_URL;
         fetchSpy.mockRejectedValueOnce(new Error('kv down'));
         await expect(bumpRenderLeaderboard('a')).resolves.toBeUndefined();
+    });
+});
+
+describe('retention and coalescing', () => {
+    let fetchSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+        process.env.KV_REST_API_URL = KV_URL;
+        process.env.KV_REST_API_TOKEN = 'kv-token';
+        resetKvHealthForTests();
+        fetchSpy = jest.spyOn(global, 'fetch');
+    });
+
+    afterEach(() => {
+        fetchSpy.mockRestore();
+        delete process.env.KV_REST_API_URL;
+        delete process.env.KV_REST_API_TOKEN;
+    });
+
+    it('uses the retention seconds for the Redis EX', async () => {
+        fetchSpy
+            .mockResolvedValueOnce(missResponse)
+            .mockResolvedValueOnce({ok: true, json: async () => ({})} as Response);
+        await withDataCache('k', jest.fn().mockResolvedValue('x'), {freshSeconds: 60, retentionSeconds: 1234});
+        expect(String(fetchSpy.mock.calls[1][0])).toContain('EX=1234');
+    });
+
+    it('defaults retention to 7 days and keeps the numeric third arg working', async () => {
+        fetchSpy
+            .mockResolvedValueOnce(missResponse)
+            .mockResolvedValueOnce({ok: true, json: async () => ({})} as Response);
+        await withDataCache('k', jest.fn().mockResolvedValue('x'), 60);
+        expect(String(fetchSpy.mock.calls[1][0])).toContain(`EX=${7 * 24 * 60 * 60}`);
+    });
+
+    it('coalesces concurrent lookups of the same key into one fetch', async () => {
+        let resolveKv: (v: Response) => void = () => undefined;
+        fetchSpy
+            .mockReturnValueOnce(new Promise<Response>(resolve => (resolveKv = resolve)))
+            .mockResolvedValueOnce({ok: true, json: async () => ({})} as Response);
+        const fetcher = jest.fn().mockResolvedValue('data');
+
+        const p1 = withDataCache('same-key', fetcher);
+        const p2 = withDataCache('same-key', fetcher);
+        resolveKv(missResponse);
+        await expect(Promise.all([p1, p2])).resolves.toEqual(['data', 'data']);
+        expect(fetcher).toHaveBeenCalledTimes(1);
+
+        // the in-flight entry is cleaned up: a later call fetches again
+        fetchSpy
+            .mockResolvedValueOnce(missResponse)
+            .mockResolvedValueOnce({ok: true, json: async () => ({})} as Response);
+        await withDataCache('same-key', fetcher);
+        expect(fetcher).toHaveBeenCalledTimes(2);
+    });
+
+    it('followers report a fresh cache outcome', async () => {
+        let resolveKv: (v: Response) => void = () => undefined;
+        fetchSpy
+            .mockReturnValueOnce(new Promise<Response>(resolve => (resolveKv = resolve)))
+            .mockResolvedValueOnce({ok: true, json: async () => ({})} as Response);
+        const leader = withDataCache('co-key', jest.fn().mockResolvedValue('data'));
+        const follower = runWithCacheStats(() => withDataCache('co-key', jest.fn()));
+        resolveKv(missResponse);
+        await leader;
+        const {cacheStatus} = await follower;
+        expect(cacheStatus).toBe('fresh');
+    });
+});
+
+describe('circuit breaker', () => {
+    let fetchSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+        process.env.KV_REST_API_URL = KV_URL;
+        process.env.KV_REST_API_TOKEN = 'kv-token';
+        resetKvHealthForTests();
+        fetchSpy = jest.spyOn(global, 'fetch');
+    });
+
+    afterEach(() => {
+        fetchSpy.mockRestore();
+        delete process.env.KV_REST_API_URL;
+        delete process.env.KV_REST_API_TOKEN;
+    });
+
+    it('opens after three consecutive KV failures and skips KV entirely', async () => {
+        fetchSpy.mockRejectedValue(new Error('kv down'));
+        for (const key of ['a', 'b', 'c']) {
+            await withDataCache(key, jest.fn().mockResolvedValue('x'));
+        }
+        expect(isKvHealthy()).toBe(false);
+
+        fetchSpy.mockClear();
+        const fetcher = jest.fn().mockResolvedValue('direct');
+        await expect(withDataCache('d', fetcher)).resolves.toBe('direct');
+        expect(fetchSpy).not.toHaveBeenCalled(); // no KV I/O while open
+    });
+
+    it('does not count cache misses as failures', async () => {
+        fetchSpy.mockResolvedValue(missResponse);
+        for (const key of ['a', 'b', 'c', 'd']) {
+            // eslint-disable-next-line no-await-in-loop
+            await withDataCache(key, jest.fn().mockResolvedValue('x'));
+        }
+        expect(isKvHealthy()).toBe(true);
+    });
+
+    it('recovers after the cooldown', async () => {
+        fetchSpy.mockRejectedValue(new Error('kv down'));
+        for (const key of ['a', 'b', 'c']) {
+            await withDataCache(key, jest.fn().mockResolvedValue('x'));
+        }
+        expect(isKvHealthy()).toBe(false);
+
+        const nowSpy = jest.spyOn(Date, 'now');
+        nowSpy.mockReturnValue(Date.now() + 61_000);
+        try {
+            expect(isKvHealthy()).toBe(true);
+        } finally {
+            nowSpy.mockRestore();
+        }
     });
 });
