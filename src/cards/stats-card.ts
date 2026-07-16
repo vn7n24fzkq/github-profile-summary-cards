@@ -16,20 +16,22 @@ export const getStatsSVGWithThemeName = async function (
     username: string,
     themeName: string,
     token: string,
-    override?: ThemeColorOverride
+    override?: ThemeColorOverride,
+    hideLogo = false
 ) {
     if (!ThemeMap.has(themeName)) throw new Error('Theme does not exist');
     const statsData = await getStatsData(username, token);
-    return getStatsSVG(statsData, themeName, override);
+    return getStatsSVG(statsData, themeName, override, hideLogo);
 };
 
 const getStatsSVG = function (
     StatsData: {index: number; icon: string; name: string; value: string}[],
     themeName: string,
-    override?: ThemeColorOverride
+    override?: ThemeColorOverride,
+    hideLogo = false
 ) {
     const title = 'Stats';
-    const svgString = statsCard(`${title}`, StatsData, resolveTheme(themeName, override));
+    const svgString = statsCard(`${title}`, StatsData, resolveTheme(themeName, override), hideLogo);
     return svgString;
 };
 

@@ -5,7 +5,8 @@ import {Theme} from '../const/theme';
 export function createStatsCard(
     title: string,
     statsData: {index: number; icon: string; name: string; value: string}[],
-    theme: Theme
+    theme: Theme,
+    hideLogo = false
 ) {
     const card = new Card(title, 340, 200, theme);
     const svg = card.getSVG();
@@ -66,8 +67,10 @@ export function createStatsCard(
         .style('fill', theme.text)
         .style('font-size', `${labelHeight}px`);
 
-    const panelForGitHubLogo = svg.append('g').attr('transform', `translate(220,20)`);
-    panelForGitHubLogo.append('g').attr('transform', `scale(6)`).style('fill', theme.icon).html(Icon.GITHUB);
+    if (!hideLogo) {
+        const panelForGitHubLogo = svg.append('g').attr('transform', `translate(220,20)`);
+        panelForGitHubLogo.append('g').attr('transform', `scale(6)`).style('fill', theme.icon).html(Icon.GITHUB);
+    }
 
     return card.toString();
 }

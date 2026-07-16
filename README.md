@@ -125,6 +125,10 @@ Values are hex **without** the leading `#` — 3, 4, 6, or 8 digits (the 4/8-dig
 
 Resolves [#110](https://github.com/vn7n24fzkq/github-profile-summary-cards/issues/110) and [#152](https://github.com/vn7n24fzkq/github-profile-summary-cards/issues/152).
 
+The stats card also accepts `hide_logo=true` to remove the GitHub logo on the right:
+
+`http://github-profile-summary-cards.vercel.app/api/cards/stats?username=vn7n24fzkq&theme=dark&hide_logo=true`
+
 ### Animations ✨ (new)
 
 Cards can now **animate**! Add an optional `animation` parameter and the card plays a pure-CSS entrance when it loads — no GIFs, no JavaScript, works right inside your GitHub README. The background/frame appears instantly and the animation plays on the individual pieces (each stat row, each language, each bar), so it reads as the content filling into a ready card.

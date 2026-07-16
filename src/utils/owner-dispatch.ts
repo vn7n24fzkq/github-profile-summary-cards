@@ -80,10 +80,11 @@ export const dispatchStatsSVG = function (
     login: string,
     themeName: string,
     token: string,
-    override?: ThemeColorOverride
+    override?: ThemeColorOverride,
+    hideLogo = false
 ): Promise<string> {
     return dispatch(
-        () => getStatsSVGWithThemeName(login, themeName, token, override),
-        () => getOrganizationStatsSVGWithThemeName(login, themeName, token, override)
+        () => getStatsSVGWithThemeName(login, themeName, token, override, hideLogo),
+        () => getOrganizationStatsSVGWithThemeName(login, themeName, token, override, hideLogo)
     );
 };
