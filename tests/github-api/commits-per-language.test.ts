@@ -85,6 +85,33 @@ describe('commit contributions on github (full history)', () => {
         );
     });
 
+    it('falls back to two half-year windows when the full year hits GitHub resource limits', async () => {
+        const resourceLimit = {errors: [{message: 'Resource limits for this query exceeded.'}]};
+        mock.onPost('https://api.github.com/graphql').reply(config => {
+            const vars = JSON.parse(config.data).variables;
+            if (vars.from === '2023-01-01T00:00:00Z' && vars.to === '2023-12-31T23:59:59Z') {
+                return [200, resourceLimit];
+            }
+            if (vars.to === '2023-06-30T23:59:59Z') return [200, yearData([rust99, js84])];
+            if (vars.from === '2023-07-01T00:00:00Z') return [200, yearData([rust100, jupyter75])];
+            return [500, {}];
+        });
+        const langs = await getCommitLanguageAllYears('jerry153fish', [], 'token', [], [2023]);
+        const map = langs.getLanguageMap();
+        // repo counts from both halves merge by language
+        expect(map.get('Rust')?.count).toBe(199);
+        expect(map.get('JavaScript')?.count).toBe(84);
+        expect(map.get('Jupyter Notebook')?.count).toBe(75);
+    });
+
+    it('does not use half-year windows on other errors', async () => {
+        mock.onPost('https://api.github.com/graphql').reply(200, error);
+        await expect(getCommitLanguageAllYears('vn7n24fzkq', [], 'token', [], [2023])).rejects.toThrow(
+            'GitHub api failed'
+        );
+        expect(mock.history.post).toHaveLength(1); // no fallback attempts
+    });
+
     it('should do a case-insensitive comparison for language exclusion', async () => {
         mock.onPost('https://api.github.com/graphql').reply(200, yearData([rust99, js84, jupyter75]));
         const langs = await getCommitLanguageAllYears('vn7n24fzkq', ['jupyter notebook'], 'token', [], [2026]);

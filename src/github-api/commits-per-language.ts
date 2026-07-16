@@ -1,4 +1,4 @@
-import request, {assertNoGraphQLErrors} from '../utils/request';
+import request, {assertNoGraphQLErrors, GraphQLError} from '../utils/request';
 import {withDataCache, primeDataCache, PrimedReads} from '../utils/data-cache';
 import {VERCEL_PAGINATION_BUDGET_MS} from '../const/pagination';
 
@@ -116,6 +116,17 @@ function commitLanguageYearCacheKey(username: string, year: number): string {
     return `v1:cly:${username.toLowerCase()}:${year}`;
 }
 
+async function fetchCommitContributionsWindow(
+    username: string,
+    token: string,
+    from: string,
+    to: string
+): Promise<CommitContributionNode[]> {
+    const res = await fetcher(token, {login: username, from, to});
+    assertNoGraphQLErrors(res, 'GetCommitLanguage failed');
+    return res.data.data.user.contributionsCollection.commitContributionsByRepository;
+}
+
 async function getCommitContributionsForYear(
     username: string,
     year: number,
@@ -126,13 +137,39 @@ async function getCommitContributionsForYear(
     return withDataCache(
         commitLanguageYearCacheKey(username, year),
         async () => {
-            const res = await fetcher(token, {
-                login: username,
-                from: `${year}-01-01T00:00:00Z`,
-                to: `${year}-12-31T23:59:59Z`
-            });
-            assertNoGraphQLErrors(res, 'GetCommitLanguage failed');
-            return res.data.data.user.contributionsCollection.commitContributionsByRepository;
+            try {
+                return await fetchCommitContributionsWindow(
+                    username,
+                    token,
+                    `${year}-01-01T00:00:00Z`,
+                    `${year}-12-31T23:59:59Z`
+                );
+            } catch (err) {
+                if (!(err as GraphQLError).isResourceLimit) throw err;
+                // GitHub's cost estimator rejects mega-contribution user-years
+                // outright ("Resource limits for this query exceeded") at ANY
+                // maxRepositories — but a smaller time window scores lower, and
+                // two half-year windows pass (verified on gaearon 2017: 10k+
+                // commits). Same repos; a repo active in both halves appears
+                // twice and its counts sum correctly during aggregation. Halves
+                // that hit the 100-repo cap even cover MORE repos than a capped
+                // full year would.
+                const [h1, h2] = await Promise.all([
+                    fetchCommitContributionsWindow(
+                        username,
+                        token,
+                        `${year}-01-01T00:00:00Z`,
+                        `${year}-06-30T23:59:59Z`
+                    ),
+                    fetchCommitContributionsWindow(
+                        username,
+                        token,
+                        `${year}-07-01T00:00:00Z`,
+                        `${year}-12-31T23:59:59Z`
+                    )
+                ]);
+                return [...h1, ...h2];
+            }
         },
         // Past years are immutable — cache long; the current year refreshes.
         isPastYear ? {freshSeconds: 90 * 24 * 60 * 60, retentionSeconds: 100 * 24 * 60 * 60, primed} : {primed}
