@@ -156,6 +156,42 @@
                 position: sticky;
                 top: 1rem;
             }
+            .controls-toggle {
+                display: none;
+            }
+            @media (max-width: 800px) {
+                /* On phones the panel stacks above the cards; sticky would pin
+                   the taller-than-viewport panel over everything while
+                   scrolling. Make it static and collapsible instead. */
+                .controls {
+                    position: static;
+                }
+                .controls-toggle {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    width: 100%;
+                    font: inherit;
+                    font-weight: 600;
+                    background: none;
+                    border: none;
+                    color: var(--fg);
+                    padding: 0.1rem 0;
+                    cursor: pointer;
+                }
+                .controls-toggle .chev {
+                    transition: transform 0.15s;
+                }
+                .controls.collapsed .controls-body {
+                    display: none;
+                }
+                .controls.collapsed .controls-toggle .chev {
+                    transform: rotate(-90deg);
+                }
+                .controls:not(.collapsed) .controls-body {
+                    margin-top: 0.9rem;
+                }
+            }
             .field {
                 margin-bottom: 0.9rem;
             }
@@ -335,6 +371,16 @@
             <div class="layout">
                 <!-- ---------------- Controls ---------------- -->
                 <form class="panel controls" id="form" autocomplete="off">
+                    <button
+                        type="button"
+                        class="controls-toggle"
+                        id="controlsToggle"
+                        aria-expanded="true"
+                        aria-controls="controlsBody"
+                    >
+                        ⚙️ Customize <span class="chev" aria-hidden="true">▾</span>
+                    </button>
+                    <div class="controls-body" id="controlsBody">
                     <div class="field">
                         <label for="username">GitHub username / organization</label>
                         <input id="username" name="username" value="vn7n24fzkq" required />
@@ -390,6 +436,7 @@
                     </details>
 
                     <button class="btn primary" id="copyAll" type="button" style="width: 100%">📋 Copy all Markdown</button>
+                    </div>
                 </form>
 
                 <!-- ---------------- Preview ---------------- -->
@@ -695,6 +742,24 @@
                     .catch(function () {
                         fillThemes(FALLBACK_THEMES);
                     });
+
+                // ---- Collapsible controls on small screens ----
+                // The panel is taller than a phone viewport; start it collapsed
+                // so visitors see the cards first, one tap away from tweaking.
+                (function () {
+                    var form = document.getElementById('form');
+                    var toggle = document.getElementById('controlsToggle');
+                    function setCollapsed(collapsed) {
+                        form.classList.toggle('collapsed', collapsed);
+                        toggle.setAttribute('aria-expanded', String(!collapsed));
+                    }
+                    if (window.matchMedia && window.matchMedia('(max-width: 800px)').matches) {
+                        setCollapsed(true);
+                    }
+                    toggle.addEventListener('click', function () {
+                        setCollapsed(!form.classList.contains('collapsed'));
+                    });
+                })();
 
                 // ---- Live star count on the GitHub button ----
                 // Unauthenticated GitHub API is limited to 60 req/h per client IP,
