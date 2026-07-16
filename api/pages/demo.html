@@ -290,6 +290,27 @@
                 outline-offset: 2px;
             }
         </style>
+        <!-- GA4 page analytics. The measurement ID is public by design; the
+             Measurement Protocol api_secret stays server-side. Conservative
+             consent defaults: no ad storage/signals, only analytics.
+             No SRI hash: gtag.js is dynamically generated and updated by
+             Google, so a pinned integrity value would break on every rollout —
+             the accepted trade-off for Google-hosted tags. -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-MSMZVNK63E"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag() {
+                dataLayer.push(arguments);
+            }
+            gtag('consent', 'default', {
+                ad_storage: 'denied',
+                ad_user_data: 'denied',
+                ad_personalization: 'denied',
+                analytics_storage: 'granted'
+            });
+            gtag('js', new Date());
+            gtag('config', 'G-MSMZVNK63E');
+        </script>
     </head>
     <body>
         <div class="wrap">
