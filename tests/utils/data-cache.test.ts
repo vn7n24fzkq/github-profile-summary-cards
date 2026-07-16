@@ -2,6 +2,7 @@ import {
     withDataCache,
     primeDataCache,
     runWithCacheStats,
+    jitteredSeconds,
     isKvHealthy,
     resetKvHealthForTests
 } from '../../src/utils/data-cache';
@@ -285,6 +286,34 @@ describe('circuit breaker', () => {
         } finally {
             nowSpy.mockRestore();
         }
+    });
+});
+
+describe('jitteredSeconds', () => {
+    const DAY = 24 * 60 * 60;
+
+    it('is deterministic for the same key', () => {
+        expect(jitteredSeconds('v1:cy:torvalds:2015', 90 * DAY, 15 * DAY)).toBe(
+            jitteredSeconds('v1:cy:torvalds:2015', 90 * DAY, 15 * DAY)
+        );
+    });
+
+    it('stays within base ± spread', () => {
+        for (let year = 2008; year <= 2026; year++) {
+            const v = jitteredSeconds(`v1:cy:someuser:${year}`, 90 * DAY, 15 * DAY);
+            expect(v).toBeGreaterThanOrEqual(75 * DAY);
+            expect(v).toBeLessThanOrEqual(105 * DAY);
+        }
+    });
+
+    it('actually spreads different keys apart (anti-stampede)', () => {
+        const values = new Set<number>();
+        for (let year = 2008; year <= 2026; year++) {
+            values.add(jitteredSeconds(`v1:cly:someuser:${year}`, 90 * DAY, 15 * DAY));
+        }
+        // 19 keys landing on fewer than 10 distinct values would mean the hash
+        // is clustering — the whole point is that a burst spreads out.
+        expect(values.size).toBeGreaterThanOrEqual(10);
     });
 });
 

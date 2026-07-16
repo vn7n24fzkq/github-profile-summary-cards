@@ -1,5 +1,7 @@
 import request, {assertNoGraphQLErrors, GraphQLError} from '../utils/request';
-import {withDataCache, PrimedReads} from '../utils/data-cache';
+import {withDataCache, jitteredSeconds, PrimedReads} from '../utils/data-cache';
+
+const DAY = 24 * 60 * 60;
 
 export class ConrtibutionByYear {
     year: number;
@@ -103,9 +105,14 @@ export async function getContributionByYear(
     primed?: PrimedReads
 ): Promise<ConrtibutionByYear> {
     // Past years never change — cache them for much longer than the current one.
+    // The fresh window is jittered per key (90d ± 15d) so keys cached in the
+    // same burst don't all expire together; retention stays 10d past fresh so
+    // the stale-rescue window survives a slow re-fetch cycle.
     const isPastYear = !!year && year < new Date().getFullYear();
+    const key = contributionYearCacheKey(username, year);
+    const freshSeconds = jitteredSeconds(key, 90 * DAY, 15 * DAY);
     const raw = await withDataCache(
-        contributionYearCacheKey(username, year),
+        key,
         async () => {
             const variables = {
                 login: username,
@@ -138,9 +145,7 @@ export async function getContributionByYear(
                 };
             }
         },
-        // Past years are immutable: long fresh window, retention slightly past it
-        // so the fresh window is actually usable (retention is the Redis EX).
-        isPastYear ? {freshSeconds: 90 * 24 * 60 * 60, retentionSeconds: 100 * 24 * 60 * 60, primed} : {primed}
+        isPastYear ? {freshSeconds, retentionSeconds: freshSeconds + 10 * DAY, primed} : {primed}
     );
 
     return new ConrtibutionByYear(year, raw.totalCommitContributions, raw.totalContributions);

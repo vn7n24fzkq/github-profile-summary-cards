@@ -1,5 +1,7 @@
 import request, {assertNoGraphQLErrors} from '../utils/request';
-import {withDataCache, primeDataCache, PrimedReads} from '../utils/data-cache';
+import {withDataCache, primeDataCache, jitteredSeconds, PrimedReads} from '../utils/data-cache';
+
+const DAY = 24 * 60 * 60;
 import {VERCEL_PAGINATION_BUDGET_MS} from '../const/pagination';
 
 export class CommitLanguageInfo {
@@ -123,8 +125,11 @@ async function getCommitContributionsForYear(
     primed?: PrimedReads
 ): Promise<CommitContributionNode[]> {
     const isPastYear = year < new Date().getFullYear();
+    // Jittered per key (90d ± 15d) so burst-cached keys don't expire together.
+    const key = commitLanguageYearCacheKey(username, year);
+    const freshSeconds = jitteredSeconds(key, 90 * DAY, 15 * DAY);
     return withDataCache(
-        commitLanguageYearCacheKey(username, year),
+        key,
         async () => {
             const res = await fetcher(token, {
                 login: username,
@@ -135,7 +140,7 @@ async function getCommitContributionsForYear(
             return res.data.data.user.contributionsCollection.commitContributionsByRepository;
         },
         // Past years are immutable — cache long; the current year refreshes.
-        isPastYear ? {freshSeconds: 90 * 24 * 60 * 60, retentionSeconds: 100 * 24 * 60 * 60, primed} : {primed}
+        isPastYear ? {freshSeconds, retentionSeconds: freshSeconds + 10 * DAY, primed} : {primed}
     );
 }
 

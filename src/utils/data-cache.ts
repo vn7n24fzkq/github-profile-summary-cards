@@ -88,6 +88,37 @@ function kvConfigured(): boolean {
     return !!process.env.KV_REST_API_URL && !!process.env.KV_REST_API_TOKEN;
 }
 
+/**
+ * Spreads a cache window deterministically per key: baseSeconds ± spreadSeconds,
+ * derived from a hash of the key. Keys written in the same burst (e.g. the
+ * full-history backfill caching thousands of accounts in one day) would
+ * otherwise all expire together and repeat the burst as a re-fetch storm every
+ * cycle. Hash-based (not random) so every read and write of the same key — on
+ * any lambda instance — agrees on the same window.
+ *
+ * @param {string} key - The cache key to derive the jitter from.
+ * @param {number} baseSeconds - The centre of the window.
+ * @param {number} spreadSeconds - Maximum deviation in either direction.
+ * @return {number} A stable value in [base - spread, base + spread].
+ */
+export function jitteredSeconds(key: string, baseSeconds: number, spreadSeconds: number): number {
+    // FNV-1a with a murmur3-style finalizer: similar keys (same user, adjacent
+    // years) must land far apart, and a plain rolling hash has no avalanche —
+    // adjacent inputs map to adjacent fractions and the jitter collapses.
+    let h = 0x811c9dc5;
+    for (let i = 0; i < key.length; i++) {
+        h ^= key.charCodeAt(i);
+        h = Math.imul(h, 0x01000193);
+    }
+    h ^= h >>> 16;
+    h = Math.imul(h, 0x85ebca6b);
+    h ^= h >>> 13;
+    h = Math.imul(h, 0xc2b2ae35);
+    h ^= h >>> 16;
+    const fraction = (h >>> 0) / 0xffffffff; // stable in [0, 1]
+    return Math.round(baseSeconds + (fraction - 0.5) * 2 * spreadSeconds);
+}
+
 // ---- circuit breaker state (per lambda instance) ----
 // Reads and writes are tracked separately: during a write-only outage (e.g.
 // Redis out of memory) reads keep succeeding, and a shared streak would be
