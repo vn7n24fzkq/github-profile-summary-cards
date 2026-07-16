@@ -63,9 +63,14 @@ const getProductiveTimeData = async function (
     utcOffset: number,
     token: string
 ): Promise<Array<number>> {
+    // Round the 1-year window to UTC day boundaries: the values feed the
+    // data-cache key, and millisecond-precision timestamps made the key unique
+    // per request — productive-time never cache-hit and littered Redis with
+    // throwaway keys. Day granularity costs <1 day of data on a 365-day window.
     const until = new Date();
-    const since = new Date();
-    since.setFullYear(since.getFullYear() - 1);
+    until.setUTCHours(24, 0, 0, 0); // end of the current UTC day
+    const since = new Date(until);
+    since.setUTCFullYear(since.getUTCFullYear() - 1);
     const productiveTime = await getProductiveTime(username, until.toISOString(), since.toISOString(), token);
     // process productiveTime
     const chartData = new Array(24);
