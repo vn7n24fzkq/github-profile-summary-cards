@@ -12,7 +12,7 @@
     "functions": {
         "api/**/*.ts": {
             "memory": 128,
-            "maxDuration": 10
+            "maxDuration": 30
         }
     },
     "headers": [
