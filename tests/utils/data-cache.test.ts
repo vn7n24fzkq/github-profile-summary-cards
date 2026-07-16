@@ -2,7 +2,6 @@ import {
     withDataCache,
     primeDataCache,
     runWithCacheStats,
-    bumpRenderLeaderboard,
     isKvHealthy,
     resetKvHealthForTests
 } from '../../src/utils/data-cache';
@@ -152,62 +151,6 @@ describe('runWithCacheStats', () => {
         delete process.env.KV_REST_API_URL;
         const {cacheStatus} = await runWithCacheStats(async () => 'svg');
         expect(cacheStatus).toBe('disabled');
-    });
-});
-
-describe('bumpRenderLeaderboard', () => {
-    let fetchSpy: jest.SpyInstance;
-
-    beforeEach(() => {
-        process.env.KV_REST_API_URL = KV_URL;
-        process.env.KV_REST_API_TOKEN = 'kv-token';
-        resetKvHealthForTests();
-        fetchSpy = jest.spyOn(global, 'fetch');
-    });
-
-    afterEach(() => {
-        fetchSpy.mockRestore();
-        delete process.env.KV_REST_API_URL;
-        delete process.env.KV_REST_API_TOKEN;
-    });
-
-    it('sends a pipeline with all-time and monthly ZINCRBY (no EXPIRE on repeat renders)', async () => {
-        fetchSpy.mockResolvedValueOnce({
-            ok: true,
-            json: async () => [{result: '7'}, {result: '5'}]
-        } as Response);
-        await bumpRenderLeaderboard('Torvalds');
-        expect(fetchSpy).toHaveBeenCalledTimes(1);
-        const [url, init] = fetchSpy.mock.calls[0];
-        expect(String(url)).toContain('/pipeline');
-        const commands = JSON.parse(init.body);
-        expect(commands).toHaveLength(2);
-        expect(commands[0]).toEqual(['ZINCRBY', 'leaderboard:renders', '1', 'torvalds']);
-        expect(commands[1][0]).toBe('ZINCRBY');
-        expect(commands[1][1]).toMatch(/^leaderboard:renders:\d{4}-\d{2}$/);
-    });
-
-    it("stamps the monthly board's TTL on a user's first render of the month", async () => {
-        fetchSpy
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => [{result: '3'}, {result: '1'}]
-            } as Response)
-            .mockResolvedValueOnce({ok: true, json: async () => ({result: 1})} as Response);
-        await bumpRenderLeaderboard('newuser');
-        expect(fetchSpy).toHaveBeenCalledTimes(2);
-        const expireUrl = String(fetchSpy.mock.calls[1][0]);
-        expect(expireUrl).toMatch(/\/expire\/leaderboard%3Arenders%3A\d{4}-\d{2}\/\d+$/);
-    });
-
-    it('is a no-op without KV env and swallows Redis errors', async () => {
-        delete process.env.KV_REST_API_URL;
-        await expect(bumpRenderLeaderboard('a')).resolves.toBeUndefined();
-        expect(fetchSpy).not.toHaveBeenCalled();
-
-        process.env.KV_REST_API_URL = KV_URL;
-        fetchSpy.mockRejectedValueOnce(new Error('kv down'));
-        await expect(bumpRenderLeaderboard('a')).resolves.toBeUndefined();
     });
 });
 

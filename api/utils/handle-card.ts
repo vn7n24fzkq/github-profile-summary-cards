@@ -2,7 +2,7 @@ import {getGitHubToken} from './github-token-updater';
 import {getErrorMsgCard} from './error-card';
 import {waitUntil} from '@vercel/functions';
 import {sendAnalytics, resolveSource} from '../../src/utils/analytics';
-import {runWithCacheStats, bumpRenderLeaderboard} from '../../src/utils/data-cache';
+import {runWithCacheStats} from '../../src/utils/data-cache';
 import {CONST_CACHE_CONTROL} from '../../src/const/cache';
 import {resolveThemeName, parseThemeColorOverride, ThemeColorOverride} from '../../src/const/theme';
 import {parseAnimation, applyAnimation} from '../../src/utils/animation';
@@ -112,7 +112,6 @@ export async function handleCard(
                         req.headers
                     )
                 );
-                waitUntil(bumpRenderLeaderboard(username));
                 return;
             } catch (err: any) {
                 console.log(err.message);
