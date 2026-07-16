@@ -1,5 +1,5 @@
 import request, {assertNoGraphQLErrors} from '../utils/request';
-import {shouldFetchNextPage} from '../const/pagination';
+import {shouldFetchNextPage, VERCEL_MAX_ORG_DETAIL_PAGES} from '../const/pagination';
 import {withDataCache} from '../utils/data-cache';
 
 export class OrganizationDetails {
@@ -120,7 +120,11 @@ export async function getOrganizationDetails(login: string, token: string): Prom
 
             cursor = owner.repositories.pageInfo?.endCursor ?? null;
             pages += 1;
-            hasNextPage = shouldFetchNextPage(!!owner.repositories.pageInfo?.hasNextPage, pages);
+            hasNextPage = shouldFetchNextPage(
+                !!owner.repositories.pageInfo?.hasNextPage,
+                pages,
+                VERCEL_MAX_ORG_DETAIL_PAGES
+            );
         }
 
         return {org: orgInfo, nodes: collected};
