@@ -8,7 +8,10 @@ export function createStatsCard(
     theme: Theme,
     hideLogo = false
 ) {
-    const card = new Card(title, 340, 200, theme);
+    // Without the logo the right side is dead space; shrink the card so it
+    // actually frees room in side-by-side README layouts (#141): stat values
+    // end around x=220, +30 to mirror the left margin.
+    const card = new Card(title, hideLogo ? 250 : 340, 200, theme);
     const svg = card.getSVG();
 
     // draw icon

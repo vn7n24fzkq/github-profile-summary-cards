@@ -17,4 +17,11 @@ describe('stats card template', () => {
         // The rest of the card still renders.
         expect(svg).toContain('Total Stars:');
     });
+
+    it('shrinks the card when the logo is hidden so it frees real space (#141)', () => {
+        const withLogo = createStatsCard('Stats', statsData, theme, false);
+        const withoutLogo = createStatsCard('Stats', statsData, theme, true);
+        expect(withLogo).toContain('width="340"');
+        expect(withoutLogo).toContain('width="250"');
+    });
 });
