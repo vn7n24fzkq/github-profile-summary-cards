@@ -11,7 +11,7 @@ import {createOrganizationCommitsPerLanguageCard} from './cards/organization-mos
 import {createOrganizationStatsCard} from './cards/organization-stats-card';
 import {getOwnerType, OwnerType} from './github-api/owner-type';
 import {spawn} from 'child_process';
-import {translateLanguage} from './utils/translator';
+import {parseExcludeLanguages} from './utils/translator';
 import {OUTPUT_PATH, generatePreviewMarkdown} from './utils/file-writer';
 import {ThemeMap} from './const/theme';
 import {parseAnimation} from './utils/animation';
@@ -147,7 +147,7 @@ const action = async () => {
     core.info(`Username: ${username}`);
     const utcOffset = Number(core.getInput('UTC_OFFSET', {required: false}));
     core.info(`UTC offset: ${utcOffset}`);
-    const exclude = core.getInput('EXCLUDE', {required: false}).split(',');
+    const exclude = parseExcludeLanguages(core.getInput('EXCLUDE', {required: false}));
     core.info(`Excluded languages: ${exclude}`);
     const autoPush = core.getBooleanInput('AUTO_PUSH', {required: false});
     core.info(`You ${autoPush ? 'have' : "haven't"} set automatically push commits`);
@@ -263,12 +263,6 @@ if (process.argv.length == 2) {
 } else {
     const username = process.argv[2];
     const utcOffset = Number(process.argv[3]);
-    const exclude: Array<string> = [];
-    if (process.argv[4]) {
-        process.argv[4].split(',').forEach(function (val) {
-            const translatedLanguage = translateLanguage(val);
-            exclude.push(translatedLanguage.toLowerCase());
-        });
-    }
+    const exclude = parseExcludeLanguages(process.argv[4] ?? '');
     main(username, utcOffset, exclude);
 }

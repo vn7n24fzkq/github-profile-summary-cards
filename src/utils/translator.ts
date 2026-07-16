@@ -271,3 +271,13 @@ export const translateLanguage = function async(lang: string) {
     }
     return lang.charAt(0).toUpperCase() + lang.slice(1);
 };
+
+// Normalizes a comma separated EXCLUDE list into lowercase language names,
+// matching the lowercase comparison used by the language card filters.
+export const parseExcludeLanguages = function (input: string) {
+    return input
+        .split(',')
+        .map(val => val.trim())
+        .filter(val => val.length > 0)
+        .map(val => translateLanguage(val).toLowerCase());
+};
