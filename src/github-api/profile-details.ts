@@ -1,4 +1,4 @@
-import request, {assertNoGraphQLErrors} from '../utils/request';
+import request, {assertNoGraphQLErrors, GraphQLError} from '../utils/request';
 import {shouldFetchNextPage} from '../const/pagination';
 import {withDataCache} from '../utils/data-cache';
 
@@ -95,6 +95,191 @@ const fetcher = (token: string, variables: any) => {
     );
 };
 
+// ---- Split variants of UserDetails ----
+// GitHub's cost estimator scores the whole document; for very active accounts
+// the combined UserDetails query is rejected with "Resource limits for this
+// query exceeded" while smaller documents pass. The split keeps the exact same
+// fields, just spread across three cheaper queries (plus a half-window
+// calendar fallback for the most extreme accounts).
+
+const coreFetcher = (token: string, variables: any) => {
+    return request(
+        {
+            Authorization: `bearer ${token}`
+        },
+        {
+            query: `
+      query UserDetailsCore($login: String!) {
+        user(login: $login) {
+            id
+            name
+            email
+            createdAt
+            twitterUsername
+            company
+            location
+            websiteUrl
+            repositories(first: 100,privacy:PUBLIC, isFork: false, ownerAffiliations: OWNER) {
+              totalCount
+              nodes {
+                stargazers {
+                  totalCount
+                }
+              }
+              pageInfo {
+                endCursor
+                hasNextPage
+              }
+            }
+        }
+      }
+      `,
+            variables
+        }
+    );
+};
+
+const calendarFetcher = (token: string, variables: any) => {
+    // Null from/to falls back to GitHub's default trailing-year window.
+    return request(
+        {
+            Authorization: `bearer ${token}`
+        },
+        {
+            query: `
+      query UserDetailsCalendar($login: String!, $from: DateTime, $to: DateTime) {
+        user(login: $login) {
+            contributionsCollection(from: $from, to: $to) {
+                contributionCalendar {
+                    weeks {
+                        contributionDays {
+                            contributionCount
+                            date
+                        }
+                    }
+                }
+            }
+        }
+      }
+      `,
+            variables
+        }
+    );
+};
+
+const contributionYearsFetcher = (token: string, variables: any) => {
+    return request(
+        {
+            Authorization: `bearer ${token}`
+        },
+        {
+            query: `
+      query UserDetailsYears($login: String!) {
+        user(login: $login) {
+            contributionsCollection {
+                contributionYears
+            }
+        }
+      }
+      `,
+            variables
+        }
+    );
+};
+
+const countsFetcher = (token: string, variables: any) => {
+    return request(
+        {
+            Authorization: `bearer ${token}`
+        },
+        {
+            query: `
+      query UserDetailsCounts($login: String!) {
+        user(login: $login) {
+            repositoriesContributedTo(first: 1,includeUserRepositories:true, privacy:PUBLIC, contributionTypes: [COMMIT, ISSUE, PULL_REQUEST, REPOSITORY]) {
+                totalCount
+            }
+            pullRequests(first: 1) {
+                totalCount
+            }
+            issues(first: 1) {
+                totalCount
+            }
+        }
+      }
+      `,
+            variables
+        }
+    );
+};
+
+type CalendarWeek = {contributionDays: {contributionCount: number; date: string}[]};
+
+async function fetchCalendarWeeks(username: string, token: string): Promise<CalendarWeek[]> {
+    try {
+        const res = await calendarFetcher(token, {login: username, from: null, to: null});
+        assertNoGraphQLErrors(res, 'GetProfileDetails (calendar) failed');
+        return res.data.data.user.contributionsCollection.contributionCalendar.weeks;
+    } catch (err) {
+        if (!(err as GraphQLError).isResourceLimit) throw err;
+        // Even the trailing-year calendar alone is rejected for the most active
+        // accounts — two disjoint half-windows score low enough to pass, and
+        // their days concatenate into the same daily series. The seam sits on a
+        // UTC day boundary: the calendar buckets by day, so a mid-day cut would
+        // put the boundary date into both halves.
+        const DAY_MS = 24 * 60 * 60 * 1000;
+        const now = new Date();
+        const todayStartUtc = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+        const midStart = new Date(todayStartUtc - 182 * DAY_MS); // 00:00:00Z — first day of H2
+        const start = new Date(todayStartUtc - 364 * DAY_MS);
+        const [h1, h2] = await Promise.all([
+            calendarFetcher(token, {
+                login: username,
+                from: start.toISOString(),
+                to: new Date(midStart.getTime() - 1).toISOString() // 23:59:59.999Z of H1's last day
+            }),
+            calendarFetcher(token, {
+                login: username,
+                from: midStart.toISOString(),
+                to: now.toISOString()
+            })
+        ]);
+        assertNoGraphQLErrors(h1, 'GetProfileDetails (calendar H1) failed');
+        assertNoGraphQLErrors(h2, 'GetProfileDetails (calendar H2) failed');
+        return [
+            ...h1.data.data.user.contributionsCollection.contributionCalendar.weeks,
+            ...h2.data.data.user.contributionsCollection.contributionCalendar.weeks
+        ];
+    }
+}
+
+// Rebuilds the exact `user` object shape of the combined UserDetails query
+// from the three split queries, so the code after the cache boundary doesn't
+// care which path produced it.
+async function fetchUserDetailsSplit(username: string, token: string): Promise<any> {
+    const [coreRes, weeks, yearsRes, countsRes] = await Promise.all([
+        coreFetcher(token, {login: username}),
+        fetchCalendarWeeks(username, token),
+        contributionYearsFetcher(token, {login: username}),
+        countsFetcher(token, {login: username})
+    ]);
+    assertNoGraphQLErrors(coreRes, 'GetProfileDetails (core) failed');
+    assertNoGraphQLErrors(yearsRes, 'GetProfileDetails (years) failed');
+    assertNoGraphQLErrors(countsRes, 'GetProfileDetails (counts) failed');
+    const core = coreRes.data.data.user;
+    const counts = countsRes.data.data.user;
+    return {
+        ...core,
+        contributionsCollection: {
+            contributionCalendar: {weeks},
+            contributionYears: yearsRes.data.data.user.contributionsCollection.contributionYears
+        },
+        repositoriesContributedTo: counts.repositoriesContributedTo,
+        pullRequests: counts.pullRequests,
+        issues: counts.issues
+    };
+}
+
 // Lightweight follow-up query used only to finish the star count for accounts
 // with more than 100 repos — the heavy fields (contribution calendar etc.) all
 // come from the first page.
@@ -131,13 +316,19 @@ export async function getProfileDetails(username: string, token: string): Promis
     // The ProfileDetails instance (with real Date objects) is built after the
     // cache boundary so only plain JSON is ever stored.
     const {user, totalStars} = await withDataCache(`v1:pd:${username.toLowerCase()}`, async () => {
-        const res = await fetcher(token, {
-            login: username
-        });
-
-        assertNoGraphQLErrors(res, 'GetProfileDetails failed');
-
-        const fetchedUser = res.data.data.user;
+        let fetchedUser: any;
+        try {
+            const res = await fetcher(token, {
+                login: username
+            });
+            assertNoGraphQLErrors(res, 'GetProfileDetails failed');
+            fetchedUser = res.data.data.user;
+        } catch (err) {
+            if (!(err as GraphQLError).isResourceLimit) throw err;
+            // The combined document was rejected for this very active account —
+            // fetch the same fields via three smaller queries instead.
+            fetchedUser = await fetchUserDetailsSplit(username, token);
+        }
         let stars: number = fetchedUser.repositories.nodes.reduce(
             (acc: number, curr: {stargazers: {totalCount: number}}) => acc + curr.stargazers.totalCount,
             0
