@@ -52,7 +52,7 @@ const fetcher = (token: string, variables: any) => {
                 twitterUsername
                 createdAt
                 isVerified
-                repositories(first: 100, after: $endCursor, privacy: PUBLIC, isFork: false, ownerAffiliations: OWNER, orderBy: {direction: DESC, field: STARGAZERS}) {
+                repositories(first: 100, after: $endCursor, privacy: PUBLIC, isFork: false, ownerAffiliations: OWNER) {
                     totalCount
                     pageInfo {
                         endCursor
@@ -87,6 +87,7 @@ export async function getOrganizationDetails(login: string, token: string): Prom
     const {org, nodes} = await withDataCache(`v1:od:${login.toLowerCase()}`, async () => {
         let orgInfo: any = null;
         const collected: any[] = [];
+        const startedAt = Date.now();
         let cursor: string | null = null;
         let hasNextPage = true;
         let pages = 0;
@@ -123,7 +124,8 @@ export async function getOrganizationDetails(login: string, token: string): Prom
             hasNextPage = shouldFetchNextPage(
                 !!owner.repositories.pageInfo?.hasNextPage,
                 pages,
-                VERCEL_MAX_ORG_DETAIL_PAGES
+                VERCEL_MAX_ORG_DETAIL_PAGES,
+                startedAt
             );
         }
 
