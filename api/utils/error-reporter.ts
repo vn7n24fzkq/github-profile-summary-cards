@@ -32,7 +32,7 @@ function ensureInit(): boolean {
 const KNOWN_ERROR_PATTERNS = [
     /rate limit/i, // GitHub primary/secondary rate limiting (GA: rate_limited)
     /resource limits/i, // cost-estimator rejections (GitHub-side, tracked)
-    /timed out before all years/i, // our own 12s budget throw (converges via cache)
+    /timed out before/i, // our own budget throws (converge via cache)
     /no more github_token/i, // both tokens exhausted — a rate-limit symptom
     /could not resolve/i, // bad username (GA: not_found)
     /not found/i

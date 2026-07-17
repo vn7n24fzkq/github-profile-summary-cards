@@ -1,6 +1,6 @@
 import request, {assertNoGraphQLErrors, GraphQLError} from '../utils/request';
 import {shouldFetchNextPage} from '../const/pagination';
-import {withDataCache, kvGetFlag, kvSetFlag} from '../utils/data-cache';
+import {withDataCache, kvGetFlag, kvSetFlag, requestStartedAt} from '../utils/data-cache';
 
 export class ProfileDetails {
     id: number; // user id
@@ -461,7 +461,15 @@ export async function getProfileDetails(username: string, token: string): Promis
     // ProfileDetails instance (with real Date objects) is built after the
     // cache boundary so only plain JSON is ever stored.
     const compact = await withDataCache(`v2:pd:${username.toLowerCase()}`, async () => {
-        const startedAt = Date.now();
+        // Measure from the REQUEST start (rotation retries share the deadline);
+        // outside a request context (Action/CLI) fall back to a local clock.
+        const startedAt = requestStartedAt() ?? Date.now();
+        if (process.env.VERCEL && Date.now() - startedAt > PD_FETCH_BUDGET_MS) {
+            // A rotation retry (or an earlier heavy phase) already spent the
+            // budget — fail fast so stale rescue / the error card takes over
+            // instead of a 30s FUNCTION_INVOCATION_TIMEOUT that caches nothing.
+            throw new Error(`Profile fetch for ${username} timed out before completion`);
+        }
         let fetchedUser: any = null;
         let totalStars: number | null = null;
         const useSplit = await kvGetFlag(splitFlagKey(username));

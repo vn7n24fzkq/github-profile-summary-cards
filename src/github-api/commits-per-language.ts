@@ -1,5 +1,5 @@
 import request, {assertNoGraphQLErrors, GraphQLError} from '../utils/request';
-import {withDataCache, primeDataCache, jitteredSeconds, PrimedReads} from '../utils/data-cache';
+import {withDataCache, primeDataCache, jitteredSeconds, requestStartedAt, PrimedReads} from '../utils/data-cache';
 
 const DAY = 24 * 60 * 60;
 import {VERCEL_PAGINATION_BUDGET_MS} from '../const/pagination';
@@ -206,7 +206,8 @@ export async function getCommitLanguageAllYears(
 ): Promise<CommitLanguages> {
     const commitLanguages = new CommitLanguages();
     const sortedYears = [...years].sort((a, b) => b - a);
-    const startedAt = Date.now();
+    // Request-scoped clock — see contribution-history.
+    const startedAt = requestStartedAt() ?? Date.now();
 
     // Batch-read every year key with one MGET; a warm render costs a single
     // Redis command instead of one per year.

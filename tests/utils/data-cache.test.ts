@@ -389,3 +389,21 @@ describe('primeDataCache (batched MGET)', () => {
         expect(fetchSpy).not.toHaveBeenCalled();
     });
 });
+
+describe('runWithRequestClock', () => {
+    it('exposes one start time across nested contexts (rotation retries share it)', async () => {
+        const {runWithRequestClock, requestStartedAt, runWithCacheStats} = require('../../src/utils/data-cache');
+        expect(requestStartedAt()).toBeUndefined(); // Action/CLI: no context
+        await runWithRequestClock(async () => {
+            const first = requestStartedAt();
+            expect(typeof first).toBe('number');
+            // simulate handleCard's per-attempt runWithCacheStats nesting
+            await runWithCacheStats(async () => {
+                expect(requestStartedAt()).toBe(first);
+            });
+            await runWithCacheStats(async () => {
+                expect(requestStartedAt()).toBe(first); // second rotation attempt: same clock
+            });
+        });
+    });
+});

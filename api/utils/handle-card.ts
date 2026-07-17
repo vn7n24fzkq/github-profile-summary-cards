@@ -3,7 +3,7 @@ import {getErrorMsgCard} from './error-card';
 import {reportUnexpectedError, shipErrorRecord} from './error-reporter';
 import {waitUntil} from '@vercel/functions';
 import {sendAnalytics, resolveSource} from '../../src/utils/analytics';
-import {runWithCacheStats} from '../../src/utils/data-cache';
+import {runWithCacheStats, runWithRequestClock} from '../../src/utils/data-cache';
 import {CONST_CACHE_CONTROL} from '../../src/const/cache';
 import {resolveThemeName, parseThemeColorOverride, ThemeColorOverride} from '../../src/const/theme';
 import {parseAnimation, applyAnimation} from '../../src/utils/animation';
@@ -88,50 +88,52 @@ export async function handleCard(
     const source = resolveSource(req.query.source, String(req.headers['user-agent'] ?? ''));
 
     try {
-        let tokenIndex = 0;
-        let token = getGitHubToken(tokenIndex);
-        // Rotate through the configured tokens until one succeeds or getGitHubToken
-        // throws (no token at the next index).
-        while (true) {
-            try {
-                // Collect the data-cache outcome of this render so GA gets a
-                // cache_status dimension (fresh / miss / stale / mixed).
-                const {result: cardSVG, cacheStatus} = await runWithCacheStats(() =>
-                    render(username, theme, override, token)
-                );
-                res.setHeader('Content-Type', 'image/svg+xml');
-                res.setHeader('Cache-Control', CONST_CACHE_CONTROL);
-                res.send(applyAnimation(cardSVG, animation, req.query.duration));
-                // Don't block the response on analytics, but keep the invocation
-                // alive until the calls settle — a bare `void` promise gets
-                // frozen with the lambda after res.send and aborts on the next
-                // thaw. Tag the source (demo page vs README embed vs other) for
-                // GA segmentation.
-                waitUntil(
-                    sendAnalytics(
-                        eventName,
-                        {
-                            username,
-                            theme,
-                            source,
-                            cache_status: cacheStatus,
-                            animation: animation ?? 'none',
-                            ...extraAnalytics
-                        },
-                        req.headers
-                    )
-                );
-                return;
-            } catch (err: any) {
-                console.log(err.message);
-                if (isRotatableError(err)) {
-                    tokenIndex += 1;
-                    token = getGitHubToken(tokenIndex);
-                } else {
-                    throw err;
+        await runWithRequestClock(async () => {
+            let tokenIndex = 0;
+            let token = getGitHubToken(tokenIndex);
+            // Rotate through the configured tokens until one succeeds or getGitHubToken
+            // throws (no token at the next index).
+            while (true) {
+                try {
+                    // Collect the data-cache outcome of this render so GA gets a
+                    // cache_status dimension (fresh / miss / stale / mixed).
+                    const {result: cardSVG, cacheStatus} = await runWithCacheStats(() =>
+                        render(username, theme, override, token)
+                    );
+                    res.setHeader('Content-Type', 'image/svg+xml');
+                    res.setHeader('Cache-Control', CONST_CACHE_CONTROL);
+                    res.send(applyAnimation(cardSVG, animation, req.query.duration));
+                    // Don't block the response on analytics, but keep the invocation
+                    // alive until the calls settle — a bare `void` promise gets
+                    // frozen with the lambda after res.send and aborts on the next
+                    // thaw. Tag the source (demo page vs README embed vs other) for
+                    // GA segmentation.
+                    waitUntil(
+                        sendAnalytics(
+                            eventName,
+                            {
+                                username,
+                                theme,
+                                source,
+                                cache_status: cacheStatus,
+                                animation: animation ?? 'none',
+                                ...extraAnalytics
+                            },
+                            req.headers
+                        )
+                    );
+                    return;
+                } catch (err: any) {
+                    console.log(err.message);
+                    if (isRotatableError(err)) {
+                        tokenIndex += 1;
+                        token = getGitHubToken(tokenIndex);
+                    } else {
+                        throw err;
+                    }
                 }
             }
-        }
+        });
     } catch (err: any) {
         // Log the real error for debugging; show only a generic message to clients.
         // Log only a redacted summary — never the raw error object, which for axios

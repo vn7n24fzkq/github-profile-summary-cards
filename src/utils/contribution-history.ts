@@ -13,7 +13,7 @@
 // shared cache with a personal token — it writes the private-inclusive view.
 
 import {getContributionByYear, contributionYearCacheKey} from '../github-api/contributions-by-year';
-import {primeDataCache} from './data-cache';
+import {primeDataCache, requestStartedAt} from './data-cache';
 import {VERCEL_PAGINATION_BUDGET_MS} from '../const/pagination';
 
 // Parallel chunk size for per-year queries: keeps a 15-year account to ~3
@@ -45,7 +45,9 @@ export async function getContributionTotals(
     token: string
 ): Promise<ContributionTotals> {
     const years = [...contributionYears].sort((a, b) => b - a);
-    const startedAt = Date.now();
+    // The budget measures from the request start when available so phases and
+    // rotation retries can't stack separate clocks past the function limit.
+    const startedAt = requestStartedAt() ?? Date.now();
 
     // One MGET for every year key (one billed command) instead of a GET per
     // year — on a warm cache the whole history costs a single Redis command.

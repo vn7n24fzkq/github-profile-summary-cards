@@ -62,6 +62,35 @@ interface CacheStats {
 
 const cacheStatsStorage = new AsyncLocalStorage<CacheStats>();
 
+// Request-level clock. Every wall-clock budget in the codebase (profile fetch,
+// contribution history, commit languages) measures from THIS instant rather
+// than from its own phase start: separate clocks let phases stack — and token
+// rotation re-running the whole render DOUBLED them — past Vercel's 30s kill
+// (observed as FUNCTION_INVOCATION_TIMEOUT loops on sindresorhus-class
+// accounts; a killed function caches nothing and never converges).
+const requestStartStorage = new AsyncLocalStorage<number>();
+
+/**
+ * Runs `fn` under a request-scoped clock. handleCard opens this OUTSIDE the
+ * token-rotation loop so retries share the same deadline.
+ *
+ * @param {Function} fn - The whole request work, rotation included.
+ * @return {Promise} Whatever `fn` resolves to.
+ */
+export function runWithRequestClock<T>(fn: () => Promise<T>): Promise<T> {
+    return requestStartStorage.run(Date.now(), fn);
+}
+
+/**
+ * The request's start time, when inside runWithRequestClock (undefined in
+ * Action/CLI contexts — callers fall back to their own clock).
+ *
+ * @return {number|undefined} Epoch ms of the request start.
+ */
+export function requestStartedAt(): number | undefined {
+    return requestStartStorage.getStore();
+}
+
 /**
  * Runs `fn` with a fresh cache-outcome collector attached to the async context.
  *
