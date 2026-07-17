@@ -1,0 +1,47 @@
+# Quiet production deploy: main -> `release` branch -> Vercel, WITHOUT a tag
+# or GitHub Release. Deploys and releases are different events with different
+# audiences — web users get fixes the moment they merge, while GitHub Releases
+# (the Action users' and watchers' notification channel) stay curated and
+# meaningful via manual-release.yml. Use this for hotfixes and internal
+# iterations; use Manual Release when a batch of changes deserves a version.
+name: Deploy (no release)
+
+on:
+    workflow_dispatch:
+
+concurrency:
+    group: manual-release # never race the release workflow on the same branch
+    cancel-in-progress: false
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - uses: actions/checkout@v6
+              with:
+                  fetch-depth: 0
+
+            - uses: actions/setup-node@v6
+              with:
+                  node-version-file: '.node-version'
+                  cache: 'npm'
+
+            - run: npm ci
+            - run: npm run build
+            - run: npm run package
+
+            - name: Git config
+              run: |
+                  git config --global user.name "github-actions[bot]"
+                  git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+            - name: Publish release branch (Vercel production + action dist)
+              run: |
+                  # Recreate `release` from current main, carrying the freshly built dist/
+                  git checkout -B release
+                  git add dist
+                  git commit -m "deploy: ${GITHUB_SHA}" || echo "No dist changes to commit"
+                  # Pushing to `release` triggers the Vercel production deployment
+                  git push -f origin release

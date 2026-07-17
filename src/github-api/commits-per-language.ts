@@ -115,7 +115,35 @@ const fetcher = (token: string, variables: any) => {
 };
 
 function commitLanguageYearCacheKey(username: string, year: number): string {
-    return `v1:cly:${username.toLowerCase()}:${year}`;
+    // v2: compact tuple payload (see compressNodes) — cly keys are the biggest
+    // Redis storage consumer and crossing the free plan's 256MB rejects ALL
+    // writes (observed 2026-07-17).
+    return `v2:cly:${username.toLowerCase()}:${year}`;
+}
+
+// Compact cache payload: [nameWithOwner, langName|null, langColor|null, count]
+// per repo. The repo name is derived from nameWithOwner, and the verbose
+// object shape is rebuilt after the cache boundary — ~60% smaller on the wire.
+type CompactCommitNode = [string, string | null, string | null, number];
+
+function compressNodes(nodes: CommitContributionNode[]): CompactCommitNode[] {
+    return nodes.map(node => [
+        node.repository.nameWithOwner ?? node.repository.name ?? '',
+        node.repository.primaryLanguage?.name ?? null,
+        node.repository.primaryLanguage?.color ?? null,
+        node.contributions.totalCount
+    ]);
+}
+
+function expandNodes(compact: CompactCommitNode[]): CommitContributionNode[] {
+    return compact.map(([nameWithOwner, langName, langColor, count]) => ({
+        repository: {
+            name: nameWithOwner.split('/').pop() ?? nameWithOwner,
+            nameWithOwner,
+            primaryLanguage: langName === null ? null : ({name: langName, color: langColor} as any)
+        },
+        contributions: {totalCount: count}
+    }));
 }
 
 async function fetchCommitContributionsWindow(
@@ -139,15 +167,17 @@ async function getCommitContributionsForYear(
     // Jittered per key (90d ± 15d) so burst-cached keys don't expire together.
     const key = commitLanguageYearCacheKey(username, year);
     const freshSeconds = jitteredSeconds(key, 90 * DAY, 15 * DAY);
-    return withDataCache(
+    const compact = await withDataCache(
         key,
         async () => {
             try {
-                return await fetchCommitContributionsWindow(
-                    username,
-                    token,
-                    `${year}-01-01T00:00:00Z`,
-                    `${year}-12-31T23:59:59Z`
+                return compressNodes(
+                    await fetchCommitContributionsWindow(
+                        username,
+                        token,
+                        `${year}-01-01T00:00:00Z`,
+                        `${year}-12-31T23:59:59Z`
+                    )
                 );
             } catch (err) {
                 if (!(err as GraphQLError).isResourceLimit) throw err;
@@ -173,12 +203,13 @@ async function getCommitContributionsForYear(
                         `${year}-12-31T23:59:59Z`
                     )
                 ]);
-                return [...h1, ...h2];
+                return compressNodes([...h1, ...h2]);
             }
         },
         // Past years are immutable — cache long; the current year refreshes.
         isPastYear ? {freshSeconds, retentionSeconds: freshSeconds + 10 * DAY, primed} : {primed}
     );
+    return expandNodes(compact);
 }
 
 /**
