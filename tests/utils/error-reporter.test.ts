@@ -60,3 +60,52 @@ describe('reportUnexpectedError', () => {
         ).resolves.toBeUndefined();
     });
 });
+
+describe('shipErrorRecord (Axiom ingest)', () => {
+    let fetchSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+        fetchSpy = jest.spyOn(global, 'fetch').mockResolvedValue({ok: true, json: async () => ({})} as Response);
+    });
+
+    afterEach(() => {
+        fetchSpy.mockRestore();
+        delete process.env.AXIOM_TOKEN;
+        delete process.env.AXIOM_DATASET;
+    });
+
+    it('is a no-op without AXIOM_TOKEN/AXIOM_DATASET', async () => {
+        const {shipErrorRecord} = require('../../api/utils/error-reporter');
+        await shipErrorRecord(new Error('boom'), 'stats_card', 'u', 'rate_limited');
+        expect(fetchSpy).not.toHaveBeenCalled();
+    });
+
+    it('ships a structured record for EVERY error class (unlike Sentry)', async () => {
+        process.env.AXIOM_TOKEN = 'xaat-test';
+        process.env.AXIOM_DATASET = 'card-errors';
+        const {shipErrorRecord} = require('../../api/utils/error-reporter');
+        await shipErrorRecord(
+            new Error('API rate limit already exceeded for user ID 1.'),
+            'stats_card',
+            'torvalds',
+            'rate_limited'
+        );
+        expect(fetchSpy).toHaveBeenCalledTimes(1);
+        const [url, init] = fetchSpy.mock.calls[0];
+        expect(String(url)).toBe('https://api.axiom.co/v1/datasets/card-errors/ingest');
+        const record = JSON.parse(init.body)[0];
+        expect(record.card).toBe('stats_card');
+        expect(record.username).toBe('torvalds');
+        expect(record.error_type).toBe('rate_limited');
+        expect(record.message).toContain('rate limit');
+        expect(record._time).toBeTruthy();
+    });
+
+    it('swallows ingest failures', async () => {
+        process.env.AXIOM_TOKEN = 'xaat-test';
+        process.env.AXIOM_DATASET = 'card-errors';
+        fetchSpy.mockRejectedValueOnce(new Error('axiom down'));
+        const {shipErrorRecord} = require('../../api/utils/error-reporter');
+        await expect(shipErrorRecord(new Error('x'), 'stats_card', 'u', 'other')).resolves.toBeUndefined();
+    });
+});

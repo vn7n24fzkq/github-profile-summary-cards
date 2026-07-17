@@ -1,6 +1,6 @@
 import {getGitHubToken} from './github-token-updater';
 import {getErrorMsgCard} from './error-card';
-import {reportUnexpectedError} from './error-reporter';
+import {reportUnexpectedError, shipErrorRecord} from './error-reporter';
 import {waitUntil} from '@vercel/functions';
 import {sendAnalytics, resolveSource} from '../../src/utils/analytics';
 import {runWithCacheStats} from '../../src/utils/data-cache';
@@ -134,6 +134,8 @@ export async function handleCard(
         // Unexpected classes only — known ones (rate limits, resource limits,
         // budget throws) are already counted in GA and would drown Sentry.
         waitUntil(reportUnexpectedError(err, eventName, username, errorType));
+        // Every error class ships to Axiom — the searchable 30-day history.
+        waitUntil(shipErrorRecord(err, eventName, username, errorType));
         res.setHeader('Content-Type', 'image/svg+xml');
         // Cache errors long enough that repeat views don't re-invoke the function
         // while we're rate limited (GitHub's GraphQL window is a full hour), but

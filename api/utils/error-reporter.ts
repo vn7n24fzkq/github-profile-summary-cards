@@ -68,3 +68,52 @@ export async function reportUnexpectedError(
         // Never let telemetry failures affect a card render.
     }
 }
+
+// ---- Axiom error records ----
+// Structured error records are POSTed straight to Axiom's ingest API from the
+// function (an ordinary outbound request — free on both sides: Vercel bills
+// nothing for it, and Axiom's Personal plan is hard-capped, pausing rather
+// than charging). Vercel Log Drains were deliberately NOT used: the drain
+// mechanism itself is billed at $0.50/GB processed. Unlike the Sentry path,
+// EVERY card error ships here — Axiom is the searchable 30-day history for
+// "which usernames failed, when, and why".
+
+/**
+ * Ships one structured card-error record to Axiom. No-op without
+ * AXIOM_TOKEN/AXIOM_DATASET. Fire-and-forget via waitUntil.
+ *
+ * @param {unknown} err - The thrown error.
+ * @param {string} card - The card event name (e.g. stats_card).
+ * @param {string} username - The requested card subject.
+ * @param {string} errorType - classifyError's type (GA dimension).
+ * @return {Promise<void>} Resolves once the record is sent (max 2s).
+ */
+export async function shipErrorRecord(err: unknown, card: string, username: string, errorType: string): Promise<void> {
+    const token = process.env.AXIOM_TOKEN;
+    const dataset = process.env.AXIOM_DATASET;
+    if (!token || !dataset) return;
+    try {
+        await fetch(`https://api.axiom.co/v1/datasets/${encodeURIComponent(dataset)}/ingest`, {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify([
+                {
+                    _time: new Date().toISOString(),
+                    level: 'error',
+                    card,
+                    username,
+                    error_type: errorType,
+                    message: String((err as Error)?.message ?? 'unknown').slice(0, 300),
+                    status: (err as any)?.response?.status ?? null,
+                    env: process.env.VERCEL_ENV ?? 'development'
+                }
+            ]),
+            signal: AbortSignal.timeout(2000)
+        });
+    } catch (e) {
+        // Best-effort telemetry — never affects the card.
+    }
+}
