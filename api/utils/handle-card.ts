@@ -38,7 +38,15 @@ function classifyError(err: any): {type: string; message: string} {
     const status = err?.response?.status;
     // Rate limited: only on explicit evidence (429, our GraphQL isRateLimit flag, or
     // message text). Note 403 alone is NOT rate limiting — it's usually auth/permission.
-    if (err?.isRateLimit === true || status === 429 || raw.includes('rate limit')) {
+    // "No more GITHUB_TOKEN" means rotation ran out because EVERY token was rate
+    // limited — the honest card message is "try again in a few minutes", not a
+    // generic unavailable (94% of an observed production error wave was this).
+    if (
+        err?.isRateLimit === true ||
+        status === 429 ||
+        raw.includes('rate limit') ||
+        raw.includes('no more github_token')
+    ) {
         return {
             type: 'rate_limited',
             message: 'Cards are temporarily rate limited. Please try again in a few minutes.'
