@@ -37,6 +37,25 @@ flowchart TB
 | GitHub rate limited | Error card (cached 300s) | Stale data renders a normal card |
 | Redis outage / quota exhausted | — | Fail-open: behaves exactly like the pre-cache system |
 
+## Redis key-prefix glossary
+
+Key prefixes are internal shorthand; the number is the payload-schema
+generation (bumping it orphans the old generation — **delete superseded keys
+immediately**: dead keys at Upstash free's 256MB cap silently reject ALL
+writes, observed 2026-07-17).
+
+| Prefix | Data | Fresh window | Notes |
+|---|---|---|---|
+| `v2:pd:{user}` | Profile details (compact: core fields + calendar as counts run) | 12h | ~1.4KB (16x compacted) |
+| `v1:pdx:{user}` | Flag: combined profile query rejected by GitHub's cost estimator | 30d | Skips the ~6s slow-reject |
+| `v1:cy:{user}:{year}` | Per-year contribution totals | past: 90d±15d jitter; current: 12h | ~86B |
+| `v2:cly:{user}:{year}` | Per-year commit languages (compact `[repo, lang, color, count]` tuples) | past: 90d±15d jitter; current: 12h | Biggest key family |
+| `v1:cys:{user}` | Contribution-years list | 12h | Tiny |
+| `v1:rl:{user}` | Repo languages (raw nodes) | 12h | ~5.6KB — next compaction candidate |
+| `v3:pt:{user}:{since}:{until}` | Productive-time commit samples | 12h | Window in key → daily natural rotation |
+| `v1:ot:{login}` | Owner type (User/Organization) | 12h | |
+| `v1:od:{org}` | Organization details | 12h | |
+
 ## Error-card caching
 
 Error cards are cached for **300s** (`public, max-age=300, s-maxage=300`) — long
