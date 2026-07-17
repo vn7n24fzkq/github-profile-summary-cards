@@ -254,6 +254,31 @@ export async function primeDataCache(keys: string[]): Promise<PrimedReads> {
     return primed;
 }
 
+/**
+ * Reads a boolean flag key. Breaker-aware and fail-open (a KV problem reads
+ * as "flag not set").
+ *
+ * @param {string} key - The flag key.
+ * @return {Promise<boolean>} True when the flag is set.
+ */
+export async function kvGetFlag(key: string): Promise<boolean> {
+    if (!kvConfigured() || !isKvHealthy()) return false;
+    const read = await kvGet<boolean>(key);
+    return read.kind === 'hit';
+}
+
+/**
+ * Sets a boolean flag key with a TTL. Best-effort, fire-and-forget friendly.
+ *
+ * @param {string} key - The flag key.
+ * @param {number} ttlSeconds - Redis EX for the flag.
+ * @return {Promise<void>} Resolves when the write settles.
+ */
+export async function kvSetFlag(key: string, ttlSeconds: number): Promise<void> {
+    if (!kvConfigured() || !isKvHealthy()) return;
+    await kvSet(key, {at: Date.now(), data: true}, ttlSeconds);
+}
+
 // In-flight coalescing: identical keys requested concurrently (Fluid serves
 // many requests per instance) share one lookup+fetch instead of stampeding.
 const inflight = new Map<string, Promise<unknown>>();

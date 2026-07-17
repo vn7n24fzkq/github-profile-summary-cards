@@ -31,3 +31,17 @@ describe('shouldFetchNextPage', () => {
         expect(shouldFetchNextPage(true, 1, undefined, exhausted)).toBe(true);
     });
 });
+
+describe('shouldFetchNextPage custom budget', () => {
+    afterEach(() => {
+        delete process.env.VERCEL;
+    });
+
+    it('honors a caller-supplied budget larger than the default', () => {
+        process.env.VERCEL = '1';
+        const startedAt = Date.now() - 15_000; // past the 12s default
+        expect(shouldFetchNextPage(true, 1, undefined, startedAt)).toBe(false); // default budget
+        expect(shouldFetchNextPage(true, 1, undefined, startedAt, 20_000)).toBe(true); // pd budget
+        expect(shouldFetchNextPage(true, 1, undefined, Date.now() - 21_000, 20_000)).toBe(false);
+    });
+});

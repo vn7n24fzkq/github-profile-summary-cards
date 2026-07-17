@@ -26,17 +26,22 @@ export const VERCEL_PAGINATION_BUDGET_MS = 12000;
  * @param {number} pagesFetched - How many pages have been fetched so far.
  * @param {number} [maxPages] - Vercel page budget for this query type.
  * @param {number} [startedAtMs] - Pagination start time; on Vercel, stop once
- *     VERCEL_PAGINATION_BUDGET_MS has elapsed even if pages remain.
+ *     the budget has elapsed even if pages remain.
+ * @param {number} [budgetMs] - Wall-clock budget measured from startedAtMs.
+ *     Callers whose clock starts earlier than the pagination itself (e.g. the
+ *     profile fetch sharing one deadline across fallback chains AND star
+ *     pages) pass a larger overall budget here.
  * @return {boolean} True when the caller should fetch the next page.
  */
 export function shouldFetchNextPage(
     hasNextPage: boolean,
     pagesFetched: number,
     maxPages: number = VERCEL_MAX_REPO_PAGES,
-    startedAtMs?: number
+    startedAtMs?: number,
+    budgetMs: number = VERCEL_PAGINATION_BUDGET_MS
 ): boolean {
     if (!hasNextPage) return false;
     if (!process.env.VERCEL) return true;
-    if (startedAtMs !== undefined && Date.now() - startedAtMs > VERCEL_PAGINATION_BUDGET_MS) return false;
+    if (startedAtMs !== undefined && Date.now() - startedAtMs > budgetMs) return false;
     return pagesFetched < maxPages;
 }
