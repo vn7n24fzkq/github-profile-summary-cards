@@ -128,3 +128,4 @@ tests/runner/*
 # Ignore jest report
 junit.xml
 .env*
+.playwright-mcp/

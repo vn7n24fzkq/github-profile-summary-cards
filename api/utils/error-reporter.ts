@@ -54,14 +54,29 @@ export async function reportUnexpectedError(
     username: string,
     errorType: string
 ): Promise<void> {
+    // Errors already classified by handleCard (rate limits by status/flag, bad
+    // usernames) are known even when their axios message is generic
+    // ("Request failed with status code 429").
+    if (errorType === 'rate_limited' || errorType === 'not_found') return;
+    // 403/429 with generic messages are (secondary) rate limiting; 404 is a
+    // missing entity. 401 deliberately NOT skipped — a revoked token is
+    // exactly the kind of new problem Sentry should page about.
+    const status = (err as any)?.response?.status;
+    if (status === 403 || status === 429 || status === 404) return;
     const message = String((err as Error)?.message ?? '');
     if (KNOWN_ERROR_PATTERNS.some(p => p.test(message))) return;
     if (!ensureInit()) return;
     try {
+        // Never hand Sentry the raw error: axios errors carry the full request
+        // config (incl. the Authorization token) which Sentry would serialize.
+        // A rebuilt Error keeps the message and stack and nothing else.
+        const sanitized = new Error(message || 'unknown card error');
+        sanitized.name = (err as Error)?.name ?? 'Error';
+        sanitized.stack = (err as Error)?.stack;
         Sentry.withScope(scope => {
-            scope.setTags({card, error_type: errorType});
+            scope.setTags({card, error_type: errorType, http_status: String(status ?? 'n/a')});
             scope.setUser({username});
-            Sentry.captureException(err);
+            Sentry.captureException(sanitized);
         });
         await Sentry.flush(2000);
     } catch (e) {

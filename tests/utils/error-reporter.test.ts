@@ -37,6 +37,38 @@ describe('reportUnexpectedError', () => {
         expect(Sentry.captureException).not.toHaveBeenCalled();
     });
 
+    it('skips classified types and rate-limit-shaped statuses even with generic axios messages', async () => {
+        process.env.SENTRY_DSN = 'https://x@sentry.example/1';
+        // classified by handleCard despite the generic message
+        await reportUnexpectedError(new Error('Request failed with status code 429'), 'c', 'u', 'rate_limited');
+        await reportUnexpectedError(new Error('Request failed with status code 404'), 'c', 'u', 'not_found');
+        // generic message + tell-tale status, but classified 'unavailable'
+        const forbidden: any = new Error('Request failed with status code 403');
+        forbidden.response = {status: 403};
+        await reportUnexpectedError(forbidden, 'c', 'u', 'unavailable');
+        expect(Sentry.captureException).not.toHaveBeenCalled();
+
+        // 401 (revoked token) IS captured — that's a page-worthy new problem
+        const unauthorized: any = new Error('Request failed with status code 401');
+        unauthorized.response = {status: 401};
+        await reportUnexpectedError(unauthorized, 'c', 'u', 'unavailable');
+        expect(Sentry.captureException).toHaveBeenCalledTimes(1);
+    });
+
+    it('sanitizes the captured error — no axios config/headers reach Sentry', async () => {
+        process.env.SENTRY_DSN = 'https://x@sentry.example/1';
+        const axiosLike: any = new Error('socket hang up');
+        axiosLike.config = {headers: {Authorization: 'bearer ghp_SECRET'}};
+        axiosLike.request = {};
+        await reportUnexpectedError(axiosLike, 'stats_card', 'u', 'unavailable');
+        expect(Sentry.captureException).toHaveBeenCalledTimes(1);
+        const captured = (Sentry.captureException as jest.Mock).mock.calls[0][0];
+        expect(captured.message).toBe('socket hang up');
+        expect(captured.config).toBeUndefined();
+        expect(captured.request).toBeUndefined();
+        expect(JSON.stringify(captured)).not.toContain('ghp_SECRET');
+    });
+
     it('captures genuinely unexpected errors with card/user tags', async () => {
         process.env.SENTRY_DSN = 'https://x@sentry.example/1';
         await reportUnexpectedError(
@@ -45,7 +77,7 @@ describe('reportUnexpectedError', () => {
             'someuser',
             'unavailable'
         );
-        expect(Sentry.init).toHaveBeenCalledTimes(1);
+        // init is module-level and may already have run in an earlier test
         expect(Sentry.captureException).toHaveBeenCalledTimes(1);
         expect(Sentry.flush).toHaveBeenCalled();
     });
