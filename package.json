@@ -27,6 +27,7 @@
     "dependencies": {
         "@actions/core": "^1.11.1",
         "@actions/github": "^6.0.0",
+        "@sentry/node": "^10.66.0",
         "@vercel/functions": "^3.7.5",
         "axios": "^1.17.0",
         "d3": "^6.7.0",
