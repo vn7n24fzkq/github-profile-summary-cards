@@ -177,6 +177,75 @@ describe('github api for profile details', () => {
         expect(profileDetails.contributions).toHaveLength(3);
     });
 
+    it('also falls back to split queries on an HTTP 502 gateway timeout', async () => {
+        const u = data.data.user;
+        // Combined document times out at the gateway (502) on every attempt
+        // instead of being rejected up front; the split path must still engage.
+        mock.onPost('https://api.github.com/graphql').reply(config => {
+            const body = JSON.parse(config.data);
+            if (body.query.includes('query UserDetails(')) return [502, {}];
+            if (body.query.includes('UserDetailsCore')) {
+                return [
+                    200,
+                    {
+                        data: {
+                            user: {
+                                id: u.id,
+                                name: u.name,
+                                email: u.email,
+                                createdAt: u.createdAt,
+                                twitterUsername: u.twitterUsername,
+                                company: u.company,
+                                location: u.location,
+                                websiteUrl: u.websiteUrl,
+                                repositories: u.repositories
+                            }
+                        }
+                    }
+                ];
+            }
+            if (body.query.includes('UserDetailsCalendar')) {
+                return [
+                    200,
+                    {
+                        data: {
+                            user: {
+                                contributionsCollection: {
+                                    contributionCalendar: u.contributionsCollection.contributionCalendar
+                                }
+                            }
+                        }
+                    }
+                ];
+            }
+            if (body.query.includes('UserDetailsYears')) {
+                return [200, {data: {user: {contributionsCollection: {contributionYears: [2019, 2020]}}}}];
+            }
+            if (body.query.includes('UserDetailsCounts')) {
+                return [
+                    200,
+                    {
+                        data: {
+                            user: {
+                                repositoriesContributedTo: u.repositoriesContributedTo,
+                                pullRequests: u.pullRequests,
+                                issues: u.issues
+                            }
+                        }
+                    }
+                ];
+            }
+            return [500, {}];
+        });
+
+        const profileDetails = await getProfileDetails('antroll', 'token');
+        expect(profileDetails.totalStars).toBe(130);
+        expect(profileDetails.totalPullRequestContributions).toBe(40);
+        expect(profileDetails.totalRepositoryContributions).toBe(30);
+        expect(profileDetails.contributionYears).toEqual([2019, 2020]);
+        expect(profileDetails.contributions).toHaveLength(3);
+    }, 20000);
+
     it('merges two half-window calendars when even the calendar alone is rejected', async () => {
         const resourceLimit = {errors: [{message: 'Resource limits for this query exceeded.'}]};
         const u = data.data.user;

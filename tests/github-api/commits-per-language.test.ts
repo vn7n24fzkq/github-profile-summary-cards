@@ -104,6 +104,26 @@ describe('commit contributions on github (full history)', () => {
         expect(map.get('Jupyter Notebook')?.count).toBe(75);
     });
 
+    it('also falls back to half-year windows on an HTTP 502 gateway timeout', async () => {
+        // Same over-budget year, but GitHub times out at the edge (502 after the
+        // retries are spent) instead of rejecting with a resource-limit error.
+        // The narrowing must engage for this signal too.
+        mock.onPost('https://api.github.com/graphql').reply(config => {
+            const vars = JSON.parse(config.data).variables;
+            if (vars.from === '2023-01-01T00:00:00Z' && vars.to === '2023-12-31T23:59:59Z') {
+                return [502, {}];
+            }
+            if (vars.to === '2023-06-30T23:59:59Z') return [200, yearData([rust99, js84])];
+            if (vars.from === '2023-07-01T00:00:00Z') return [200, yearData([rust100, jupyter75])];
+            return [500, {}];
+        });
+        const langs = await getCommitLanguageAllYears('jerry153fish', [], 'token', [], [2023]);
+        const map = langs.getLanguageMap();
+        expect(map.get('Rust')?.count).toBe(199);
+        expect(map.get('JavaScript')?.count).toBe(84);
+        expect(map.get('Jupyter Notebook')?.count).toBe(75);
+    }, 20000);
+
     it('does not use half-year windows on other errors', async () => {
         mock.onPost('https://api.github.com/graphql').reply(200, error);
         await expect(getCommitLanguageAllYears('vn7n24fzkq', [], 'token', [], [2023])).rejects.toThrow(

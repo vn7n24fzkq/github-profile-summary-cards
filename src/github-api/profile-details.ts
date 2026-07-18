@@ -1,4 +1,4 @@
-import request, {assertNoGraphQLErrors, GraphQLError} from '../utils/request';
+import request, {assertNoGraphQLErrors, isTooExpensive} from '../utils/request';
 import {shouldFetchNextPage} from '../const/pagination';
 import {withDataCache, kvGetFlag, kvSetFlag, requestStartedAt} from '../utils/data-cache';
 
@@ -221,7 +221,7 @@ async function fetchCalendarWeeks(username: string, token: string): Promise<Cale
         assertNoGraphQLErrors(res, 'GetProfileDetails (calendar) failed');
         return res.data.data.user.contributionsCollection.contributionCalendar.weeks;
     } catch (err) {
-        if (!(err as GraphQLError).isResourceLimit) throw err;
+        if (!isTooExpensive(err)) throw err;
         // Even the trailing-year calendar alone is rejected for the most active
         // accounts — two disjoint half-windows score low enough to pass, and
         // their days concatenate into the same daily series. The seam sits on a
@@ -481,7 +481,7 @@ export async function getProfileDetails(username: string, token: string): Promis
                 assertNoGraphQLErrors(res, 'GetProfileDetails failed');
                 fetchedUser = res.data.data.user;
             } catch (err) {
-                if (!(err as GraphQLError).isResourceLimit) throw err;
+                if (!isTooExpensive(err)) throw err;
                 // Remember the rejection so the next fetch skips the ~6s
                 // slow-reject and goes straight to the split.
                 void kvSetFlag(splitFlagKey(username), SPLIT_FLAG_TTL_SECONDS);

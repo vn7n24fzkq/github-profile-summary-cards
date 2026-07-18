@@ -10,6 +10,27 @@ rax.attach();
 export interface GraphQLError extends Error {
     isRateLimit?: boolean;
     isResourceLimit?: boolean;
+    isGatewayTimeout?: boolean;
+}
+
+// GitHub answers a query it deems too expensive in one of two interchangeable
+// ways depending on load: the cost estimator rejects the document up front with
+// a `Resource limits for this query exceeded` GraphQL error (HTTP 200), OR the
+// backend accepts it and then times out aggregating the result, which the edge
+// surfaces as an HTTP 502/504 after the retries are exhausted. Both mean the
+// same thing to a caller — "ask for less" — so callers narrow the query the
+// same way for either signal.
+const GATEWAY_TIMEOUT_STATUSES = new Set([502, 504]);
+
+function isGatewayTimeoutStatus(status: unknown): boolean {
+    return typeof status === 'number' && GATEWAY_TIMEOUT_STATUSES.has(status);
+}
+
+// True when a rejection means "this query was too expensive, retry a narrower
+// one" — either the resource-limit GraphQL error or an exhausted 502/504.
+export function isTooExpensive(err: unknown): boolean {
+    const e = err as GraphQLError | undefined;
+    return Boolean(e?.isResourceLimit || e?.isGatewayTimeout);
 }
 
 // GitHub's GraphQL API returns rate-limit failures as HTTP 200 with an `errors`
@@ -75,9 +96,27 @@ export default async function request(header: any, data: any): Promise<any> {
     await acquireGithubSlot();
     try {
         return await rawRequest(header, data);
+    } catch (err) {
+        throw asGatewayTimeout(err);
     } finally {
         releaseGithubSlot();
     }
+}
+
+// retry-axios retries 502/504 (noResponseRetries / httpMethodsToRetry) and, once
+// those are spent, rejects with the raw AxiosError. On its own that error carries
+// no classification, so callers would treat a timed-out heavy query as a hard
+// failure instead of narrowing it. Flag the exhausted gateway timeout as a
+// GraphQLError so the resource-limit fallbacks engage for it too. Anything else
+// (rate limits, 4xx, real network errors) is returned untouched.
+function asGatewayTimeout(err: any): any {
+    const status = err?.response?.status;
+    if (err?.isAxiosError && isGatewayTimeoutStatus(status)) {
+        const wrapped: GraphQLError = new Error(err.message || `GitHub gateway timeout (HTTP ${status})`);
+        wrapped.isGatewayTimeout = true;
+        return wrapped;
+    }
+    return err;
 }
 
 function rawRequest(header: any, data: any): AxiosPromise<any> {

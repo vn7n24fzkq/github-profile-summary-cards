@@ -74,6 +74,31 @@ describe('contributions count on github', () => {
         });
     });
 
+    it('also falls back to split queries on an HTTP 502 gateway timeout', async () => {
+        const commitsOnly = {
+            data: {user: {contributionsCollection: {totalCommitContributions: 10270}}}
+        };
+        const calendarOnly = {
+            data: {user: {contributionsCollection: {contributionCalendar: {totalContributions: 11929}}}}
+        };
+        // The combined query times out at the gateway (502) on every attempt; the
+        // two split queries succeed. 502 must trigger the same split as a
+        // resource-limit rejection does.
+        mock.onPost('https://api.github.com/graphql').reply(config => {
+            const body = JSON.parse(config.data);
+            if (body.query.includes('ContributionsByYearCommits')) return [200, commitsOnly];
+            if (body.query.includes('ContributionsByYearCalendar')) return [200, calendarOnly];
+            return [502, {}];
+        });
+
+        const result = await getContributionByYear('gaearon', 2017, 'token');
+        expect(result).toEqual({
+            totalCommitContributions: 10270,
+            totalContributions: 11929,
+            year: 2017
+        });
+    }, 20000);
+
     it('does not split on non-resource-limit errors', async () => {
         mock.onPost('https://api.github.com/graphql').reply(200, error);
         await expect(getContributionByYear('vn7n24fzkq', 2020, 'token')).rejects.toThrow('GitHub api failed');

@@ -1,4 +1,4 @@
-import request, {assertNoGraphQLErrors} from '../../src/utils/request';
+import request, {assertNoGraphQLErrors, isTooExpensive} from '../../src/utils/request';
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 
@@ -56,6 +56,48 @@ describe('assertNoGraphQLErrors', () => {
         } catch (e: any) {
             expect(e.isResourceLimit).toBe(true);
             expect(e.isRateLimit).toBeUndefined();
+        }
+    });
+});
+
+describe('isTooExpensive', () => {
+    it('is true for resource-limit rejections', () => {
+        expect(isTooExpensive(Object.assign(new Error('x'), {isResourceLimit: true}))).toBe(true);
+    });
+    it('is true for exhausted gateway timeouts', () => {
+        expect(isTooExpensive(Object.assign(new Error('x'), {isGatewayTimeout: true}))).toBe(true);
+    });
+    it('is false for ordinary errors, rate limits and nullish values', () => {
+        expect(isTooExpensive(new Error('x'))).toBe(false);
+        expect(isTooExpensive(Object.assign(new Error('x'), {isRateLimit: true}))).toBe(false);
+        expect(isTooExpensive(undefined)).toBe(false);
+    });
+});
+
+describe('gateway-timeout classification', () => {
+    it.each([502, 504])(
+        'flags an exhausted %i as isGatewayTimeout so callers narrow the query',
+        async status => {
+            const mock = new MockAdapter(axios);
+            mock.onPost('https://api.github.com/graphql').reply(status, {});
+            try {
+                await expect(request({}, {query: '{x}'})).rejects.toMatchObject({isGatewayTimeout: true});
+            } finally {
+                mock.restore();
+            }
+        },
+        20000
+    );
+
+    it('leaves a 404 untouched — a missing resource is not a gateway timeout', async () => {
+        const mock = new MockAdapter(axios);
+        mock.onPost('https://api.github.com/graphql').reply(404, {});
+        try {
+            const err = await request({}, {query: '{x}'}).catch(e => e);
+            expect(err.isGatewayTimeout).toBeUndefined();
+            expect(isTooExpensive(err)).toBe(false);
+        } finally {
+            mock.restore();
         }
     });
 });

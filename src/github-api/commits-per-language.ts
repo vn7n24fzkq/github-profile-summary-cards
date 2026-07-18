@@ -1,4 +1,4 @@
-import request, {assertNoGraphQLErrors, GraphQLError} from '../utils/request';
+import request, {assertNoGraphQLErrors, isTooExpensive} from '../utils/request';
 import {withDataCache, primeDataCache, jitteredSeconds, requestStartedAt, PrimedReads} from '../utils/data-cache';
 
 const DAY = 24 * 60 * 60;
@@ -180,7 +180,7 @@ async function getCommitContributionsForYear(
                     )
                 );
             } catch (err) {
-                if (!(err as GraphQLError).isResourceLimit) throw err;
+                if (!isTooExpensive(err)) throw err;
                 // GitHub's cost estimator rejects mega-contribution user-years
                 // outright ("Resource limits for this query exceeded") at ANY
                 // maxRepositories — but a smaller time window scores lower, and

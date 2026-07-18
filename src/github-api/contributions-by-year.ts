@@ -1,4 +1,4 @@
-import request, {assertNoGraphQLErrors, GraphQLError} from '../utils/request';
+import request, {assertNoGraphQLErrors, isTooExpensive} from '../utils/request';
 import {withDataCache, jitteredSeconds, PrimedReads} from '../utils/data-cache';
 
 const DAY = 24 * 60 * 60;
@@ -128,7 +128,7 @@ export async function getContributionByYear(
                     totalContributions: user.contributionsCollection.contributionCalendar.totalContributions as number
                 };
             } catch (err) {
-                if (!(err as GraphQLError).isResourceLimit) throw err;
+                if (!isTooExpensive(err)) throw err;
                 // Combined document rejected for this mega-contribution year —
                 // fetch the same two numbers with one query each.
                 const [commitsRes, calendarRes] = await Promise.all([
