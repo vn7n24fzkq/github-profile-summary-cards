@@ -106,15 +106,16 @@ export default async function request(header: any, data: any): Promise<any> {
 // retry-axios retries 502/504 (noResponseRetries / httpMethodsToRetry) and, once
 // those are spent, rejects with the raw AxiosError. On its own that error carries
 // no classification, so callers would treat a timed-out heavy query as a hard
-// failure instead of narrowing it. Flag the exhausted gateway timeout as a
-// GraphQLError so the resource-limit fallbacks engage for it too. Anything else
-// (rate limits, 4xx, real network errors) is returned untouched.
+// failure instead of narrowing it. Flag the exhausted gateway timeout in place so
+// the resource-limit fallbacks engage for it too, and rethrow the original error
+// untouched otherwise — keeping `err.response` (and its 502/504 status) intact so
+// incident logging that keys off the HTTP status stays searchable when a fallback
+// doesn't rescue the timeout. Anything else (rate limits, 4xx, real network
+// errors) is returned untouched.
 function asGatewayTimeout(err: any): any {
     const status = err?.response?.status;
     if (err?.isAxiosError && isGatewayTimeoutStatus(status)) {
-        const wrapped: GraphQLError = new Error(err.message || `GitHub gateway timeout (HTTP ${status})`);
-        wrapped.isGatewayTimeout = true;
-        return wrapped;
+        (err as GraphQLError).isGatewayTimeout = true;
     }
     return err;
 }

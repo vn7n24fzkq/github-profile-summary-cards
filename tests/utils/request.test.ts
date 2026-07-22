@@ -89,6 +89,23 @@ describe('gateway-timeout classification', () => {
         20000
     );
 
+    it.each([502, 504])(
+        'preserves err.response.status on the flagged %i so incident logging stays searchable',
+        async status => {
+            const mock = new MockAdapter(axios);
+            mock.onPost('https://api.github.com/graphql').reply(status, {});
+            try {
+                const err = await request({}, {query: '{x}'}).catch(e => e);
+                expect(err.isGatewayTimeout).toBe(true);
+                expect(err.isAxiosError).toBe(true);
+                expect(err.response?.status).toBe(status);
+            } finally {
+                mock.restore();
+            }
+        },
+        20000
+    );
+
     it('leaves a 404 untouched — a missing resource is not a gateway timeout', async () => {
         const mock = new MockAdapter(axios);
         mock.onPost('https://api.github.com/graphql').reply(404, {});
