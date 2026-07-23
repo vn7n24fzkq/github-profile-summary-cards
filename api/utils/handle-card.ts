@@ -1,4 +1,4 @@
-import {getGitHubToken} from './github-token-updater';
+import {getGitHubToken, getGitHubTokenCount, getGitHubTokenName} from './github-token-updater';
 import {getErrorMsgCard} from './error-card';
 import {reportUnexpectedError, shipErrorRecord} from './error-reporter';
 import {waitUntil} from '@vercel/functions';
@@ -28,11 +28,32 @@ function isRotatableError(err: any): boolean {
     return status === 401 || status === 403 || status === 429 || err?.isRateLimit === true;
 }
 
+// GitHub's rate-limit errors name the account behind the token ("API rate
+// limit already exceeded for user ID ..."). That identity has no business in
+// logs or error records — the token slot name (GITHUB_TOKEN_n) says everything
+// operations needs — so scrub it everywhere the message travels.
+export function redactBackingAccount(message: string): string {
+    return message.replace(/user ID \d+/gi, 'the backing account');
+}
+
+// Pin each username to a deterministic starting token so load spreads across
+// the whole pool. With sequential rotation, token 0 takes every request until
+// its account's hourly GraphQL quota dies while the others idle — spreading by
+// username burns the pool evenly and roughly multiplies time-to-exhaustion by
+// the pool size. djb2 over the lowercased login.
+export function tokenPoolStartIndex(username: string, tokenCount: number): number {
+    let hash = 5381;
+    const login = username.toLowerCase();
+    for (let i = 0; i < login.length; i++) {
+        hash = ((hash << 5) + hash + login.charCodeAt(i)) | 0;
+    }
+    return Math.abs(hash) % tokenCount;
+}
+
 // Classify an internal error into a type (GA dimension) + a generic user-facing
-// message. The raw error (e.g. "API rate limit already exceeded for user ID
-// 20241522") can leak the backing account/implementation, so it's logged
-// server-side but never shown on the card — the card only ever shows one of
-// these safe, actionable messages.
+// message. The raw error can leak the backing account/implementation, so it's
+// redacted and logged server-side but never shown on the card — the card only
+// ever shows one of these safe, actionable messages.
 function classifyError(err: any): {type: string; message: string} {
     const raw = String(err?.message ?? '').toLowerCase();
     const status = err?.response?.status;
@@ -89,10 +110,15 @@ export async function handleCard(
 
     try {
         await runWithRequestClock(async () => {
-            let tokenIndex = 0;
+            // Zero configured tokens keeps the old behavior: the first
+            // getGitHubToken(0) call throws the canonical "No more GITHUB_TOKEN"
+            // error before any render is attempted.
+            const tokenCount = Math.max(1, getGitHubTokenCount());
+            let attempts = 0;
+            let tokenIndex = tokenPoolStartIndex(username, tokenCount);
             let token = getGitHubToken(tokenIndex);
-            // Rotate through the configured tokens until one succeeds or getGitHubToken
-            // throws (no token at the next index).
+            // Rotate through the configured tokens (wrapping around the pool)
+            // until one succeeds or every token has been tried.
             while (true) {
                 try {
                     // Collect the data-cache outcome of this render so GA gets a
@@ -124,9 +150,17 @@ export async function handleCard(
                     );
                     return;
                 } catch (err: any) {
-                    console.log(err.message);
+                    console.log(
+                        `${getGitHubTokenName(tokenIndex)} failed: ${redactBackingAccount(String(err?.message ?? 'unknown'))}`
+                    );
                     if (isRotatableError(err)) {
-                        tokenIndex += 1;
+                        attempts += 1;
+                        if (attempts >= tokenCount) {
+                            // Keep the "No more GITHUB_TOKEN" phrasing — classifyError
+                            // maps it to the rate_limited card message.
+                            throw new Error('No more GITHUB_TOKEN can be used (all configured tokens failed)');
+                        }
+                        tokenIndex = (tokenIndex + 1) % tokenCount;
                         token = getGitHubToken(tokenIndex);
                     } else {
                         throw err;
@@ -139,6 +173,11 @@ export async function handleCard(
         // Log only a redacted summary — never the raw error object, which for axios
         // failures carries the request config/headers (incl. the Authorization token)
         // and response body.
+        // Scrub the backing account identity in place so every downstream sink
+        // (console, Sentry, Axiom, GA) sees the redacted form.
+        if (typeof err?.message === 'string') {
+            err.message = redactBackingAccount(err.message);
+        }
         const {type: errorType, message} = classifyError(err);
         console.log(`card error [${eventName}] status=${err?.response?.status ?? 'n/a'}: ${err?.message ?? 'unknown'}`);
         // Unexpected classes only — known ones (rate limits, resource limits,

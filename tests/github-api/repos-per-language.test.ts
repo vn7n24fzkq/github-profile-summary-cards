@@ -174,40 +174,68 @@ describe('repos per language on github', () => {
         expect(repoData.getLanguageMap().has('Kotlin')).toBe(true);
     });
 
-    it('paginates on Vercel too (accuracy fix)', async () => {
-        process.env.VERCEL = '1';
-        mock.onPost('https://api.github.com/graphql')
-            .replyOnce(200, page1)
-            .onPost('https://api.github.com/graphql')
-            .replyOnce(200, page2)
-            .onAny();
-        const repoData = await getRepoLanguages('vn7n24fzkq', [], 'token');
-        // page 2's Kotlin is included → Vercel no longer stops at 100 repos
-        expect(repoData.getLanguageMap().has('Kotlin')).toBe(true);
-        expect(repoData.getLanguageMap().has('Java')).toBe(true);
-    });
-
-    it('caps pagination at VERCEL_MAX_REPO_PAGES on Vercel', async () => {
-        process.env.VERCEL = '1';
-        let requests = 0;
-        mock.onPost('https://api.github.com/graphql').reply(() => {
-            requests += 1;
-            // every page claims there is more data
-            return [
-                200,
-                {
-                    data: {
-                        user: {
-                            repositories: {
-                                nodes: [{name: `repo-${requests}`, primaryLanguage: {color: '#b07219', name: 'Java'}}],
-                                pageInfo: {endCursor: `C${requests}`, hasNextPage: true}
-                            }
-                        }
-                    }
-                }
-            ];
+    // On Vercel the fetch goes through REST (GET /users/:login/repos) instead of
+    // GraphQL — same node shape, colors from the bundled linguist map, and the
+    // (week-cached) type lookup re-creates the "user pipeline rejects orgs"
+    // contract that dispatch relies on.
+    describe('on Vercel (REST)', () => {
+        const restRepo = (name: string, language: string | null, fork = false) => ({
+            name,
+            full_name: `vn7n24fzkq/${name}`,
+            fork,
+            language
         });
-        await getRepoLanguages('vn7n24fzkq', [], 'token');
-        expect(requests).toBe(VERCEL_MAX_REPO_PAGES);
+
+        const mockOwnerType = (type: string) =>
+            mock.onGet('https://api.github.com/users/vn7n24fzkq').reply(200, {login: 'vn7n24fzkq', type});
+
+        it('paginates on Vercel too (accuracy fix)', async () => {
+            process.env.VERCEL = '1';
+            mockOwnerType('User');
+            // page 1 is full (100 repos) so pagination continues; page 2 is short.
+            const fullPage = Array.from({length: 100}, (_, i) => restRepo(`java-${i}`, 'Java'));
+            mock.onGet('https://api.github.com/users/vn7n24fzkq/repos').reply(config => {
+                return [200, config.params.page === 1 ? fullPage : [restRepo('the-kotlin-one', 'Kotlin')]];
+            });
+            const repoData = await getRepoLanguages('vn7n24fzkq', [], 'token');
+            // page 2's Kotlin is included → Vercel no longer stops at 100 repos
+            expect(repoData.getLanguageMap().has('Kotlin')).toBe(true);
+            expect(repoData.getLanguageMap().has('Java')).toBe(true);
+        });
+
+        it('caps pagination at VERCEL_MAX_REPO_PAGES on Vercel', async () => {
+            process.env.VERCEL = '1';
+            mockOwnerType('User');
+            let requests = 0;
+            // every page is full, so only the cap can stop the walk
+            mock.onGet('https://api.github.com/users/vn7n24fzkq/repos').reply(() => {
+                requests += 1;
+                return [200, Array.from({length: 100}, (_, i) => restRepo(`repo-${requests}-${i}`, 'Java'))];
+            });
+            await getRepoLanguages('vn7n24fzkq', [], 'token');
+            expect(requests).toBe(VERCEL_MAX_REPO_PAGES);
+        });
+
+        it('skips forks and fills colors from the bundled linguist map', async () => {
+            process.env.VERCEL = '1';
+            mockOwnerType('User');
+            mock.onGet('https://api.github.com/users/vn7n24fzkq/repos').reply(200, [
+                restRepo('app', 'Java'),
+                restRepo('a-fork', 'Java', true),
+                restRepo('no-language', null)
+            ]);
+            const repoData = await getRepoLanguages('vn7n24fzkq', [], 'token');
+            // the fork and the language-less repo are dropped; Java gets its
+            // linguist color even though REST reports the name only
+            expect(repoData).toEqual({
+                languageMap: new Map([['Java', {color: '#b07219', count: 1, name: 'Java'}]])
+            });
+        });
+
+        it('rejects org logins so the user/org dispatch still falls through', async () => {
+            process.env.VERCEL = '1';
+            mockOwnerType('Organization');
+            await expect(getRepoLanguages('vn7n24fzkq', [], 'token')).rejects.toThrow('Login is not a user');
+        });
     });
 });
