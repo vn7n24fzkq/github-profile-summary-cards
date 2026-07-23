@@ -80,6 +80,39 @@ export default async function request(header: any, data: any): Promise<any> {
     }
 }
 
+// GET against GitHub's REST API. REST and GraphQL draw from SEPARATE hourly
+// quotas per account — moving cheap lookups here keeps GraphQL points for the
+// contributionsCollection queries that have no REST equivalent. Shares the
+// per-instance concurrency gate and retry policy with the GraphQL path.
+export async function restRequest(token: string, path: string, params?: Record<string, string | number>): Promise<any> {
+    await acquireGithubSlot();
+    try {
+        return await axios({
+            url: `https://api.github.com${path}`,
+            method: 'get',
+            headers: {
+                'User-Agent': 'github-profile-summary-cards',
+                Authorization: `bearer ${token}`,
+                Accept: 'application/vnd.github+json'
+            },
+            params,
+            raxConfig: {
+                retry: 3,
+                noResponseRetries: 3,
+                retryDelay: 1000,
+                backoffType: 'linear',
+                onRetryAttempt: err => {
+                    const cfg = rax.getConfig(err);
+                    core.warning(err);
+                    core.warning(`Retry attempt #${cfg?.currentRetryAttempt}`);
+                }
+            }
+        });
+    } finally {
+        releaseGithubSlot();
+    }
+}
+
 function rawRequest(header: any, data: any): AxiosPromise<any> {
     // GitHub's API requires a User-Agent header; without it the edge returns 502.
     // Callers can override via `header`, but we provide a sensible default.
