@@ -61,9 +61,7 @@ const fetcher = (token: string, variables: any) => {
                     nodes {
                         createdAt
                         forkCount
-                        stargazers {
-                            totalCount
-                        }
+                        stargazerCount
                         issues(states: OPEN) {
                             totalCount
                         }
@@ -144,7 +142,7 @@ export async function getOrganizationDetails(login: string, token: string): Prom
     organizationDetails.totalPublicRepos = org.totalPublicRepos;
 
     for (const node of nodes) {
-        organizationDetails.totalStars += node.stargazers.totalCount;
+        organizationDetails.totalStars += node.stargazerCount;
         organizationDetails.totalForks += node.forkCount;
         organizationDetails.totalOpenIssues += node.issues.totalCount;
         organizationDetails.repoCreatedAt.push(new Date(node.createdAt));

@@ -57,9 +57,7 @@ const fetcher = (token: string, variables: any) => {
             repositories(first: 100,privacy:PUBLIC, isFork: false, ownerAffiliations: OWNER) {
               totalCount
               nodes {
-                stargazers {
-                  totalCount
-                }
+                stargazerCount
               }
               pageInfo {
                 endCursor
@@ -122,9 +120,7 @@ const coreFetcher = (token: string, variables: any) => {
             repositories(first: 100,privacy:PUBLIC, isFork: false, ownerAffiliations: OWNER) {
               totalCount
               nodes {
-                stargazers {
-                  totalCount
-                }
+                stargazerCount
               }
               pageInfo {
                 endCursor
@@ -311,9 +307,7 @@ const starsFetcher = (token: string, variables: any) => {
         user(login: $login) {
             repositories(first: 100, after: $endCursor, privacy:PUBLIC, isFork: false, ownerAffiliations: OWNER) {
               nodes {
-                stargazers {
-                  totalCount
-                }
+                stargazerCount
               }
               pageInfo {
                 endCursor
@@ -423,7 +417,7 @@ function splitFlagKey(username: string): string {
 // the profile fetch's start, not the pagination's, so the phases can't stack.
 async function paginateStars(firstPage: any, username: string, token: string, startedAt: number): Promise<number> {
     let stars: number = firstPage.nodes.reduce(
-        (acc: number, curr: {stargazers: {totalCount: number}}) => acc + curr.stargazers.totalCount,
+        (acc: number, curr: {stargazerCount: number}) => acc + curr.stargazerCount,
         0
     );
     let starsCursor: string | null = firstPage.pageInfo?.endCursor ?? null;
@@ -439,10 +433,7 @@ async function paginateStars(firstPage: any, username: string, token: string, st
         const starsRes: any = await starsFetcher(token, {login: username, endCursor: starsCursor});
         assertNoGraphQLErrors(starsRes, 'GetProfileDetails failed');
         const repos = starsRes.data.data.user.repositories;
-        stars += repos.nodes.reduce(
-            (acc: number, curr: {stargazers: {totalCount: number}}) => acc + curr.stargazers.totalCount,
-            0
-        );
+        stars += repos.nodes.reduce((acc: number, curr: {stargazerCount: number}) => acc + curr.stargazerCount, 0);
         starsCursor = repos.pageInfo?.endCursor ?? null;
         starsPages += 1;
         starsHasNextPage = shouldFetchNextPage(

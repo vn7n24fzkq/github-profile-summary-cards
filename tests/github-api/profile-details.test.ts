@@ -16,7 +16,7 @@ const data = {
             websiteUrl: null,
             repositories: {
                 totalCount: 30,
-                nodes: [{stargazers: {totalCount: 110}}, {stargazers: {totalCount: 20}}]
+                nodes: [{stargazerCount: 110}, {stargazerCount: 20}]
             },
             issues: {totalCount: 10},
             repositoriesContributedTo: {totalCount: 30},
@@ -342,7 +342,7 @@ describe('github api for profile details', () => {
             data: {
                 user: {
                     repositories: {
-                        nodes: [{stargazers: {totalCount: 7}}, {stargazers: {totalCount: 3}}],
+                        nodes: [{stargazerCount: 7}, {stargazerCount: 3}],
                         pageInfo: {endCursor: null, hasNextPage: false}
                     }
                 }

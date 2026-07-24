@@ -23,19 +23,19 @@ const firstPage = {
                     {
                         createdAt: '2020-01-01T00:00:00Z',
                         forkCount: 5,
-                        stargazers: {totalCount: 100},
+                        stargazerCount: 100,
                         issues: {totalCount: 3}
                     },
                     {
                         createdAt: '2021-03-15T00:00:00Z',
                         forkCount: 2,
-                        stargazers: {totalCount: 50},
+                        stargazerCount: 50,
                         issues: {totalCount: 1}
                     },
                     {
                         createdAt: '2022-06-30T00:00:00Z',
                         forkCount: 1,
-                        stargazers: {totalCount: 25},
+                        stargazerCount: 25,
                         issues: {totalCount: 0}
                     }
                 ]
