@@ -1,4 +1,4 @@
-import request, {assertNoGraphQLErrors, isTooExpensive} from '../utils/request';
+import request, {assertNoGraphQLErrors, isTooExpensive, restRequest} from '../utils/request';
 import {shouldFetchNextPage} from '../const/pagination';
 import {withDataCache, kvGetFlag, kvSetFlag, requestStartedAt} from '../utils/data-cache';
 
@@ -54,15 +54,8 @@ const fetcher = (token: string, variables: any) => {
             company
             location
             websiteUrl
-            repositories(first: 100,privacy:PUBLIC, isFork: false, ownerAffiliations: OWNER) {
+            repositories(first: 1, privacy:PUBLIC, isFork: false, ownerAffiliations: OWNER) {
               totalCount
-              nodes {
-                stargazerCount
-              }
-              pageInfo {
-                endCursor
-                hasNextPage
-              }
             }
             contributionsCollection {
                 contributionCalendar {
@@ -117,15 +110,8 @@ const coreFetcher = (token: string, variables: any) => {
             company
             location
             websiteUrl
-            repositories(first: 100,privacy:PUBLIC, isFork: false, ownerAffiliations: OWNER) {
+            repositories(first: 1, privacy:PUBLIC, isFork: false, ownerAffiliations: OWNER) {
               totalCount
-              nodes {
-                stargazerCount
-              }
-              pageInfo {
-                endCursor
-                hasNextPage
-              }
             }
         }
       }
@@ -251,76 +237,32 @@ async function fetchCalendarWeeks(username: string, token: string): Promise<Cale
 
 // Rebuilds the exact `user` object shape of the combined UserDetails query
 // from the three split queries, so the code after the cache boundary doesn't
-// care which path produced it. Star pagination starts as soon as the core
-// query (which owns the first page's cursor) resolves and runs CONCURRENTLY
-// with the calendar/years/counts queries — the split path only exists for
-// very active accounts, exactly the ones with many star pages, and running
-// the two serially is what pushed sindresorhus-class renders past Vercel's
-// 30s kill (killed functions cache nothing, so they never converged).
-async function fetchUserDetailsSplit(
-    username: string,
-    token: string,
-    startedAt: number
-): Promise<{user: any; totalStars: number}> {
-    const corePromise = coreFetcher(token, {login: username});
-    const starsPromise = corePromise.then(coreRes => {
-        assertNoGraphQLErrors(coreRes, 'GetProfileDetails (core) failed');
-        return paginateStars(coreRes.data.data.user.repositories, username, token, startedAt);
-    });
-    const [coreRes, totalStars, weeks, yearsRes, countsRes] = await Promise.all([
-        corePromise,
-        starsPromise,
+// care which path produced it. Star totals are NOT fetched here — they come
+// from the REST pagination that getProfileDetails runs concurrently with
+// whichever GraphQL path is taken.
+async function fetchUserDetailsSplit(username: string, token: string): Promise<any> {
+    const [coreRes, weeks, yearsRes, countsRes] = await Promise.all([
+        coreFetcher(token, {login: username}),
         fetchCalendarWeeks(username, token),
         contributionYearsFetcher(token, {login: username}),
         countsFetcher(token, {login: username})
     ]);
+    assertNoGraphQLErrors(coreRes, 'GetProfileDetails (core) failed');
     assertNoGraphQLErrors(yearsRes, 'GetProfileDetails (years) failed');
     assertNoGraphQLErrors(countsRes, 'GetProfileDetails (counts) failed');
     const core = coreRes.data.data.user;
     const counts = countsRes.data.data.user;
     return {
-        user: {
-            ...core,
-            contributionsCollection: {
-                contributionCalendar: {weeks},
-                contributionYears: yearsRes.data.data.user.contributionsCollection.contributionYears
-            },
-            repositoriesContributedTo: counts.repositoriesContributedTo,
-            pullRequests: counts.pullRequests,
-            issues: counts.issues
+        ...core,
+        contributionsCollection: {
+            contributionCalendar: {weeks},
+            contributionYears: yearsRes.data.data.user.contributionsCollection.contributionYears
         },
-        totalStars
+        repositoriesContributedTo: counts.repositoriesContributedTo,
+        pullRequests: counts.pullRequests,
+        issues: counts.issues
     };
 }
-
-// Lightweight follow-up query used only to finish the star count for accounts
-// with more than 100 repos — the heavy fields (contribution calendar etc.) all
-// come from the first page.
-const starsFetcher = (token: string, variables: any) => {
-    return request(
-        {
-            Authorization: `bearer ${token}`
-        },
-        {
-            query: `
-      query UserStars($login: String!, $endCursor: String!) {
-        user(login: $login) {
-            repositories(first: 100, after: $endCursor, privacy:PUBLIC, isFork: false, ownerAffiliations: OWNER) {
-              nodes {
-                stargazerCount
-              }
-              pageInfo {
-                endCursor
-                hasNextPage
-              }
-            }
-        }
-      }
-      `,
-            variables
-        }
-    );
-};
 
 // ---- compact cache payload ----
 // The raw user object is dominated by the contribution calendar: ~365 verbose
@@ -411,38 +353,31 @@ function splitFlagKey(username: string): string {
     return `v1:pdx:${username.toLowerCase()}`;
 }
 
-// The main query only covers the first 100 repos; accounts with more were
-// undercounting stars (#164). Keep summing with the lightweight star-only
-// query — unbounded off Vercel, bounded on it. The budget is measured from
-// the profile fetch's start, not the pagination's, so the phases can't stack.
-async function paginateStars(firstPage: any, username: string, token: string, startedAt: number): Promise<number> {
-    let stars: number = firstPage.nodes.reduce(
-        (acc: number, curr: {stargazerCount: number}) => acc + curr.stargazerCount,
-        0
-    );
-    let starsCursor: string | null = firstPage.pageInfo?.endCursor ?? null;
-    let starsPages = 1;
-    let starsHasNextPage = shouldFetchNextPage(
-        !!firstPage.pageInfo?.hasNextPage,
-        starsPages,
-        undefined,
-        startedAt,
-        PD_FETCH_BUDGET_MS
-    );
-    while (starsHasNextPage && starsCursor) {
-        const starsRes: any = await starsFetcher(token, {login: username, endCursor: starsCursor});
-        assertNoGraphQLErrors(starsRes, 'GetProfileDetails failed');
-        const repos = starsRes.data.data.user.repositories;
-        stars += repos.nodes.reduce((acc: number, curr: {stargazerCount: number}) => acc + curr.stargazerCount, 0);
-        starsCursor = repos.pageInfo?.endCursor ?? null;
-        starsPages += 1;
-        starsHasNextPage = shouldFetchNextPage(
-            !!repos.pageInfo?.hasNextPage,
-            starsPages,
-            undefined,
-            startedAt,
-            PD_FETCH_BUDGET_MS
-        );
+// Star totals come from REST repo pagination (stargazer_count rides along on
+// GET /users/:login/repos) instead of GraphQL pages: REST draws on a separate,
+// otherwise-idle hourly quota, and dropping the 100-node repos page from the
+// GraphQL documents also lowers their cost-estimator score — fewer split
+// rejections for heavy accounts. Fork filtering matches the old isFork: false;
+// REST only lists public repos, matching privacy: PUBLIC. Pagination is
+// unbounded off Vercel and bounded on it (#164 semantics unchanged); the
+// budget is measured from the profile fetch's start so the phases can't stack.
+async function fetchTotalStars(username: string, token: string, startedAt: number): Promise<number> {
+    let stars = 0;
+    let pages = 0;
+    let hasNextPage = true;
+    while (hasNextPage) {
+        const res = await restRequest(token, `/users/${encodeURIComponent(username)}/repos`, {
+            per_page: 100,
+            page: pages + 1,
+            type: 'owner'
+        });
+        const repos: any[] = Array.isArray(res.data) ? res.data : [];
+        for (const repo of repos) {
+            if (repo.fork) continue;
+            stars += repo.stargazer_count ?? 0;
+        }
+        pages += 1;
+        hasNextPage = shouldFetchNextPage(repos.length === 100, pages, undefined, startedAt, PD_FETCH_BUDGET_MS);
     }
     return stars;
 }
@@ -461,8 +396,15 @@ export async function getProfileDetails(username: string, token: string): Promis
             // instead of a 30s FUNCTION_INVOCATION_TIMEOUT that caches nothing.
             throw new Error(`Profile fetch for ${username} timed out before completion`);
         }
+        // REST star pagination runs concurrently with whichever GraphQL path
+        // is taken — separate quota pools, so they don't contend. The no-op
+        // catch keeps a stars failure from surfacing as an unhandled rejection
+        // while the GraphQL path is still the one that throws first; the real
+        // rejection still propagates through the await below.
+        const starsPromise = fetchTotalStars(username, token, startedAt);
+        starsPromise.catch(() => undefined);
+
         let fetchedUser: any = null;
-        let totalStars: number | null = null;
         const useSplit = await kvGetFlag(splitFlagKey(username));
         if (!useSplit) {
             try {
@@ -480,14 +422,10 @@ export async function getProfileDetails(username: string, token: string): Promis
         }
         if (fetchedUser === null) {
             // Rejected now or flagged earlier — same fields via three smaller
-            // queries, with star pagination running concurrently.
-            const split = await fetchUserDetailsSplit(username, token, startedAt);
-            fetchedUser = split.user;
-            totalStars = split.totalStars;
+            // queries.
+            fetchedUser = await fetchUserDetailsSplit(username, token);
         }
-        if (totalStars === null) {
-            totalStars = await paginateStars(fetchedUser.repositories, username, token, startedAt);
-        }
+        const totalStars = await starsPromise;
 
         return compressProfile(fetchedUser, totalStars);
     });

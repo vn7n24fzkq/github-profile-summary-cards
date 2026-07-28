@@ -15,8 +15,7 @@ const data = {
             location: 'Taiwan',
             websiteUrl: null,
             repositories: {
-                totalCount: 30,
-                nodes: [{stargazerCount: 110}, {stargazerCount: 20}]
+                totalCount: 30
             },
             issues: {totalCount: 10},
             repositoriesContributedTo: {totalCount: 30},
@@ -67,9 +66,19 @@ afterEach(() => {
     mock.reset();
 });
 
+// Star totals now come from REST repo pagination (stargazer_count), which runs
+// concurrently with the GraphQL profile fetch — every test mocks both.
+const restRepo = (stars: number, fork = false) => ({stargazer_count: stars, fork});
+const mockRestStars = (username: string, pages: any[][] = [[restRepo(110), restRepo(20)]]) =>
+    mock.onGet(`https://api.github.com/users/${username}/repos`).reply(config => {
+        const page = config.params?.page ?? 1;
+        return [200, pages[page - 1] ?? []];
+    });
+
 describe('github api for profile details', () => {
     it('should get correct profile data', async () => {
         mock.onPost('https://api.github.com/graphql').reply(200, data);
+        mockRestStars('vn7n24fzkq');
         const profileDetails = await getProfileDetails('vn7n24fzkq', 'token');
         expect(profileDetails).toEqual({
             id: 'userID',
@@ -168,6 +177,7 @@ describe('github api for profile details', () => {
             return [500, {}];
         });
 
+        mockRestStars('antroll');
         const profileDetails = await getProfileDetails('antroll', 'token');
         // identical result to the combined-query path
         expect(profileDetails.totalStars).toBe(130);
@@ -238,6 +248,7 @@ describe('github api for profile details', () => {
             return [500, {}];
         });
 
+        mockRestStars('antroll');
         const profileDetails = await getProfileDetails('antroll', 'token');
         expect(profileDetails.totalStars).toBe(130);
         expect(profileDetails.totalPullRequestContributions).toBe(40);
@@ -315,6 +326,7 @@ describe('github api for profile details', () => {
             return [500, {}];
         });
 
+        mockRestStars('antfu');
         const profileDetails = await getProfileDetails('antfu', 'token');
         // both half-window days present, in order
         expect(profileDetails.contributions.map(c => c.contributionCount)).toEqual([4, 6]);
@@ -335,27 +347,14 @@ describe('github api for profile details', () => {
         expect(new Set(dates).size).toBe(dates.length);
     });
 
-    it('sums stars across every repo page, not just the first 100', async () => {
-        const page1 = JSON.parse(JSON.stringify(data));
-        page1.data.user.repositories.pageInfo = {endCursor: 'C1', hasNextPage: true};
-        const starsPage2 = {
-            data: {
-                user: {
-                    repositories: {
-                        nodes: [{stargazerCount: 7}, {stargazerCount: 3}],
-                        pageInfo: {endCursor: null, hasNextPage: false}
-                    }
-                }
-            }
-        };
-        mock.onPost('https://api.github.com/graphql')
-            .replyOnce(200, page1)
-            .onPost('https://api.github.com/graphql')
-            .replyOnce(200, starsPage2)
-            .onAny();
+    it('sums stars across every REST repo page, not just the first 100', async () => {
+        mock.onPost('https://api.github.com/graphql').reply(200, data);
+        // page 1 is full (100 repos), so pagination continues to page 2;
+        // the fork's 999 stars must be excluded (GraphQL used isFork: false)
+        const fullPage = Array.from({length: 100}, () => restRepo(1));
+        mockRestStars('vn7n24fzkq', [fullPage, [restRepo(7), restRepo(3), restRepo(999, true)]]);
         const profileDetails = await getProfileDetails('vn7n24fzkq', 'token');
-        // 110 + 20 from page 1, 7 + 3 from the follow-up star query
-        expect(profileDetails.totalStars).toBe(140);
+        expect(profileDetails.totalStars).toBe(110);
     });
 });
 
@@ -373,6 +372,7 @@ describe('compact profile cache payload', () => {
             }
         ];
         mock.onPost('https://api.github.com/graphql').reply(200, consecutive);
+        mockRestStars('someone');
         const pd = await getProfileDetails('someone', 'token');
         expect(pd.contributions.map(c => c.date.toISOString().slice(0, 10))).toEqual([
             '2025-12-30',
@@ -386,6 +386,7 @@ describe('compact profile cache payload', () => {
     it('keeps non-consecutive days intact via the explicit fallback', async () => {
         // the base fixture has gaps (2019-09-06/07 then 2020-01-12)
         mock.onPost('https://api.github.com/graphql').reply(200, data);
+        mockRestStars('someone');
         const pd = await getProfileDetails('someone', 'token');
         expect(pd.contributions.map(c => c.date.toISOString().slice(0, 10))).toEqual([
             '2019-09-06',
