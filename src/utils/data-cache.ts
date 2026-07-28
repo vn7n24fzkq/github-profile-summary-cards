@@ -18,10 +18,13 @@
 
 import {AsyncLocalStorage} from 'async_hooks';
 
-// 12h: with the CDN already serving most viewers up-to-48h-old cards, a
+// 24h: with the CDN already serving most viewers up-to-48h-old cards, a
 // shorter Redis fresh window buys little visible freshness while doubling the
-// GitHub refresh traffic. Halving that traffic is a free-tier budget lever.
-const FRESH_SECONDS_DEFAULT = 12 * 60 * 60; // serve without re-fetching
+// GitHub refresh traffic. Halving that traffic is a free-tier budget lever —
+// raised from 12h on 2026-07-28 while peak hours ran close to the GitHub
+// hourly quota ceiling (#308 follow-up); card data changing at most daily is
+// indistinguishable to viewers behind the 48h CDN window anyway.
+const FRESH_SECONDS_DEFAULT = 24 * 60 * 60; // serve without re-fetching
 const RETENTION_SECONDS_DEFAULT = 7 * 24 * 60 * 60; // Redis EX — stale kept as a rate-limit fallback
 const KV_TIMEOUT_MS = 1500; // never let a slow Redis block a card render
 
