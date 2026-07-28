@@ -1,4 +1,11 @@
-import {getGitHubToken, getGitHubTokenCount, getGitHubTokenName} from '../../api/utils/github-token-updater';
+import {
+    getGitHubToken,
+    getGitHubTokenCount,
+    getGitHubTokenName,
+    getGitHubTokenSlots,
+    getGitHubTokenNameAt,
+    getGitHubTokenAt
+} from '../../api/utils/github-token-updater';
 
 describe('getGitHubToken', () => {
     const original = {...process.env};
@@ -82,5 +89,52 @@ describe('getGitHubTokenName', () => {
     it('names the slot even when unset (for error logs)', () => {
         delete process.env.GITHUB_TOKEN_3;
         expect(getGitHubTokenName(3)).toBe('GITHUB_TOKEN_3');
+    });
+});
+
+describe('unified slots (App + env PATs)', () => {
+    const original = {...process.env};
+    beforeEach(() => {
+        delete process.env.GH_APP_ID;
+        delete process.env.GH_APP_PRIVATE_KEY;
+        delete process.env.GH_APP_INSTALLATION_IDS;
+        process.env.GITHUB_TOKEN = 'tok0';
+        process.env.GITHUB_TOKEN_1 = 'tok1';
+        delete process.env.GITHUB_TOKEN_2;
+    });
+    afterEach(() => {
+        process.env = {...original};
+    });
+
+    it('equals the env PATs when no App is configured', () => {
+        expect(getGitHubTokenSlots()).toBe(2);
+        expect(getGitHubTokenNameAt(0)).toBe('GITHUB_TOKEN');
+        expect(getGitHubTokenNameAt(1)).toBe('GITHUB_TOKEN_1');
+    });
+
+    it('prepends App slots and shifts the PAT names', () => {
+        process.env.GH_APP_ID = '1';
+        process.env.GH_APP_PRIVATE_KEY = 'pem';
+        expect(getGitHubTokenSlots()).toBe(3);
+        expect(getGitHubTokenNameAt(0)).toBe('GITHUB_APP');
+        expect(getGitHubTokenNameAt(1)).toBe('GITHUB_TOKEN');
+        expect(getGitHubTokenNameAt(2)).toBe('GITHUB_TOKEN_1');
+    });
+
+    it('numbers App slots when several installations are pinned', () => {
+        process.env.GH_APP_ID = '1';
+        process.env.GH_APP_PRIVATE_KEY = 'pem';
+        process.env.GH_APP_INSTALLATION_IDS = '111,222';
+        expect(getGitHubTokenSlots()).toBe(4);
+        expect(getGitHubTokenNameAt(0)).toBe('GITHUB_APP_0');
+        expect(getGitHubTokenNameAt(1)).toBe('GITHUB_APP_1');
+        expect(getGitHubTokenNameAt(2)).toBe('GITHUB_TOKEN');
+    });
+
+    it('resolves PAT slots behind the App shift', async () => {
+        process.env.GH_APP_ID = '1';
+        process.env.GH_APP_PRIVATE_KEY = 'pem';
+        await expect(getGitHubTokenAt(1)).resolves.toBe('tok0');
+        await expect(getGitHubTokenAt(2)).resolves.toBe('tok1');
     });
 });

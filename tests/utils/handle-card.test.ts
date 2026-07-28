@@ -1,4 +1,7 @@
 import {handleCard, redactBackingAccount, tokenPoolStartIndex} from '../../api/utils/handle-card';
+import {__resetGitHubAppTokenCacheForTests} from '../../api/utils/github-app-token';
+import axios from 'axios';
+import MockAdapter from 'axios-mock-adapter';
 import type {VercelRequest, VercelResponse} from '@vercel/node';
 
 jest.mock('../../src/utils/analytics', () => ({
@@ -134,5 +137,76 @@ describe('handleCard token rotation', () => {
         expect(res.body).not.toContain('98765');
         // The in-place redaction cleans the message before it reaches any sink.
         expect(err.message).toBe('boom for the backing account');
+    });
+});
+
+// The App slot participates in the same rotation: a working App serves cards,
+// a broken App (mint failure) rotates to the PATs instead of failing the card.
+describe('handleCard with a GitHub App slot', () => {
+    const mock = new MockAdapter(axios);
+    const originalEnv = {...process.env};
+
+    // Pool: [GITHUB_APP, GITHUB_TOKEN, GITHUB_TOKEN_1]. Pick a username whose
+    // hash pins it to the App slot so the App path is exercised first.
+    const appPinnedUser = ['alpha', 'bravo', 'charlie', 'delta', 'echo', 'foxtrot', 'golf', 'hotel'].find(
+        name => tokenPoolStartIndex(name, 3) === 0
+    ) as string;
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mock.reset();
+        __resetGitHubAppTokenCacheForTests();
+        process.env.GITHUB_TOKEN = 'tok0';
+        process.env.GITHUB_TOKEN_1 = 'tok1';
+        process.env.GH_APP_ID = '12345';
+        process.env.GH_APP_PRIVATE_KEY = 'not-a-real-key';
+        process.env.GH_APP_INSTALLATION_IDS = '777';
+    });
+
+    afterEach(() => {
+        process.env = {...originalEnv};
+        mock.restore();
+    });
+
+    const makeReq = (username: string) => ({query: {username}, headers: {}}) as any;
+    const makeRes = () => {
+        const res: any = {
+            body: undefined,
+            setHeader() {},
+            send(body: unknown) {
+                this.body = body;
+            },
+            status: jest.fn().mockReturnThis()
+        };
+        return res;
+    };
+
+    it('sanity: a username is pinned to the App slot', () => {
+        expect(appPinnedUser).toBeDefined();
+    });
+
+    it('rotates to the PATs when the App token mint fails', async () => {
+        // The bogus private key makes the mint throw before any HTTP happens —
+        // an isTokenAcquisition failure, which must rotate, not fail the card.
+        const render = jest.fn().mockResolvedValue('<svg/>');
+        const res = makeRes();
+        await handleCard(makeReq(appPinnedUser), res, 'test_card', render);
+
+        expect(render).toHaveBeenCalledTimes(1);
+        expect(['tok0', 'tok1']).toContain(render.mock.calls[0][3]);
+        expect(res.body).toContain('<svg');
+    });
+
+    it('counts the App slot in the exhaustion lap', async () => {
+        const err: any = new Error('API rate limit exceeded');
+        err.isRateLimit = true;
+        const render = jest.fn().mockRejectedValue(err);
+        const res = makeRes();
+        await handleCard(makeReq(appPinnedUser), res, 'test_card', render);
+
+        // App mint fails (1 acquisition attempt, no render) + 2 PAT renders
+        // rate-limited = one full lap of 3 slots, then the rate-limited card.
+        expect(render).toHaveBeenCalledTimes(2);
+        expect(res.body).toContain('rate limited');
     });
 });

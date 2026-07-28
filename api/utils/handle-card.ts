@@ -1,4 +1,4 @@
-import {getGitHubToken, getGitHubTokenCount, getGitHubTokenName} from './github-token-updater';
+import {getGitHubTokenAt, getGitHubTokenSlots, getGitHubTokenNameAt} from './github-token-updater';
 import {getErrorMsgCard} from './error-card';
 import {reportUnexpectedError, shipErrorRecord} from './error-reporter';
 import {waitUntil} from '@vercel/functions';
@@ -110,17 +110,20 @@ export async function handleCard(
 
     try {
         await runWithRequestClock(async () => {
-            // Zero configured tokens keeps the old behavior: the first
-            // getGitHubToken(0) call throws the canonical "No more GITHUB_TOKEN"
-            // error before any render is attempted.
-            const tokenCount = Math.max(1, getGitHubTokenCount());
+            // Slots = GitHub App installation token (when configured) + env
+            // PATs. Zero configured slots keeps the old behavior: the first
+            // getGitHubTokenAt(0) call throws the canonical "No more
+            // GITHUB_TOKEN" error before any render is attempted.
+            const tokenCount = Math.max(1, getGitHubTokenSlots());
             let attempts = 0;
             let tokenIndex = tokenPoolStartIndex(username, tokenCount);
-            let token = getGitHubToken(tokenIndex);
-            // Rotate through the configured tokens (wrapping around the pool)
-            // until one succeeds or every token has been tried.
+            // Rotate through the configured slots (wrapping around the pool)
+            // until one succeeds or every slot has been tried. Acquisition
+            // happens inside the try: a failed App-token mint rotates to the
+            // next slot exactly like a rate-limited PAT.
             while (true) {
                 try {
+                    const token = await getGitHubTokenAt(tokenIndex);
                     // Collect the data-cache outcome of this render so GA gets a
                     // cache_status dimension (fresh / miss / stale / mixed).
                     const {result: cardSVG, cacheStatus} = await runWithCacheStats(() =>
@@ -151,9 +154,9 @@ export async function handleCard(
                     return;
                 } catch (err: any) {
                     console.log(
-                        `${getGitHubTokenName(tokenIndex)} failed: ${redactBackingAccount(String(err?.message ?? 'unknown'))}`
+                        `${getGitHubTokenNameAt(tokenIndex)} failed: ${redactBackingAccount(String(err?.message ?? 'unknown'))}`
                     );
-                    if (isRotatableError(err)) {
+                    if (isRotatableError(err) || err?.isTokenAcquisition === true) {
                         attempts += 1;
                         if (attempts >= tokenCount) {
                             // Keep the "No more GITHUB_TOKEN" phrasing — classifyError
@@ -161,7 +164,6 @@ export async function handleCard(
                             throw new Error('No more GITHUB_TOKEN can be used (all configured tokens failed)');
                         }
                         tokenIndex = (tokenIndex + 1) % tokenCount;
-                        token = getGitHubToken(tokenIndex);
                     } else {
                         throw err;
                     }
