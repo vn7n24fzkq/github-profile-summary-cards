@@ -66,9 +66,9 @@ afterEach(() => {
     mock.reset();
 });
 
-// Star totals now come from REST repo pagination (stargazer_count), which runs
+// Star totals now come from REST repo pagination (stargazers_count), which runs
 // concurrently with the GraphQL profile fetch — every test mocks both.
-const restRepo = (stars: number, fork = false) => ({stargazer_count: stars, fork});
+const restRepo = (stars: number, fork = false) => ({stargazers_count: stars, fork});
 const mockRestStars = (username: string, pages: any[][] = [[restRepo(110), restRepo(20)]]) =>
     mock.onGet(`https://api.github.com/users/${username}/repos`).reply(config => {
         const page = config.params?.page ?? 1;
@@ -346,6 +346,14 @@ describe('github api for profile details', () => {
         const dates = profileDetails.contributions.map(c => c.date.toISOString());
         expect(new Set(dates).size).toBe(dates.length);
     });
+
+    it('rejects when the REST star fetch fails, so stale rescue owns the fallback', async () => {
+        // Deliberate: a 0-star fallback would cache WRONG data for a day;
+        // failing lets data-cache serve the stale copy (or an error card once).
+        mock.onPost('https://api.github.com/graphql').reply(200, data);
+        mock.onGet('https://api.github.com/users/starless/repos').reply(500, {});
+        await expect(getProfileDetails('starless', 'token')).rejects.toThrow();
+    }, 20000);
 
     it('sums stars across every REST repo page, not just the first 100', async () => {
         mock.onPost('https://api.github.com/graphql').reply(200, data);

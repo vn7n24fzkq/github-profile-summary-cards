@@ -353,7 +353,7 @@ function splitFlagKey(username: string): string {
     return `v1:pdx:${username.toLowerCase()}`;
 }
 
-// Star totals come from REST repo pagination (stargazer_count rides along on
+// Star totals come from REST repo pagination (stargazers_count rides along on
 // GET /users/:login/repos) instead of GraphQL pages: REST draws on a separate,
 // otherwise-idle hourly quota, and dropping the 100-node repos page from the
 // GraphQL documents also lowers their cost-estimator score — fewer split
@@ -374,7 +374,7 @@ async function fetchTotalStars(username: string, token: string, startedAt: numbe
         const repos: any[] = Array.isArray(res.data) ? res.data : [];
         for (const repo of repos) {
             if (repo.fork) continue;
-            stars += repo.stargazer_count ?? 0;
+            stars += repo.stargazers_count ?? 0;
         }
         pages += 1;
         hasNextPage = shouldFetchNextPage(repos.length === 100, pages, undefined, startedAt, PD_FETCH_BUDGET_MS);
@@ -421,7 +421,7 @@ export async function getProfileDetails(username: string, token: string): Promis
             }
         }
         if (fetchedUser === null) {
-            // Rejected now or flagged earlier — same fields via three smaller
+            // Rejected now or flagged earlier — same fields via four smaller
             // queries.
             fetchedUser = await fetchUserDetailsSplit(username, token);
         }
