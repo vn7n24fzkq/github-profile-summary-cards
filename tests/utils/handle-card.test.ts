@@ -143,7 +143,9 @@ describe('handleCard token rotation', () => {
 // The App slot participates in the same rotation: a working App serves cards,
 // a broken App (mint failure) rotates to the PATs instead of failing the card.
 describe('handleCard with a GitHub App slot', () => {
-    const mock = new MockAdapter(axios);
+    // Created per test: restore() detaches the adapter from axios, so a
+    // suite-level instance would leave later tests running unmocked.
+    let mock: InstanceType<typeof MockAdapter>;
     const originalEnv = {...process.env};
 
     // Pool: [GITHUB_APP, GITHUB_TOKEN, GITHUB_TOKEN_1]. Pick a username whose
@@ -154,7 +156,7 @@ describe('handleCard with a GitHub App slot', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mock.reset();
+        mock = new MockAdapter(axios);
         __resetGitHubAppTokenCacheForTests();
         process.env.GITHUB_TOKEN = 'tok0';
         process.env.GITHUB_TOKEN_1 = 'tok1';

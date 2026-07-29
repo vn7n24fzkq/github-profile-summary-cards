@@ -17,6 +17,10 @@ import axios from 'axios';
 // per hour. They are never logged and never written to Redis.
 
 const REFRESH_MARGIN_MS = 5 * 60 * 1000; // re-mint when under 5 minutes left
+// A hanging mint would otherwise ride the whole function invocation while the
+// rotation can't move on — bound it so a slow GitHub API degrades to the PAT
+// slots within a request, not at the platform timeout.
+const MINT_TIMEOUT_MS = 10 * 1000;
 
 const cachedTokens = new Map<number, {token: string; expiresAtMs: number}>();
 const inflightMints = new Map<number, Promise<string>>();
@@ -76,7 +80,8 @@ async function appApi(method: 'get' | 'post', path: string, jwt: string): Promis
             'User-Agent': 'github-profile-summary-cards',
             Authorization: `Bearer ${jwt}`,
             Accept: 'application/vnd.github+json'
-        }
+        },
+        timeout: MINT_TIMEOUT_MS
     });
 }
 
