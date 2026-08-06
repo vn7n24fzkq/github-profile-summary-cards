@@ -1,0 +1,15 @@
+version: 2
+updates:
+    - package-ecosystem: npm
+      directory: /
+      schedule:
+          interval: weekly
+      ignore:
+          # d3 v7+ and d3-color v3+ are ESM-only. This project compiles to
+          # CommonJS, so require('d3') crashes the Vercel runtime at module
+          # load (FUNCTION_INVOCATION_FAILED) while tests/build stay green —
+          # the #320 outage. Block major bumps until an ESM migration is done.
+          - dependency-name: d3
+            update-types: ['version-update:semver-major']
+          - dependency-name: d3-color
+            update-types: ['version-update:semver-major']
