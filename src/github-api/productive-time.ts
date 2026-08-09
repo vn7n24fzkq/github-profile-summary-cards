@@ -67,6 +67,7 @@ const fetcher = (token: string, variables: any) => {
                   }
                 }
                 name
+                nameWithOwner
               }
             }
           }
@@ -83,12 +84,14 @@ export async function getProductiveTime(
     username: string,
     until: string,
     since: string,
-    token: string
+    token: string,
+    excludeRepos: Array<string> = []
 ): Promise<ProfuctiveTime> {
     // The since/until window shifts with the current date, so it's part of the
     // key — plain commit-date strings are cached, Date-like usage stays outside.
-    // v3: the collection window is now pinned to since/until (repo list changed).
-    const authoredDates = await withDataCache(`v3:pt:${username.toLowerCase()}:${since}:${until}`, async () => {
+    // v4: dates are cached grouped per repository so one shared cache entry can
+    // serve any exclude_repos combination (the filter runs after the cache).
+    const repoGroups = await withDataCache(`v4:pt:${username.toLowerCase()}:${since}:${until}`, async () => {
         const userIdResponse = await userIdFetcher(token, {
             login: username
         });
@@ -109,24 +112,42 @@ export async function getProductiveTime(
 
         assertNoGraphQLErrors(res, 'GetProductiveTime failed');
 
-        const dates: Date[] = [];
+        const groups: Array<{name: string; nameWithOwner: string; dates: Date[]}> = [];
         res.data.data.user.contributionsCollection.commitContributionsByRepository.forEach(
             (node: {
                 repository: {
                     defaultBranchRef: {target: {history: {edges: any[]}}} | null;
+                    name: string;
+                    nameWithOwner: string;
                 };
             }) => {
                 if (node.repository.defaultBranchRef != null) {
+                    const dates: Date[] = [];
                     node.repository.defaultBranchRef.target.history.edges.forEach(edge => {
                         dates.push(edge.node.authoredDate);
+                    });
+                    groups.push({
+                        name: node.repository.name,
+                        nameWithOwner: node.repository.nameWithOwner,
+                        dates: dates
                     });
                 }
             }
         );
-        return dates;
+        return groups;
     });
 
     const productiveTime = new ProfuctiveTime();
-    authoredDates.forEach(date => productiveTime.addProductiveDate(date));
+    repoGroups.forEach(group => {
+        // Same matching rules as the language cards: case-insensitive on the
+        // bare repo name or the owner/repo form.
+        if (
+            excludeRepos.includes((group.name ?? '').toLowerCase()) ||
+            excludeRepos.includes((group.nameWithOwner ?? '').toLowerCase())
+        ) {
+            return;
+        }
+        group.dates.forEach(date => productiveTime.addProductiveDate(date));
+    });
     return productiveTime;
 }

@@ -7,9 +7,10 @@ export const createProductiveTimeCard = async function (
     username: string,
     utcOffset: number,
     token: string,
-    options: CardGenerationOptions = {}
+    options: CardGenerationOptions = {},
+    excludeRepos: Array<string> = []
 ) {
-    const productiveTimeData = await getProductiveTimeData(username, utcOffset, token);
+    const productiveTimeData = await getProductiveTimeData(username, utcOffset, token, excludeRepos);
     // use 4- prefix for sort in preview
     writeThemedCards(
         '4-productive-time',
@@ -23,10 +24,11 @@ export const getProductiveTimeSVGWithThemeName = async function (
     themeName: string,
     utcOffset: number,
     token: string,
-    override?: ThemeColorOverride
+    override?: ThemeColorOverride,
+    excludeRepos: Array<string> = []
 ) {
     if (!ThemeMap.has(themeName)) throw new Error('Theme does not exist');
-    const productiveTimeData = await getProductiveTimeData(username, utcOffset, token);
+    const productiveTimeData = await getProductiveTimeData(username, utcOffset, token, excludeRepos);
     return getProductiveTimeSVG(productiveTimeData, themeName, utcOffset, override);
 };
 
@@ -61,7 +63,8 @@ const adjustOffset = function (offset: number, RoundRobin: {offset: number}): nu
 const getProductiveTimeData = async function (
     username: string,
     utcOffset: number,
-    token: string
+    token: string,
+    excludeRepos: Array<string> = []
 ): Promise<Array<number>> {
     // Round the 1-year window to UTC day boundaries: the values feed the
     // data-cache key, and millisecond-precision timestamps made the key unique
@@ -71,7 +74,13 @@ const getProductiveTimeData = async function (
     until.setUTCHours(24, 0, 0, 0); // end of the current UTC day
     const since = new Date(until);
     since.setUTCFullYear(since.getUTCFullYear() - 1);
-    const productiveTime = await getProductiveTime(username, until.toISOString(), since.toISOString(), token);
+    const productiveTime = await getProductiveTime(
+        username,
+        until.toISOString(),
+        since.toISOString(),
+        token,
+        excludeRepos
+    );
     // process productiveTime
     const chartData = new Array(24);
     chartData.fill(0);

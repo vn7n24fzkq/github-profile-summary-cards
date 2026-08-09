@@ -9,10 +9,17 @@ const ORG_NOT_SUPPORTED =
 
 export default (req: VercelRequest, res: VercelResponse) => {
     const {utcOffset: rawOffset = '0'} = req.query;
+    const excludeReposRaw = req.query.exclude_repos ?? '';
     if (typeof rawOffset !== 'string') {
         res.status(400).send('utcOffset must be a string');
         return;
     }
+    if (typeof excludeReposRaw !== 'string') {
+        res.status(400).send('exclude_repos must be a string');
+        return;
+    }
+    // Comma-separated repo names to skip (case-insensitive), e.g. exclude_repos=dotfiles,my-fork
+    const excludeReposArr = excludeReposRaw.split(',').map(val => val.trim().toLowerCase());
     // Validate + clamp to a real UTC offset range so a non-numeric value can't
     // produce an all-zero chart (NaN index) and a huge value can't grow the
     // 24-hour bucket array out of range (which throws in the template).
@@ -27,8 +34,8 @@ export default (req: VercelRequest, res: VercelResponse) => {
             if (ownerType === 'Organization') {
                 return getErrorMsgCard(ORG_NOT_SUPPORTED, theme);
             }
-            return getProductiveTimeSVGWithThemeName(username, theme, utcOffset, token, override);
+            return getProductiveTimeSVGWithThemeName(username, theme, utcOffset, token, override, excludeReposArr);
         },
-        {utcOffset: String(utcOffset)}
+        {utcOffset: String(utcOffset), exclude_repos_used: String(excludeReposRaw.length > 0)}
     );
 };
