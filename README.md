@@ -119,7 +119,7 @@
   - username
   - utcOffset
   - exclude_repos:
-    - A comma separated list of repository names whose commits are excluded from the chart (case-insensitive), e.g., exclude_repos=dotfiles,my-fork
+    - A comma-separated list of repository names whose commits are excluded from the chart (case-insensitive), e.g., exclude_repos=dotfiles,my-fork
     - `owner/repo` entries also match, e.g., exclude_repos=vn7n24fzkq/dotfiles
 
 ### Custom colors
