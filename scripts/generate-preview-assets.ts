@@ -37,7 +37,11 @@ const THEME_TABLE = [
     'tokyonight',
     'vue',
     'zenburn',
-    'transparent'
+    'transparent',
+    'cwn_dark',
+    'cwn_dark_border',
+    'cwn_light',
+    'cwn_light_border'
 ];
 for (const theme of THEME_TABLE) {
     write(`themes/${theme}.svg`, render('profile-details', theme));
