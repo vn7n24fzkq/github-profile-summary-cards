@@ -95,6 +95,10 @@ ThemeMap.set('vision_friendly_dark', new Theme('#ffb000', '#ffffff', '#000000', 
 ThemeMap.set('vue', new Theme('#41b883', '#000000', '#ffffff', '#e4e2e2', 1, '#41b883', '#41b883'));
 ThemeMap.set('yeblu', new Theme('#ffff00', '#ffffff', '#002046', '#000000', 0, '#ffff00', '#ffff00'));
 ThemeMap.set('zenburn', new Theme('#f0dfaf', '#dcdccc', '#3f3f3f', '#3f3f3f', 1, '#8cd0d3', '#7f9f7f'));
+ThemeMap.set('cwn_dark', new Theme('#ffffff', '#ffffff', '#000000', '#ffffff', 0, '#ffffff', '#ffffff'));
+ThemeMap.set('cwn_dark_border', new Theme('#ffffff', '#ffffff', '#000000', '#ffffff', 1, '#ffffff', '#ffffff'));
+ThemeMap.set('cwn_light', new Theme('#000000', '#000000', '#ffffff', '#000000', 0, '#000000', '#000000'));
+ThemeMap.set('cwn_light_border', new Theme('#000000', '#000000', '#ffffff', '#000000', 1, '#000000', '#000000'));
 
 // Resolves an arbitrary user-supplied theme name to one that's guaranteed to
 // exist in ThemeMap. Falls back to 'default' for unknown values so downstream
