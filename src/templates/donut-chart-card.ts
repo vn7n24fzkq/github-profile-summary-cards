@@ -39,7 +39,7 @@ export function createDonutChartCard(
         // with its arc) so a language reveals as one unit, one at a time.
         .attr('class', 'gpsc-item')
         .style('--gpsc-i', d => String(d.index))
-        .attr('fill', pieData => pieData.data.color)
+        .attr('fill', (d, i) => theme.categoricalColors?.[i] ?? d.data.color)
         .attr('stroke', `${theme.background}`)
         .style('stroke-width', '1px');
 
@@ -77,9 +77,7 @@ export function createDonutChartCard(
 
     g.append('path')
         .attr('d', arc)
-        .style('fill', function (pieData) {
-            return pieData.data.color;
-        })
+        .style('fill', (d, i) => theme.categoricalColors?.[i] ?? d.data.color)
         .attr('stroke', `${theme.background}`)
         .style('stroke-width', '2px');
     return card.toString();

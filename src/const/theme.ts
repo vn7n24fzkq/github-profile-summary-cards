@@ -8,6 +8,7 @@ export class Theme {
     strokeOpacity: number;
     icon: string;
     chart: string;
+    categoricalColors?: readonly string[];
     constructor(
         title: string,
         text: string,
@@ -15,7 +16,8 @@ export class Theme {
         stroke: string,
         strokeOpacity: number,
         icon: string,
-        chart: string
+        chart: string,
+        categoricalColors?: readonly string[]
     ) {
         this.title = title;
         this.text = text;
@@ -24,8 +26,13 @@ export class Theme {
         this.strokeOpacity = strokeOpacity;
         this.icon = icon;
         this.chart = chart;
+        this.categoricalColors = categoricalColors;
     }
 }
+
+const CWN_DARK_CATEGORICAL_COLORS = ['#ffffff', '#c6c6c6', '#9f9f9f', '#808080', '#666666'] as const;
+
+const CWN_LIGHT_CATEGORICAL_COLORS = ['#000000', '#393939', '#606060', '#7f7f7f', '#999999'] as const;
 
 // Set up themes
 // We support short hex color, hex color and RGBA hex
@@ -95,10 +102,22 @@ ThemeMap.set('vision_friendly_dark', new Theme('#ffb000', '#ffffff', '#000000', 
 ThemeMap.set('vue', new Theme('#41b883', '#000000', '#ffffff', '#e4e2e2', 1, '#41b883', '#41b883'));
 ThemeMap.set('yeblu', new Theme('#ffff00', '#ffffff', '#002046', '#000000', 0, '#ffff00', '#ffff00'));
 ThemeMap.set('zenburn', new Theme('#f0dfaf', '#dcdccc', '#3f3f3f', '#3f3f3f', 1, '#8cd0d3', '#7f9f7f'));
-ThemeMap.set('cwn_dark', new Theme('#ffffff', '#ffffff', '#000000', '#ffffff', 0, '#ffffff', '#ffffff'));
-ThemeMap.set('cwn_dark_border', new Theme('#ffffff', '#ffffff', '#000000', '#ffffff', 1, '#ffffff', '#ffffff'));
-ThemeMap.set('cwn_light', new Theme('#000000', '#000000', '#ffffff', '#000000', 0, '#000000', '#000000'));
-ThemeMap.set('cwn_light_border', new Theme('#000000', '#000000', '#ffffff', '#000000', 1, '#000000', '#000000'));
+ThemeMap.set(
+    'cwn_dark',
+    new Theme('#ffffff', '#ffffff', '#000000', '#ffffff', 0, '#ffffff', '#ffffff', CWN_DARK_CATEGORICAL_COLORS)
+);
+ThemeMap.set(
+    'cwn_dark_border',
+    new Theme('#ffffff', '#ffffff', '#000000', '#ffffff', 1, '#ffffff', '#ffffff', CWN_DARK_CATEGORICAL_COLORS)
+);
+ThemeMap.set(
+    'cwn_light',
+    new Theme('#000000', '#000000', '#ffffff', '#000000', 0, '#000000', '#000000', CWN_LIGHT_CATEGORICAL_COLORS)
+);
+ThemeMap.set(
+    'cwn_light_border',
+    new Theme('#000000', '#000000', '#ffffff', '#000000', 1, '#000000', '#000000', CWN_LIGHT_CATEGORICAL_COLORS)
+);
 
 // Resolves an arbitrary user-supplied theme name to one that's guaranteed to
 // exist in ThemeMap. Falls back to 'default' for unknown values so downstream
@@ -152,6 +171,7 @@ export function resolveTheme(themeName: string, override?: ThemeColorOverride): 
         override?.border ?? base.stroke,
         base.strokeOpacity,
         override?.icon ?? base.icon,
-        override?.chart ?? base.chart
+        override?.chart ?? base.chart,
+        base.categoricalColors
     );
 }

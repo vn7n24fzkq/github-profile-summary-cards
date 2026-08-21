@@ -83,4 +83,10 @@ describe('resolveTheme', () => {
         expect(t.title).toBe(base.title);
         expect(t.background).toBe(base.background);
     });
+    it('preserves categorical colors from the base theme', () => {
+        const base = ThemeMap.get('cwn_dark')!;
+        const resolved = resolveTheme('cwn_dark');
+
+        expect(resolved.categoricalColors).toEqual(base.categoricalColors);
+    });
 });
