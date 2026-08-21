@@ -56,7 +56,7 @@ const HERO: [string, string][] = [
     ['productive-time', '4-productive-time']
 ];
 for (const [card, file] of HERO) {
-    write(`hero/${file}.svg`, render(card, 'solarized', 'load'));
+    write(`hero/${file}.svg`, render(card, 'cwn_dark_border', 'load'));
 }
 
 // 3. Animation showcase — one representative card per preset (baked-in animation).
