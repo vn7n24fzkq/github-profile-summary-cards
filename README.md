@@ -49,8 +49,8 @@
 |![](docs/preview/themes/gruvbox.svg)|![](docs/preview/themes/monokai.svg)| ![](docs/preview/themes/nord_bright.svg)|![](docs/preview/themes/nord_dark.svg)  |![](docs/preview/themes/radical.svg)|
 |solarized|solarized_dark|tokyonight|vue|zenburn|
 |![](docs/preview/themes/solarized.svg)|![](docs/preview/themes/solarized_dark.svg)| ![](docs/preview/themes/tokyonight.svg)|![](docs/preview/themes/vue.svg)  |![](docs/preview/themes/zenburn.svg)|
-|transparent| | | | |
-|![](docs/preview/themes/transparent.svg)| | | | |
+|transparent|cwn_dark|cwn_dark_border|cwn_light|cwn_light_border|
+|![](docs/preview/themes/transparent.svg)|![](docs/preview/themes/cwn_dark.svg)|![](docs/preview/themes/cwn_dark_border.svg)|![](docs/preview/themes/cwn_light.svg)|![](docs/preview/themes/cwn_light_border.svg)|
 
 [More themes](https://github.com/vn7n24fzkq/github-profile-summary-cards-example/tree/master/profile-summary-card-output)
 
