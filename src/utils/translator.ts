@@ -266,8 +266,13 @@ export const translateLanguage = function async(lang: string) {
         html: 'HTML',
         foxpro: 'xBase'
     };
-    if (dict[lang] !== undefined) {
+    const normalizedLang = lang.toLowerCase();
+    if (Object.prototype.hasOwnProperty.call(dict, lang)) {
         return dict[lang];
+    }
+    const caseInsensitiveAlias = Object.keys(dict).find(alias => alias.toLowerCase() === normalizedLang);
+    if (caseInsensitiveAlias !== undefined) {
+        return dict[caseInsensitiveAlias];
     }
     return lang.charAt(0).toUpperCase() + lang.slice(1);
 };
