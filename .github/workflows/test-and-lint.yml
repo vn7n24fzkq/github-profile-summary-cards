@@ -10,12 +10,6 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     steps:
-    - name: Collect Workflow Telemetry
-      uses: catchpoint/foresight-workflow-kit-action@v1
-      if: success() || failure()
-      with:
-        api_key: ${{ secrets.foresight_api_key }}
-
     - uses: actions/checkout@v6
     - name: Use Node.js 24
       uses: actions/setup-node@v6
@@ -24,17 +18,6 @@ jobs:
         cache: 'npm'
     - run: npm ci
     - run: npm run test
-
-    - name: Analyze Test and/or Coverage Results
-      uses: catchpoint/foresight-test-kit-action@v1
-      if: success() || failure()
-      with:
-        api_key: ${{ secrets.foresight_api_key }}
-        test_format: JUNIT
-        test_framework: JEST
-        test_path: ./junit.xml
-        coverage_format: JACOCO/XML
-        coverage_path: ./coverage
 
   lint:
     runs-on: ubuntu-latest
