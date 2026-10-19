@@ -38,7 +38,7 @@
         "retry-axios": "^2.6.0"
     },
     "devDependencies": {
-        "@babel/core": "^7.29.6",
+        "@babel/core": "^8.0.1",
         "@babel/preset-env": "^7.28.5",
         "@types/d3": "^6.7.0",
         "@types/jest": "^30.0.0",
