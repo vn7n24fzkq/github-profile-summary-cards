@@ -67,7 +67,7 @@
         "lint"
     ],
     "overrides": {
-        "undici": "^6.27.0",
+        "undici": "^6.29.0",
         "@tootallnate/once": "^2.0.1",
         "js-yaml@^3.0.0": "^3.15.0",
         "js-yaml@^4.0.0": "^4.2.0",
