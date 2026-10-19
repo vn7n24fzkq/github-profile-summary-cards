@@ -85,17 +85,23 @@ export async function getProductiveTime(
     since: string,
     token: string
 ): Promise<ProfuctiveTime> {
-    // The since/until window shifts with the current date, so it's part of the
-    // key — plain commit-date strings are cached, Date-like usage stays outside.
-    // v3: the collection window is now pinned to since/until (repo list changed).
-    const authoredDates = await withDataCache(`v3:pt:${username.toLowerCase()}:${since}:${until}`, async () => {
+    // The key deliberately excludes the since/until window: it shifts at every
+    // UTC midnight, and a date-bearing key made yesterday's stale copy
+    // unreachable — the rate-limit stale rescue every other card relies on
+    // never fired for productive-time. The window is always "trailing year to
+    // today", so a stable key serves data at most one day off — invisible on a
+    // year-long hour histogram. Freshness is governed by freshSeconds as usual.
+    // v4: window dropped from the key (was v3:pt:user:since:until).
+    const authoredDates = await withDataCache(`v4:pt:${username.toLowerCase()}`, async () => {
         const userIdResponse = await userIdFetcher(token, {
             login: username
         });
 
-        if (userIdResponse.data.errors) {
-            throw Error(userIdResponse.data.errors[0].message || 'GetProductiveTime failed');
-        }
+        // assertNoGraphQLErrors flags rate-limit errors (isRateLimit), which
+        // handleCard's token rotation keys on. A plain `throw Error(message)`
+        // here made the first rate-limited token fatal: productive-time showed
+        // the error card while every other card rotated to a healthy token.
+        assertNoGraphQLErrors(userIdResponse, 'GetProductiveTime failed');
 
         const userId = userIdResponse.data.data.user.id;
         const res = await fetcher(token, {

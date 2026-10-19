@@ -205,6 +205,11 @@ async function kvGet<T>(key: string): Promise<KvReadResult<T>> {
             signal: AbortSignal.timeout(KV_TIMEOUT_MS)
         });
         if (!res.ok) {
+            // Upstash puts the rejection reason in the body (e.g. "max requests
+            // limit exceeded") — without it, a quota block is indistinguishable
+            // from an outage in the logs.
+            const body = await res.text().catch(() => '');
+            console.log(`data-cache: KV read failed (${res.status}): ${body.slice(0, 120)}`);
             recordKvFailure('read');
             return {kind: 'error'};
         }
@@ -233,8 +238,13 @@ async function kvSet<T>(key: string, envelope: Envelope<T>, retentionSeconds: nu
                 signal: AbortSignal.timeout(KV_TIMEOUT_MS)
             }
         );
-        if (res.ok) recordKvSuccess('write');
-        else recordKvFailure('write');
+        if (res.ok) {
+            recordKvSuccess('write');
+        } else {
+            const body = await res.text().catch(() => '');
+            console.log(`data-cache: KV write failed (${res.status}): ${body.slice(0, 120)}`);
+            recordKvFailure('write');
+        }
     } catch (e) {
         // Best-effort write; the card was already rendered from fresh data.
         recordKvFailure('write');
