@@ -16,6 +16,7 @@ import {OUTPUT_PATH, generatePreviewMarkdown} from './utils/file-writer';
 import {ThemeMap} from './const/theme';
 import {parseAnimation} from './utils/animation';
 import {CardGenerationOptions} from './utils/card-generation';
+import {normalizeTimeZone} from './utils/time-zone';
 
 const execCmd = (cmd: string, args: string[] = []) =>
     new Promise((resolve, reject) => {
@@ -49,7 +50,8 @@ const generateUserCards = async (
     exclude: Array<string>,
     token: string,
     options: CardGenerationOptions = {},
-    excludeRepos: Array<string> = []
+    excludeRepos: Array<string> = [],
+    timeZone?: string
 ) => {
     // ProfileDetailsCard
     try {
@@ -87,7 +89,7 @@ const generateUserCards = async (
     // ProductiveTimeCard
     try {
         core.info(`Creating ProductiveTimeCard...`);
-        await createProductiveTimeCard(username, utcOffset, token, options);
+        await createProductiveTimeCard(username, utcOffset, token, options, timeZone);
     } catch (error: any) {
         core.error(`Error when creating ProductiveTimeCard \n${error.stack}`);
     }
@@ -149,6 +151,13 @@ const action = async () => {
     core.info(`Username: ${username}`);
     const utcOffset = Number(core.getInput('UTC_OFFSET', {required: false}));
     core.info(`UTC offset: ${utcOffset}`);
+    const timeZoneInput = core.getInput('TIME_ZONE', {required: false}).trim();
+    const timeZone = timeZoneInput ? normalizeTimeZone(timeZoneInput) ?? undefined : undefined;
+    if (timeZoneInput && !timeZone) {
+        core.setFailed(`TIME_ZONE "${timeZoneInput}" is not a valid IANA time zone (e.g. Europe/Zurich).`);
+        return;
+    }
+    core.info(`Time zone: ${timeZone ?? '(none; using UTC offset)'}`);
     const exclude = parseExcludeLanguages(core.getInput('EXCLUDE', {required: false}));
     core.info(`Excluded languages: ${exclude}`);
     const excludeRepos = core
@@ -197,7 +206,15 @@ const action = async () => {
         if (ownerType === 'Organization') {
             await generateOrganizationCards(username, exclude, process.env.GITHUB_TOKEN!, options, excludeRepos);
         } else {
-            await generateUserCards(username, utcOffset, exclude, process.env.GITHUB_TOKEN!, options, excludeRepos);
+            await generateUserCards(
+                username,
+                utcOffset,
+                exclude,
+                process.env.GITHUB_TOKEN!,
+                options,
+                excludeRepos,
+                timeZone
+            );
         }
 
         // generate markdown

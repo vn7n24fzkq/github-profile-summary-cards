@@ -52,7 +52,13 @@ const profileDetails = [
 
 // Render one mock card to an SVG string. Throws on an unknown card name so the
 // dev server can surface a clear 404. `displayName` previews the title override.
-export function renderMockCard(card: string, themeName: string, utcOffset = 0, displayName?: string): string {
+export function renderMockCard(
+    card: string,
+    themeName: string,
+    utcOffset = 0,
+    displayName?: string,
+    timeZone?: string
+): string {
     const theme = resolveTheme(themeName);
     switch (card) {
         case 'profile-details':
@@ -71,7 +77,7 @@ export function renderMockCard(card: string, themeName: string, utcOffset = 0, d
         case 'stats':
             return createStatsCard('Stats', statsData, theme);
         case 'productive-time':
-            return createProductiveCard(productiveByHour, theme, utcOffset);
+            return createProductiveCard(productiveByHour, theme, utcOffset, timeZone);
         default:
             throw new Error(`Unknown mock card: ${card}`);
     }

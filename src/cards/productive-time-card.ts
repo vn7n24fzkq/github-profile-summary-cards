@@ -2,18 +2,20 @@ import {ThemeMap, ThemeColorOverride, resolveTheme} from '../const/theme';
 import {getProductiveTime} from '../github-api/productive-time';
 import {createProductiveCard as productiveTimeCard} from '../templates/productive-time-card';
 import {CardGenerationOptions, writeThemedCards} from '../utils/card-generation';
+import {createTimeZoneHourFormatter} from '../utils/time-zone';
 
 export const createProductiveTimeCard = async function (
     username: string,
     utcOffset: number,
     token: string,
-    options: CardGenerationOptions = {}
+    options: CardGenerationOptions = {},
+    timeZone?: string
 ) {
-    const productiveTimeData = await getProductiveTimeData(username, utcOffset, token);
+    const productiveTimeData = await getProductiveTimeData(username, utcOffset, token, timeZone);
     // use 4- prefix for sort in preview
     writeThemedCards(
         '4-productive-time',
-        themeName => getProductiveTimeSVG(productiveTimeData, themeName, utcOffset),
+        themeName => getProductiveTimeSVG(productiveTimeData, themeName, utcOffset, undefined, timeZone),
         options
     );
 };
@@ -23,20 +25,22 @@ export const getProductiveTimeSVGWithThemeName = async function (
     themeName: string,
     utcOffset: number,
     token: string,
-    override?: ThemeColorOverride
+    override?: ThemeColorOverride,
+    timeZone?: string
 ) {
     if (!ThemeMap.has(themeName)) throw new Error('Theme does not exist');
-    const productiveTimeData = await getProductiveTimeData(username, utcOffset, token);
-    return getProductiveTimeSVG(productiveTimeData, themeName, utcOffset, override);
+    const productiveTimeData = await getProductiveTimeData(username, utcOffset, token, timeZone);
+    return getProductiveTimeSVG(productiveTimeData, themeName, utcOffset, override, timeZone);
 };
 
 const getProductiveTimeSVG = function (
     productiveTimeData: Array<number>,
     themeName: string,
     utcOffset: number,
-    override?: ThemeColorOverride
+    override?: ThemeColorOverride,
+    timeZone?: string
 ): string {
-    const svgString = productiveTimeCard(productiveTimeData, resolveTheme(themeName, override), utcOffset);
+    const svgString = productiveTimeCard(productiveTimeData, resolveTheme(themeName, override), utcOffset, timeZone);
     return svgString;
 };
 
@@ -58,10 +62,11 @@ const adjustOffset = function (offset: number, RoundRobin: {offset: number}): nu
     }
 };
 
-const getProductiveTimeData = async function (
+export const getProductiveTimeData = async function (
     username: string,
     utcOffset: number,
-    token: string
+    token: string,
+    timeZone?: string
 ): Promise<Array<number>> {
     // Round the 1-year window to UTC day boundaries: the values feed the
     // data-cache key, and millisecond-precision timestamps made the key unique
@@ -78,8 +83,19 @@ const getProductiveTimeData = async function (
     const roundRobin = {
         offset: 0
     };
+    // Build once and reuse: Intl applies the DST rule in effect on each commit's
+    // date, so the same formatter is correct for standard and daylight time.
+    const hourFormatter = timeZone ? createTimeZoneHourFormatter(timeZone) : undefined;
     for (const time of productiveTime.productiveDate) {
-        const hour = new Date(time).getUTCHours(); // We use UTC+0 here
+        const date = new Date(time);
+        if (hourFormatter) {
+            // Keep the bucket in 0-23 even if an Intl implementation reports 24
+            // for midnight under a h24 cycle.
+            const zonedHour = Number(hourFormatter.format(date));
+            chartData[((zonedHour % 24) + 24) % 24] += 1;
+            continue;
+        }
+        const hour = date.getUTCHours(); // We use UTC+0 here
         const afterOffset = adjustOffset(Number(hour) + Number(utcOffset), roundRobin); // Add offset to hour
         // convert afterOffset to 0-23
         if (afterOffset < 0) {

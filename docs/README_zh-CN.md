@@ -103,11 +103,17 @@
 ### 提交时间表卡片
 ![](http://github-profile-summary-cards.vercel.app/api/cards/productive-time?username=vn7n24fzkq&theme=nord_bright&utcOffset=8)
 
+`http://github-profile-summary-cards.vercel.app/api/cards/productive-time?username={username}&theme={theme_name}&timeZone={iana_time_zone}`
+
 `http://github-profile-summary-cards.vercel.app/api/cards/productive-time?username={username}&theme={theme_name}&utcOffset={utcOffset}`
 - 可接收的参数
   - theme
   - username
+  - timeZone
+    - IANA 时区名称,例如 `Europe/Zurich`、`America/New_York` 或 `UTC`
+    - 自动处理夏令时,并优先于 `utcOffset`。
   - utcOffset
+    - 固定 UTC 偏移(小时),保留用于向后兼容;设置 `timeZone` 时会被忽略。
 
 ---
 
@@ -168,8 +174,10 @@ jobs:
           USERNAME: ${{ github.repository_owner }}
           # BRANCH_NAME is optional, default to main, branch name to push cards
           BRANCH_NAME: "main"
-          # UTC_OFFSET is optional, default to zero
+          # UTC_OFFSET is optional, default to zero. Ignored when TIME_ZONE is set.
           UTC_OFFSET: 8
+          # TIME_ZONE is optional; use an IANA zone (e.g. Europe/Zurich) to handle daylight saving time.
+          TIME_ZONE: ""
           # EXCLUDE is an optional comma seperated list of languages to exclude, defaults to ""
           EXCLUDE: ""
           # AUTO_PUSH is optional, a boolean variable default to true, whether automatically push generated files to desired branch

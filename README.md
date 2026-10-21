@@ -113,11 +113,21 @@
 ### Productive time card
 ![](docs/preview/api/productive-time.svg)
 
+`http://github-profile-summary-cards.vercel.app/api/cards/productive-time?username={username}&theme={theme_name}&timeZone={iana_time_zone}`
+
 `http://github-profile-summary-cards.vercel.app/api/cards/productive-time?username={username}&theme={theme_name}&utcOffset={utcOffset}`
 - accept url parameters
   - theme
   - username
+  - timeZone
+    - IANA time zone name, e.g. `Europe/Zurich`, `America/New_York`, or `UTC`
+    - Handles daylight saving time automatically and takes precedence over `utcOffset`.
   - utcOffset
+    - Fixed UTC offset in hours, kept for backward compatibility. Ignored when `timeZone` is present.
+
+Example with daylight saving time:
+
+`http://github-profile-summary-cards.vercel.app/api/cards/productive-time?username=vn7n24fzkq&theme=nord_bright&timeZone=Europe/Zurich`
 
 ### Custom colors
 
@@ -371,8 +381,10 @@ jobs:
           USERNAME: ${{ github.repository_owner }}
           # BRANCH_NAME is optional, default to main, branch name to push cards
           BRANCH_NAME: "main"
-          # UTC_OFFSET is optional, default to zero
+          # UTC_OFFSET is optional, default to zero. Ignored when TIME_ZONE is set.
           UTC_OFFSET: 8
+          # TIME_ZONE is optional; use an IANA zone (e.g. Europe/Zurich) to handle daylight saving time.
+          TIME_ZONE: ""
           # EXCLUDE is an optional comma seperated list of languages to exclude, defaults to ""
           EXCLUDE: ""
           # AUTO_PUSH is optional, a boolean variable default to true, whether automatically push generated files to desired branch
@@ -421,6 +433,9 @@ npm run test:local -- microsoft 0
 
 # Optional third arg: comma-separated languages to exclude
 npm run test:local -- microsoft 0 java,jupyter%20notebook
+
+# Use an IANA time zone instead of a fixed offset (handles DST)
+TIME_ZONE=Europe/Zurich npm run test:local -- vn7n24fzkq 8
 ```
 
 Outputs are written to `profile-summary-card-output/<theme>/`. Open `profile-summary-card-output/default/README.md` to preview every card in the default theme. When you point this at an organization, the productive-time slot is replaced by `4-productive-time-unsupported.svg` so you can verify the explanatory error card the Vercel route would return.
@@ -430,6 +445,9 @@ Outputs are written to `profile-summary-card-output/<theme>/`. Open `profile-sum
 ```sh
 # One theme, sequence animation at 4s, custom title — writes profile-summary-card-output/github_dark/
 THEME=github_dark ANIMATION=sequence DURATION=4 NAME="Casper" UTC_OFFSET=8 npm run test:action
+
+# Use an IANA time zone instead of UTC_OFFSET (handles daylight saving time)
+THEME=github_dark TIME_ZONE=Europe/Zurich npm run test:action
 
 # All themes, no animation (the Action's default)
 npm run test:action

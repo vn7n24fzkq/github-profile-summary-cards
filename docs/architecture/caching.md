@@ -52,7 +52,7 @@ writes, observed 2026-07-17).
 | `v2:cly:{user}:{year}` | Per-year commit languages (compact `[repo, lang, color, count]` tuples) | past: 90d±15d jitter; current: 12h | Biggest key family |
 | `v1:cys:{user}` | Contribution-years list | 12h | Tiny |
 | `v1:rl:{user}` | Repo languages (raw nodes) | 12h | ~5.6KB — next compaction candidate |
-| `v3:pt:{user}:{since}:{until}` | Productive-time commit samples | 12h | Window in key → daily natural rotation |
+| `v4:pt:{user}` | Productive-time raw commit timestamps | 24h | Window/offset/time zone excluded: raw dates are zone-independent; bucket after the cache boundary |
 | `v1:ot:{login}` | Owner type (User/Organization) | 12h | |
 | `v1:od:{org}` | Organization details | 12h | |
 

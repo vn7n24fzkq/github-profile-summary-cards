@@ -64,3 +64,7 @@ Key points:
   leak the backing account and never reach the card.
 - **Analytics never block or fail a card**: fired with `waitUntil` after the
   response; a bare fire-and-forget promise would be frozen with the lambda.
+- **Response caching is URL-based**: the Vercel CDN keys on the full URL, so
+  `utcOffset` and `timeZone` variations are separate cache entries. The Redis
+  data key for productive-time stays per-user because the cached raw commit
+  timestamps are time-zone independent; bucketing happens after the cache.
