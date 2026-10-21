@@ -10,15 +10,6 @@ const ORG_NOT_SUPPORTED =
 
 export default (req: VercelRequest, res: VercelResponse) => {
     const {utcOffset: rawOffset = '0', timeZone: rawTimeZone} = req.query;
-    if (typeof rawOffset !== 'string') {
-        res.status(400).send('utcOffset must be a string');
-        return;
-    }
-    // Validate + clamp to a real UTC offset range so a non-numeric value can't
-    // produce an all-zero chart (NaN index) and a huge value can't grow the
-    // 24-hour bucket array out of range (which throws in the template).
-    const parsed = Number(rawOffset);
-    const utcOffset = Number.isFinite(parsed) ? Math.min(14, Math.max(-12, parsed)) : 0;
 
     let timeZone: string | undefined;
     if (rawTimeZone !== undefined) {
@@ -34,6 +25,20 @@ export default (req: VercelRequest, res: VercelResponse) => {
             return;
         }
         timeZone = normalized;
+    }
+
+    // A valid time zone takes precedence: ignore utcOffset entirely, including
+    // repeated-query arrays that would otherwise fail the legacy type check.
+    let utcOffset = 0;
+    if (typeof rawOffset === 'string') {
+        // Validate + clamp to a real UTC offset range so a non-numeric value can't
+        // produce an all-zero chart (NaN index) and a huge value can't grow the
+        // 24-hour bucket array out of range (which throws in the template).
+        const parsed = Number(rawOffset);
+        utcOffset = Number.isFinite(parsed) ? Math.min(14, Math.max(-12, parsed)) : 0;
+    } else if (timeZone === undefined) {
+        res.status(400).send('utcOffset must be a string');
+        return;
     }
 
     return handleCard(

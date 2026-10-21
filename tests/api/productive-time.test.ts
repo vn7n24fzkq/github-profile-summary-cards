@@ -59,6 +59,46 @@ describe('productive time API route', () => {
         expect(mockHandleCard).not.toHaveBeenCalled();
     });
 
+    it('rejects a blank time zone with HTTP 400', async () => {
+        const res = makeRes();
+
+        await handler(makeReq({username: 'octocat', timeZone: ''}), res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.send).toHaveBeenCalledWith(expect.stringContaining('valid IANA time zone'));
+        expect(mockHandleCard).not.toHaveBeenCalled();
+    });
+
+    it('rejects a numeric offset supplied as a time zone', async () => {
+        const res = makeRes();
+
+        await handler(makeReq({username: 'octocat', timeZone: '+01:00'}), res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.send).toHaveBeenCalledWith(expect.stringContaining('valid IANA time zone'));
+        expect(mockHandleCard).not.toHaveBeenCalled();
+    });
+
+    it('still rejects a repeated utcOffset when no time zone is supplied', async () => {
+        const res = makeRes();
+
+        await handler(makeReq({username: 'octocat', utcOffset: ['8', '9']}), res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.send).toHaveBeenCalledWith('utcOffset must be a string');
+        expect(mockHandleCard).not.toHaveBeenCalled();
+    });
+
+    it('ignores repeated utcOffset parameters when a valid time zone is supplied', async () => {
+        const res = makeRes();
+
+        await handler(makeReq({username: 'octocat', utcOffset: ['8', '9'], timeZone: 'Europe/Zurich'}), res);
+
+        expect(res.status).not.toHaveBeenCalled();
+        expect(mockGetProductiveTimeSVG).toHaveBeenCalledWith('octocat', 'default', 0, 'token', {}, 'Europe/Zurich');
+        expect(mockHandleCard.mock.calls[0][4]).toEqual({utcOffset: '0', timeZone: 'Europe/Zurich'});
+    });
+
     it('passes a valid time zone through and canonicalizes its spelling', async () => {
         const res = makeRes();
 

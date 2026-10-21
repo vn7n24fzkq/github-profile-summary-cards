@@ -18,7 +18,7 @@ import mostCommitLanguageHandler from '../api/cards/most-commit-language';
 import statsHandler from '../api/cards/stats';
 import productiveTimeHandler from '../api/cards/productive-time';
 import {parseAnimation, applyAnimation} from '../src/utils/animation';
-import {normalizeTimeZone} from '../src/utils/time-zone';
+import {resolveTimeZoneQuery} from './time-zone-query';
 import {renderMockCard} from './mock-cards';
 
 type RouteHandler = (req: VercelRequest, res: VercelResponse) => Promise<void> | void;
@@ -236,8 +236,20 @@ const server = http.createServer(async (rawReq, rawRes) => {
             const card = url.pathname.replace('/api/cards/', '');
             const parsed = Number(query.utcOffset);
             const utcOffset = Number.isFinite(parsed) ? Math.min(14, Math.max(-12, parsed)) : 0;
-            const timeZone = query.timeZone ? normalizeTimeZone(query.timeZone) ?? undefined : undefined;
-            const svg = renderMockCard(card, query.theme ?? 'default', utcOffset, query.name, timeZone);
+            const resolvedTimeZone = resolveTimeZoneQuery(url.searchParams.get('timeZone'));
+            if (resolvedTimeZone.error) {
+                rawRes.statusCode = 400;
+                rawRes.setHeader('Content-Type', 'text/plain; charset=utf-8');
+                rawRes.end(resolvedTimeZone.error);
+                return;
+            }
+            const svg = renderMockCard(
+                card,
+                query.theme ?? 'default',
+                utcOffset,
+                query.name,
+                resolvedTimeZone.timeZone
+            );
             rawRes.setHeader('Content-Type', 'image/svg+xml');
             rawRes.end(applyAnimation(svg, parseAnimation(query.animation), query.duration));
             return;
