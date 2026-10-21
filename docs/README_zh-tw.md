@@ -230,8 +230,10 @@ jobs:
           USERNAME: ${{ github.repository_owner }}
           # BRANCH_NAME is optional, default to main, branch name to push cards
           BRANCH_NAME: "main"
-          # UTC_OFFSET is optional, default to zero
+          # UTC_OFFSET is optional, default to zero. Ignored when TIME_ZONE is set.
           UTC_OFFSET: 8
+          # TIME_ZONE is optional; use an IANA zone (e.g. Europe/Zurich) to handle daylight saving time.
+          TIME_ZONE: ""
 ```
 
 ---

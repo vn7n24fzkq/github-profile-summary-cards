@@ -8,11 +8,13 @@
 //
 // Controls mirror the Action inputs, passed as env vars:
 //   THEME=github_dark ANIMATION=sequence DURATION=4 NAME="Casper" UTC_OFFSET=8 npm run test:action
+//   TIME_ZONE=Europe/Zurich npm run test:action   # overrides UTC_OFFSET
 //
 // Leave THEME empty to generate every theme (like the Action's default).
 import {writeThemedCards, resolveThemeNames, CardGenerationOptions} from '../src/utils/card-generation';
 import {parseAnimation} from '../src/utils/animation';
 import {generatePreviewMarkdown, OUTPUT_PATH} from '../src/utils/file-writer';
+import {normalizeTimeZone} from '../src/utils/time-zone';
 import {renderMockCard, MOCK_CARDS} from './mock-cards';
 
 const themeInput = (process.env.THEME ?? '').trim() || undefined;
@@ -24,6 +26,12 @@ if (animationInput && !animation) {
 const duration = (process.env.DURATION ?? '').trim() || undefined;
 const displayName = (process.env.NAME ?? '').trim() || undefined;
 const utcOffset = Number(process.env.UTC_OFFSET ?? '0') || 0;
+const timeZoneInput = (process.env.TIME_ZONE ?? '').trim();
+const timeZone = timeZoneInput ? normalizeTimeZone(timeZoneInput) ?? undefined : undefined;
+if (timeZoneInput && !timeZone) {
+    console.error(`TIME_ZONE "${timeZoneInput}" is not a valid IANA time zone (e.g. Europe/Zurich).`);
+    process.exit(1);
+}
 
 const options: CardGenerationOptions = {theme: themeInput, animation, duration, displayName};
 
@@ -40,12 +48,17 @@ const FILE_NAMES: Record<string, string> = {
 const themes = resolveThemeNames(themeInput);
 console.info(
     `Mock Action: theme=${themeInput ?? 'all'} animation=${animation ?? 'none'} ` +
-        `duration=${duration ?? 'default'} name=${displayName ?? 'default'}`
+        `duration=${duration ?? 'default'} name=${displayName ?? 'default'} ` +
+        `timeZone=${timeZone ?? '(UTC offset)'}`
 );
 console.info(`Generating ${themes.length} theme(s): ${themes.join(', ')}`);
 
 for (const card of MOCK_CARDS) {
-    writeThemedCards(FILE_NAMES[card], themeName => renderMockCard(card, themeName, utcOffset, displayName), options);
+    writeThemedCards(
+        FILE_NAMES[card],
+        themeName => renderMockCard(card, themeName, utcOffset, displayName, timeZone),
+        options
+    );
 }
 generatePreviewMarkdown(false, 'User');
 

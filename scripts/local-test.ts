@@ -7,6 +7,7 @@
 //   2. npm run test:local -- <login> [utcOffset] [exclude]
 //      e.g. npm run test:local -- vn7n24fzkq 8
 //           npm run test:local -- microsoft 0 java,jupyter%20notebook
+//      Set TIME_ZONE=Europe/Zurich to use an IANA zone (it overrides utcOffset).
 //
 // Output:
 //   profile-summary-card-output/<theme>/0-profile-details.svg
@@ -31,6 +32,7 @@ import {getOwnerType} from '../src/github-api/owner-type';
 import {ThemeMap} from '../src/const/theme';
 import {OUTPUT_PATH, generatePreviewMarkdown} from '../src/utils/file-writer';
 import {translateLanguage} from '../src/utils/translator';
+import {normalizeTimeZone} from '../src/utils/time-zone';
 import {getErrorMsgCard} from '../api/utils/error-card';
 
 const ORG_PRODUCTIVE_TIME_MSG =
@@ -59,8 +61,16 @@ const main = async () => {
         }
     }
 
+    const timeZoneInput = (process.env.TIME_ZONE ?? '').trim();
+    const timeZone = timeZoneInput ? normalizeTimeZone(timeZoneInput) ?? undefined : undefined;
+    if (timeZoneInput && !timeZone) {
+        console.error(`TIME_ZONE "${timeZoneInput}" is not a valid IANA time zone (e.g. Europe/Zurich).`);
+        process.exit(1);
+    }
+
     console.info(`Local test for login: ${login}`);
     console.info(`UTC offset: ${utcOffset}`);
+    console.info(`Time zone: ${timeZone ?? '(none; using UTC offset)'}`);
     console.info(`Excluded languages: ${exclude.length === 0 ? '(none)' : exclude.join(', ')}`);
 
     const ownerType = await getOwnerType(login, token);
@@ -80,7 +90,7 @@ const main = async () => {
         await createReposPerLanguageCard(login, exclude, token);
         await createCommitsPerLanguageCard(login, exclude, token);
         await createStatsCard(login, token);
-        await createProductiveTimeCard(login, utcOffset, token);
+        await createProductiveTimeCard(login, utcOffset, token, {}, timeZone);
     }
 
     generatePreviewMarkdown(false, ownerType);
