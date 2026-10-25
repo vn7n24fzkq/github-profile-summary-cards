@@ -67,6 +67,7 @@ const fetcher = (token: string, variables: any) => {
                   }
                 }
                 name
+                nameWithOwner
               }
             }
           }
@@ -83,7 +84,8 @@ export async function getProductiveTime(
     username: string,
     until: string,
     since: string,
-    token: string
+    token: string,
+    excludeRepos: Array<string> = []
 ): Promise<ProfuctiveTime> {
     // The key deliberately excludes the since/until window: it shifts at every
     // UTC midnight, and a date-bearing key made yesterday's stale copy
@@ -91,8 +93,11 @@ export async function getProductiveTime(
     // never fired for productive-time. The window is always "trailing year to
     // today", so a stable key serves data at most one day off — invisible on a
     // year-long hour histogram. Freshness is governed by freshSeconds as usual.
-    // v4: window dropped from the key (was v3:pt:user:since:until).
-    const authoredDates = await withDataCache(`v4:pt:${username.toLowerCase()}`, async () => {
+    // excludeRepos stays out of the key too: dates are cached grouped per
+    // repository and the filter runs after the cache, so one shared entry
+    // serves every exclude_repos combination.
+    // v5: grouped-by-repo payload (v4 was a flat date array, v3 had the window).
+    const repoGroups = await withDataCache(`v5:pt:${username.toLowerCase()}`, async () => {
         const userIdResponse = await userIdFetcher(token, {
             login: username
         });
@@ -115,24 +120,42 @@ export async function getProductiveTime(
 
         assertNoGraphQLErrors(res, 'GetProductiveTime failed');
 
-        const dates: Date[] = [];
+        const groups: Array<{name: string; nameWithOwner: string; dates: Date[]}> = [];
         res.data.data.user.contributionsCollection.commitContributionsByRepository.forEach(
             (node: {
                 repository: {
                     defaultBranchRef: {target: {history: {edges: any[]}}} | null;
+                    name: string;
+                    nameWithOwner: string;
                 };
             }) => {
                 if (node.repository.defaultBranchRef != null) {
+                    const dates: Date[] = [];
                     node.repository.defaultBranchRef.target.history.edges.forEach(edge => {
                         dates.push(edge.node.authoredDate);
+                    });
+                    groups.push({
+                        name: node.repository.name,
+                        nameWithOwner: node.repository.nameWithOwner,
+                        dates: dates
                     });
                 }
             }
         );
-        return dates;
+        return groups;
     });
 
     const productiveTime = new ProfuctiveTime();
-    authoredDates.forEach(date => productiveTime.addProductiveDate(date));
+    repoGroups.forEach(group => {
+        // Same matching rules as the language cards: case-insensitive on the
+        // bare repo name or the owner/repo form.
+        if (
+            excludeRepos.includes((group.name ?? '').toLowerCase()) ||
+            excludeRepos.includes((group.nameWithOwner ?? '').toLowerCase())
+        ) {
+            return;
+        }
+        group.dates.forEach(date => productiveTime.addProductiveDate(date));
+    });
     return productiveTime;
 }
