@@ -451,6 +451,11 @@
                             <input id="exclude" name="exclude" placeholder="e.g. html,css" />
                         </div>
 
+                        <div class="field">
+                            <label for="excludeRepos">Exclude repos (comma separated)</label>
+                            <input id="excludeRepos" name="excludeRepos" placeholder="e.g. dotfiles,owner/repo" />
+                        </div>
+
                         <details class="colors">
                             <summary>Custom colours</summary>
                             <div class="colorgrid" id="colorgrid"></div>
@@ -533,7 +538,8 @@
                     'utcOffset',
                     'timeZone',
                     'name',
-                    'exclude'
+                    'exclude',
+                    'excludeRepos'
                 ].forEach(function (id) {
                     els[id] = document.getElementById(id);
                 });
@@ -602,6 +608,13 @@
                         els.exclude.value.trim()
                     )
                         p.set('exclude', els.exclude.value.trim());
+                    if (
+                        (endpoint === 'repos-per-language' ||
+                            endpoint === 'most-commit-language' ||
+                            endpoint === 'productive-time') &&
+                        els.excludeRepos.value.trim()
+                    )
+                        p.set('exclude_repos', els.excludeRepos.value.trim());
                     colorParams().forEach(function (kv) {
                         p.set(kv[0], kv[1]);
                     });

@@ -95,8 +95,20 @@ describe('productive time API route', () => {
         await handler(makeReq({username: 'octocat', utcOffset: ['8', '9'], timeZone: 'Europe/Zurich'}), res);
 
         expect(res.status).not.toHaveBeenCalled();
-        expect(mockGetProductiveTimeSVG).toHaveBeenCalledWith('octocat', 'default', 0, 'token', {}, 'Europe/Zurich');
-        expect(mockHandleCard.mock.calls[0][4]).toEqual({utcOffset: '0', timeZone: 'Europe/Zurich'});
+        expect(mockGetProductiveTimeSVG).toHaveBeenCalledWith(
+            'octocat',
+            'default',
+            0,
+            'token',
+            {},
+            'Europe/Zurich',
+            []
+        );
+        expect(mockHandleCard.mock.calls[0][4]).toEqual({
+            utcOffset: '0',
+            timeZone: 'Europe/Zurich',
+            exclude_repos_used: 'false'
+        });
     });
 
     it('passes a valid time zone through and canonicalizes its spelling', async () => {
@@ -104,8 +116,20 @@ describe('productive time API route', () => {
 
         await handler(makeReq({username: 'octocat', utcOffset: '8', timeZone: 'europe/zurich'}), res);
 
-        expect(mockGetProductiveTimeSVG).toHaveBeenCalledWith('octocat', 'default', 8, 'token', {}, 'Europe/Zurich');
-        expect(mockHandleCard.mock.calls[0][4]).toEqual({utcOffset: '8', timeZone: 'Europe/Zurich'});
+        expect(mockGetProductiveTimeSVG).toHaveBeenCalledWith(
+            'octocat',
+            'default',
+            8,
+            'token',
+            {},
+            'Europe/Zurich',
+            []
+        );
+        expect(mockHandleCard.mock.calls[0][4]).toEqual({
+            utcOffset: '8',
+            timeZone: 'Europe/Zurich',
+            exclude_repos_used: 'false'
+        });
     });
 
     it('keeps the legacy utcOffset behavior when no time zone is supplied', async () => {
@@ -113,7 +137,7 @@ describe('productive time API route', () => {
 
         await handler(makeReq({username: 'octocat', utcOffset: '8'}), res);
 
-        expect(mockGetProductiveTimeSVG).toHaveBeenCalledWith('octocat', 'default', 8, 'token', {}, undefined);
-        expect(mockHandleCard.mock.calls[0][4]).toEqual({utcOffset: '8', timeZone: null});
+        expect(mockGetProductiveTimeSVG).toHaveBeenCalledWith('octocat', 'default', 8, 'token', {}, undefined, []);
+        expect(mockHandleCard.mock.calls[0][4]).toEqual({utcOffset: '8', timeZone: null, exclude_repos_used: 'false'});
     });
 });

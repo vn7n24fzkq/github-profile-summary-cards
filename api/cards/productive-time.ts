@@ -9,7 +9,17 @@ const ORG_NOT_SUPPORTED =
     'The Productive Time card is not available for organization accounts. This card relies on per-user contribution data that GitHub does not expose at the organization level.';
 
 export default (req: VercelRequest, res: VercelResponse) => {
-    const {utcOffset: rawOffset = '0', timeZone: rawTimeZone} = req.query;
+    const {utcOffset: rawOffset = '0', timeZone: rawTimeZone, exclude_repos: rawExcludeRepos = ''} = req.query;
+
+    if (typeof rawExcludeRepos !== 'string') {
+        res.status(400).send('exclude_repos must be a string');
+        return;
+    }
+    // Comma-separated repo names to skip (case-insensitive); owner/repo also matches.
+    const excludeRepos = rawExcludeRepos
+        .split(',')
+        .map(val => val.trim().toLowerCase())
+        .filter(val => val.length > 0);
 
     let timeZone: string | undefined;
     if (rawTimeZone !== undefined) {
@@ -50,12 +60,21 @@ export default (req: VercelRequest, res: VercelResponse) => {
             if (ownerType === 'Organization') {
                 return getErrorMsgCard(ORG_NOT_SUPPORTED, theme);
             }
-            return getProductiveTimeSVGWithThemeName(username, theme, utcOffset, token, override, timeZone);
+            return getProductiveTimeSVGWithThemeName(
+                username,
+                theme,
+                utcOffset,
+                token,
+                override,
+                timeZone,
+                excludeRepos
+            );
         },
         // Analytics only. The SVG response is cached by the CDN against the full
-        // request URL, so different timeZone values are already distinct entries.
-        // The Redis data key stays per-user because the cached raw dates are
-        // timezone-independent (conversion happens after the cache boundary).
-        {utcOffset: String(utcOffset), timeZone: timeZone ?? null}
+        // request URL, so different timeZone/exclude_repos values are already
+        // distinct entries. The Redis data key stays per-user because the cached
+        // payload is zone-independent and grouped per repo (both the time-zone
+        // conversion and the exclude filter run after the cache boundary).
+        {utcOffset: String(utcOffset), timeZone: timeZone ?? null, exclude_repos_used: String(excludeRepos.length > 0)}
     );
 };

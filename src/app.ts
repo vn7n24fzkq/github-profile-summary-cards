@@ -89,7 +89,7 @@ const generateUserCards = async (
     // ProductiveTimeCard
     try {
         core.info(`Creating ProductiveTimeCard...`);
-        await createProductiveTimeCard(username, utcOffset, token, options, timeZone);
+        await createProductiveTimeCard(username, utcOffset, token, options, timeZone, excludeRepos);
     } catch (error: any) {
         core.error(`Error when creating ProductiveTimeCard \n${error.stack}`);
     }
