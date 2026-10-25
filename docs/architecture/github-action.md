@@ -9,7 +9,7 @@ the `release` branch state, which carries the ncc-bundled `dist/index.js`
 
 ```mermaid
 flowchart TB
-    trigger["User workflow: cron / push / dispatch"] --> inputs["Inputs: USERNAME, UTC_OFFSET, EXCLUDE, EXCLUDE_REPOS, THEME, ANIMATION, DURATION, NAME, AUTO_PUSH, BRANCH_NAME"]
+    trigger["User workflow: cron / push / dispatch"] --> inputs["Inputs: USERNAME, UTC_OFFSET, TIME_ZONE, EXCLUDE, EXCLUDE_REPOS, THEME, ANIMATION, DURATION, NAME, AUTO_PUSH, BRANCH_NAME"]
     inputs --> app["dist/index.js → src/app.ts action"]
     app --> owner{getOwnerType}
     owner -->|User| ucards["generateUserCards: profile-details, repos-per-language, most-commit-language, stats, productive-time"]

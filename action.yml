@@ -16,8 +16,13 @@ inputs:
   UTC_OFFSET:
     type: string
     required: false
-    description: 'The UTC offset used in the Productive Time Card.(e.g., 8, -3)'
+    description: 'The UTC offset used in the Productive Time Card.(e.g., 8, -3). Ignored when TIME_ZONE is set.'
     default: 0
+  TIME_ZONE:
+    type: string
+    required: false
+    description: 'IANA time zone for the Productive Time Card (e.g., Europe/Zurich). Handles daylight saving time and overrides UTC_OFFSET.'
+    default: ''
   EXCLUDE:
     type: string
     required: false

@@ -437,6 +437,11 @@
                         </div>
 
                         <div class="field">
+                            <label for="timeZone">IANA time zone (overrides UTC offset)</label>
+                            <input id="timeZone" name="timeZone" placeholder="e.g. Europe/Zurich" />
+                        </div>
+
+                        <div class="field">
                             <label for="name">Display name (profile card)</label>
                             <input id="name" name="name" placeholder="default: login (name)" />
                         </div>
@@ -520,7 +525,16 @@
                 var cardsEl = document.getElementById('cards');
                 var colorGrid = document.getElementById('colorgrid');
                 var els = {};
-                ['username', 'theme', 'animation', 'duration', 'utcOffset', 'name', 'exclude'].forEach(function (id) {
+                [
+                    'username',
+                    'theme',
+                    'animation',
+                    'duration',
+                    'utcOffset',
+                    'timeZone',
+                    'name',
+                    'exclude'
+                ].forEach(function (id) {
                     els[id] = document.getElementById(id);
                 });
 
@@ -575,8 +589,13 @@
                     }
                     if (endpoint === 'profile-details' && els.name.value.trim()) p.set('name', els.name.value.trim());
                     if (endpoint === 'productive-time') {
-                        var off = clampNum(els.utcOffset.value, -12, 14);
-                        if (off !== null) p.set('utcOffset', String(off));
+                        var tz = els.timeZone.value.trim();
+                        if (tz) {
+                            p.set('timeZone', tz);
+                        } else {
+                            var off = clampNum(els.utcOffset.value, -12, 14);
+                            if (off !== null) p.set('utcOffset', String(off));
+                        }
                     }
                     if (
                         (endpoint === 'repos-per-language' || endpoint === 'most-commit-language') &&
