@@ -34,7 +34,7 @@
         "dotenv": "^8.2.0",
         "jest-junit": "^17.0.0",
         "js-abbreviation-number": "^1.4.0",
-        "jsdom": "^16.4.0",
+        "jsdom": "^26.1.0",
         "retry-axios": "^2.6.0"
     },
     "devDependencies": {
@@ -42,7 +42,7 @@
         "@babel/preset-env": "^7.28.5",
         "@types/d3": "^6.7.0",
         "@types/jest": "^30.0.0",
-        "@types/jsdom": "^16.2.13",
+        "@types/jsdom": "^30.0.0",
         "@types/node": "^25.0.5",
         "@typescript-eslint/eslint-plugin": "^7.0.0",
         "@typescript-eslint/parser": "^7.0.0",
