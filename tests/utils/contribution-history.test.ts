@@ -3,12 +3,13 @@ import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 const mock = new MockAdapter(axios);
 
-function reply(commits: number, total: number) {
+function reply(commits: number, total: number, restricted = 0) {
     return {
         data: {
             user: {
                 contributionsCollection: {
                     totalCommitContributions: commits,
+                    restrictedContributionsCount: restricted,
                     contributionCalendar: {totalContributions: total}
                 }
             }
@@ -26,6 +27,18 @@ describe('getContributionTotals', () => {
         mock.onPost('https://api.github.com/graphql').reply(200, reply(100, 150));
         const totals = await getContributionTotals('user', [2026, 2025, 2024], 'token');
         expect(totals).toEqual({totalCommitContributions: 300, totalContributions: 450});
+    });
+
+    it('leaves restricted (private) contributions out by default', async () => {
+        mock.onPost('https://api.github.com/graphql').reply(200, reply(100, 150, 1000));
+        const totals = await getContributionTotals('user', [2026, 2025], 'token');
+        expect(totals).toEqual({totalCommitContributions: 200, totalContributions: 300});
+    });
+
+    it('adds restricted (private) contributions to commits when includeRestricted is set', async () => {
+        mock.onPost('https://api.github.com/graphql').reply(200, reply(100, 150, 1000));
+        const totals = await getContributionTotals('user', [2026, 2025], 'token', {includeRestricted: true});
+        expect(totals).toEqual({totalCommitContributions: 2200, totalContributions: 300});
     });
 
     it('produces identical totals with and without VERCEL (semantics never change)', async () => {

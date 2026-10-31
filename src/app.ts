@@ -51,7 +51,8 @@ const generateUserCards = async (
     token: string,
     options: CardGenerationOptions = {},
     excludeRepos: Array<string> = [],
-    timeZone?: string
+    timeZone?: string,
+    includePrivateContributions = false
 ) => {
     // ProfileDetailsCard
     try {
@@ -81,7 +82,7 @@ const generateUserCards = async (
     // StatsCard
     try {
         core.info(`Creating StatsCard...`);
-        await createStatsCard(username, token, options);
+        await createStatsCard(username, token, options, includePrivateContributions);
     } catch (error: any) {
         core.error(`Error when creating StatsCard \n${error.stack}`);
     }
@@ -167,6 +168,11 @@ const action = async () => {
     core.info(`Excluded repos: ${excludeRepos}`);
     const autoPush = core.getBooleanInput('AUTO_PUSH', {required: false});
     core.info(`You ${autoPush ? 'have' : "haven't"} set automatically push commits`);
+    // GitHub reports private contributions only as restrictedContributionsCount,
+    // even to the account's own token, so the Stats card's Total Commits is
+    // public-only unless the user opts in here.
+    const includePrivateContributions = core.getBooleanInput('INCLUDE_PRIVATE_CONTRIBUTIONS', {required: false});
+    core.info(`Include private contributions in Stats: ${includePrivateContributions}`);
 
     // Optional generation controls, all independent: THEME pins output to a single
     // theme (default: all themes); ANIMATION bakes a CSS animation into the SVGs
@@ -213,7 +219,8 @@ const action = async () => {
                 process.env.GITHUB_TOKEN!,
                 options,
                 excludeRepos,
-                timeZone
+                timeZone,
+                includePrivateContributions
             );
         }
 

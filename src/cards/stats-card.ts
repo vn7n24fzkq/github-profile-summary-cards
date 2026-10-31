@@ -6,8 +6,13 @@ import {getContributionTotals} from '../utils/contribution-history';
 import {createStatsCard as statsCard} from '../templates/stats-card';
 import {CardGenerationOptions, writeThemedCards} from '../utils/card-generation';
 
-export const createStatsCard = async function (username: string, token: string, options: CardGenerationOptions = {}) {
-    const statsData = await getStatsData(username, token);
+export const createStatsCard = async function (
+    username: string,
+    token: string,
+    options: CardGenerationOptions = {},
+    includePrivateContributions = false
+) {
+    const statsData = await getStatsData(username, token, includePrivateContributions);
     // use 3- prefix for sort in preview
     writeThemedCards('3-stats', themeName => getStatsSVG(statsData, themeName), options);
 };
@@ -37,7 +42,8 @@ const getStatsSVG = function (
 
 const getStatsData = async function (
     username: string,
-    token: string
+    token: string,
+    includePrivateContributions = false
 ): Promise<{index: number; icon: string; name: string; value: string}[]> {
     const profileDetails = await getProfileDetails(username, token);
     const totalStars = profileDetails.totalStars;
@@ -47,7 +53,9 @@ const getStatsData = async function (
 
     // Full history everywhere — per-year results are cached (past years are
     // immutable), so the web service can afford the same semantics as the Action.
-    const {totalCommitContributions} = await getContributionTotals(username, profileDetails.contributionYears, token);
+    const {totalCommitContributions} = await getContributionTotals(username, profileDetails.contributionYears, token, {
+        includeRestricted: includePrivateContributions
+    });
 
     const statsData = [
         {

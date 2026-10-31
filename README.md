@@ -314,9 +314,11 @@ The cards never render private repo names, titles, commit messages, or per-repo 
 
 2. **Opt in to private contributions on your profile.** Visit https://github.com/settings/profile, scroll to **Contribution settings**, and check **"Include private contributions on my profile."** Without this toggle, `contributionsCollection` returns zero for private activity even with a fully-scoped token.
 
-After both settings are in place, the following counts will include private-repo activity:
+3. **(Action only) Set `INCLUDE_PRIVATE_CONTRIBUTIONS: true` for the Stats card's Total Commits.** GitHub's GraphQL API reports private activity only as an opaque `restrictedContributionsCount` — it is *not* folded into `totalCommitContributions`, even when the query runs with the account's own fully-scoped token. With this input enabled the Action adds that count to Total Commits (the same approach github-readme-stats takes). It defaults to `false`, and the hosted service never sets it, so public cards are unchanged. Note that `restrictedContributionsCount` covers every private contribution type (commits, issues, PRs, reviews), so the total is an upper bound rather than a pure commit count.
 
-- ✅ Stats: Total Commits, Total PRs, Total Issues
+After these settings are in place, the following counts will include private-repo activity:
+
+- ✅ Stats: Total Commits (with `INCLUDE_PRIVATE_CONTRIBUTIONS: true`), Total PRs, Total Issues
 - ✅ Profile Details: contribution chart (daily contribution counts in the area chart)
 - ✅ Repos Per Language donut
 - ✅ Most Commit Language donut
@@ -392,6 +394,8 @@ jobs:
           EXCLUDE: ""
           # AUTO_PUSH is optional, a boolean variable default to true, whether automatically push generated files to desired branch
           AUTO_PUSH: true
+          # INCLUDE_PRIVATE_CONTRIBUTIONS is optional, default false; set true to count private contributions in the Stats card's Total Commits (needs a PAT with private read access — see "Including private-repo activity" above)
+          INCLUDE_PRIVATE_CONTRIBUTIONS: false
           # THEME is optional; set it to generate only that one theme (e.g. github_dark). Leave empty to generate every theme.
           THEME: ""
           # ANIMATION is optional; bake a CSS animation into the cards: none | fade | rise | draw | stagger | load | sequence | tint | rgb | rgb-soft. Empty = no animation.

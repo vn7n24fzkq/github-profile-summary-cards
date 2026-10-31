@@ -7,10 +7,20 @@ export class ConrtibutionByYear {
     year: number;
     totalCommitContributions: number;
     totalContributions: number;
-    constructor(year: number, totalCommitContributions: number, totalContributions: number) {
+    // Contributions the viewer cannot itemize (private repos). GitHub reports
+    // these separately even for the account's own token, so callers that want
+    // private activity counted must add this to totalCommitContributions.
+    restrictedContributionsCount: number;
+    constructor(
+        year: number,
+        totalCommitContributions: number,
+        totalContributions: number,
+        restrictedContributionsCount = 0
+    ) {
         this.year = year;
         this.totalCommitContributions = totalCommitContributions;
         this.totalContributions = totalContributions;
+        this.restrictedContributionsCount = restrictedContributionsCount;
     }
 }
 
@@ -28,6 +38,7 @@ const fetcher = (token: string, variables: any) => {
         user(login: $login) {
             contributionsCollection(from: $from, to: $to) {
                 totalCommitContributions
+                restrictedContributionsCount
                 contributionCalendar {
                     totalContributions
                 }
@@ -55,6 +66,7 @@ const commitCountFetcher = (token: string, variables: any) => {
         user(login: $login) {
             contributionsCollection(from: $from, to: $to) {
                 totalCommitContributions
+                restrictedContributionsCount
             }
         }
       }
@@ -125,7 +137,9 @@ export async function getContributionByYear(
                 const user = res.data.data.user;
                 return {
                     totalCommitContributions: user.contributionsCollection.totalCommitContributions as number,
-                    totalContributions: user.contributionsCollection.contributionCalendar.totalContributions as number
+                    totalContributions: user.contributionsCollection.contributionCalendar.totalContributions as number,
+                    restrictedContributionsCount: (user.contributionsCollection.restrictedContributionsCount ??
+                        0) as number
                 };
             } catch (err) {
                 if (!isTooExpensive(err)) throw err;
@@ -141,12 +155,20 @@ export async function getContributionByYear(
                     totalCommitContributions: commitsRes.data.data.user.contributionsCollection
                         .totalCommitContributions as number,
                     totalContributions: calendarRes.data.data.user.contributionsCollection.contributionCalendar
-                        .totalContributions as number
+                        .totalContributions as number,
+                    restrictedContributionsCount: (commitsRes.data.data.user.contributionsCollection
+                        .restrictedContributionsCount ?? 0) as number
                 };
             }
         },
         isPastYear ? {freshSeconds, retentionSeconds: freshSeconds + 10 * DAY, primed} : {primed}
     );
 
-    return new ConrtibutionByYear(year, raw.totalCommitContributions, raw.totalContributions);
+    // Entries cached before this field existed have no restricted count; treat as 0.
+    return new ConrtibutionByYear(
+        year,
+        raw.totalCommitContributions,
+        raw.totalContributions,
+        raw.restrictedContributionsCount ?? 0
+    );
 }

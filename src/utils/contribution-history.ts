@@ -25,6 +25,15 @@ export interface ContributionTotals {
     totalContributions: number;
 }
 
+export interface ContributionTotalsOptions {
+    /**
+     * Add restrictedContributionsCount (private activity GitHub refuses to
+     * itemize, even for the account's own token) to totalCommitContributions.
+     * Only meaningful with a personal token; the public service leaves it off.
+     */
+    includeRestricted?: boolean;
+}
+
 /**
  * Sums commit/total contributions across every contribution year.
  *
@@ -37,12 +46,14 @@ export interface ContributionTotals {
  * @param {string} username - The GitHub login.
  * @param {Array<number>} contributionYears - Years from the profile data.
  * @param {string} token - GitHub token.
+ * @param {ContributionTotalsOptions} options - See ContributionTotalsOptions.
  * @return {Promise<ContributionTotals>} Full-history totals.
  */
 export async function getContributionTotals(
     username: string,
     contributionYears: number[],
-    token: string
+    token: string,
+    options: ContributionTotalsOptions = {}
 ): Promise<ContributionTotals> {
     const years = [...contributionYears].sort((a, b) => b - a);
     // The budget measures from the request start when available so phases and
@@ -65,6 +76,7 @@ export async function getContributionTotals(
         const results = await Promise.all(chunk.map(year => getContributionByYear(username, year, token, primed)));
         for (const result of results) {
             totalCommitContributions += result.totalCommitContributions;
+            if (options.includeRestricted) totalCommitContributions += result.restrictedContributionsCount;
             totalContributions += result.totalContributions;
         }
     }

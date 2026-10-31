@@ -38,6 +38,11 @@ inputs:
     required: false
     description: 'Whether automatically push generated files to desired branch'
     default: true
+  INCLUDE_PRIVATE_CONTRIBUTIONS:
+    type: boolean
+    required: false
+    description: 'Count private contributions (restrictedContributionsCount) in the Stats card Total Commits. Needs a personal token with access to the private repositories and "Include private contributions on my profile" enabled.'
+    default: false
   THEME:
     type: string
     required: false

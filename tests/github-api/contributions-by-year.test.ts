@@ -38,8 +38,26 @@ describe('contributions count on github', () => {
         expect(totalContributions).toEqual({
             totalCommitContributions: 30,
             totalContributions: 10,
+            restrictedContributionsCount: 0,
             year: 2020
         });
+    });
+
+    it('carries restrictedContributionsCount when GitHub reports it', async () => {
+        mock.onPost('https://api.github.com/graphql').reply(200, {
+            data: {
+                user: {
+                    contributionsCollection: {
+                        totalCommitContributions: 30,
+                        restrictedContributionsCount: 500,
+                        contributionCalendar: {totalContributions: 540}
+                    }
+                }
+            }
+        });
+        const totalContributions = await getContributionByYear('vn7n24fzkq', 2020, 'token');
+        expect(totalContributions.restrictedContributionsCount).toBe(500);
+        expect(totalContributions.totalCommitContributions).toBe(30);
     });
 
     it('should throw error when api failed', async () => {
@@ -70,6 +88,7 @@ describe('contributions count on github', () => {
         expect(result).toEqual({
             totalCommitContributions: 10270,
             totalContributions: 11929,
+            restrictedContributionsCount: 0,
             year: 2017
         });
     });
@@ -95,6 +114,7 @@ describe('contributions count on github', () => {
         expect(result).toEqual({
             totalCommitContributions: 10270,
             totalContributions: 11929,
+            restrictedContributionsCount: 0,
             year: 2017
         });
     }, 20000);
